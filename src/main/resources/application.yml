@@ -1,0 +1,353 @@
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+#spring.jpa.hibernate.ddl-auto=update
+#instead above
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    hibernate.ddl-auto: validate
+
+  thymeleaf:
+    cache: false
+#mail
+  mail:
+      host: smtp.gmail.com
+      username: mgsvirydclone@gmail.com
+      password: ${mailPassword}
+      port: 587
+      protocol: smtp
+      properties:
+        mail:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+#session
+  session:
+      jdbc:
+        initialize-schema: always
+        table-name: SPRING_SESSION
+
+#profiles
+  profiles:
+      active: ${devMode}
+
+  main:
+          allow-bean-definition-overriding: true
+
+
+# server path
+server:
+  language: en
+  path:
+    createDirectories: false
+    absolute: /../attrade-upload
+    upload: /upload
+    uploadPicture: /upload/picture
+    staticPicture: /static/picture
+
+mail:
+  debug: true
+
+#recapcha
+#https://www.google.com/u/1/recaptcha/admin/site/348929324
+recaptcha:
+  secret: ${recaptchaSecret}
+  url: https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s
+
+#webpack
+webpack:
+  devPort: http://localhost:8000
+
+#registration
+registration:
+  token:
+    expirationDT: 5M
+
+logging:
+  level:
+    by:
+      attrade:
+        controller: DEBUG
+        config: DEBUG
+        service: ERROR
+    root: ON
+
+
+
+#TODO
+product:
+  search:
+    sortFieldsNames:
+                - visitors
+    sortFieldsTypes:
+                - int
+    sortReverse:
+                - true
+    minGramSize: 3
+    onFields:
+                - name
+                - code
+                - category.name
+
+#https://developers.facebook.com/apps/542929309886002/fb-login/settings/
+#https://theonetechnologies.com/blog/post/how-to-get-facebook-application-id-and-secret-key
+facebook:
+    client:
+        accessTokenUri: https://graph.facebook.com/oauth/access_token
+        authenticationScheme: query
+        clientAuthenticationScheme: form
+        clientId: 542929309886002
+        clientSecret: ${facebookClientSecret}
+        tokenName: oauth_token
+        userAuthorizationUri: https://www.facebook.com/dialog/oauth
+    resource:
+        userInfoUri: https://graph.facebook.com/me
+
+#https://github.com/settings/applications/1171196
+#https://github.com/settings/developers
+github:
+  client:
+    clientId: dbcb26787de560f5f9ea
+    clientSecret: ${githubClientSecret}
+    accessTokenUri: https://github.com/login/oauth/access_token
+    userAuthorizationUri: https://github.com/login/oauth/authorize
+    clientAuthenticationScheme: form
+  resource:
+    userInfoUri: https://api.github.com/user
+
+#https://console.cloud.google.com/apis/credentials?project=attrade-core&supportedpurview=project
+google:
+    client:
+        accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+        clientAuthenticationScheme: form
+        clientId: 185460716091-1rasqe3vdl56flepchpugq569c4hasnk.apps.googleusercontent.com
+        clientSecret: ${googleClientSecret}
+        scope: openid,email,profile
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+    resource:
+        preferTokenInfo: true
+        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+
+    #https://script.google.com/d/1zm1fkG5LiHZkp74o5vFzzPLnvnaCt71gCk6fpED51dAfZC9NEKmZMPpx/edit?template=default
+    script:
+        translator:
+          url: https://script.google.com/macros/s/AKfycbxcmiDPFv1OFHdreLBzhHnX5OXt9wW4jctck1KNZsdwwftZScc/exec
+    #https://console.cloud.google.com/iam-admin/settings?project=attrade&supportedpurview=project
+    #https://console.developers.google.com/apis/api/storage-api.googleapis.com/overview?project=attrade
+    activator:
+      init: true
+      projectId: attrade
+      defaultBucket: attrade-bucket
+      pathToJsonKey: ${GOOGLE_APPLICATION_CREDENTIALS}
+security:
+    oauth2:
+        client:
+            auto-approve-scopes: '''.*'''
+            client-id: acme
+            client-secret: acmesecret
+            scope: read,write
+    security:
+      basic:
+        enable: false
+      ignored:  /**
+
+oauth2:
+  social:
+          - google
+          - facebook
+          - github
+  idAttr:
+          - sub
+          - id
+          - id
+  nameAttr:
+          - email
+          - name
+          - login
+
+messages-source:
+  onlyLanguage: true
+  basename: 'lang/messages'
+  encoding: 'UTF-8'
+
+picture:
+  media:
+    init: false
+    removePicturesIfAreNotPictureOrNoRead: false
+    compressMain: false
+    compressMainQuality: 100
+    createMediaPictures: false
+    createMarkerPictures: false
+    defaultPictureFileName: default.png
+
+    markerNames:
+      - -icon
+      - -small
+
+    markerWidths:
+      --icon: 110
+      --icon576: 60
+      --small: 250
+      --small576: 110
+    paths:
+      - /576
+    medias:
+      - '(max-width: 576px)'
+    compressionPercents:
+      - 50
+    compressionWidths:
+      - 250
+
+scheduled:
+  CategoryHierarchyService:
+    build:
+      fixedDelayInMilliseconds: 60000
+      initialDelayInMilliseconds: 60000
+
+
+hibernate:
+  search:
+    init: true
+    purgeAllOnStart: true
+    optimizeOnFinish: true
+    batchSizeToLoadObjects: 100
+    threadsToLoadObjects: 10
+    regexAnyChar: '**'
+    minGramSize: 3
+
+property:
+  by-product-fields:
+    names:
+      - 'Цена'
+      - 'Скидка'
+      - 'В наличии'
+      - 'На складе'
+      - 'Страна производства'
+      - 'Страна поставщика'
+      - 'Сервисный центр'
+      - 'Производитель'
+      - 'Количество'
+      - 'Количество в индивидуальной упаковке'
+      - 'Количество в транспортной упаковке'
+      - 'Высота'
+      - 'Высота индивидуальной упаковки'
+      - 'Высота транспортной упаковки'
+      - 'Длина'
+      - 'Длина индивидуальной упаковки'
+      - 'Длина транспортной упаковки'
+      - 'Ширина'
+      - 'Ширина индивидуальной упаковки'
+      - 'Ширина транспортной упаковки'
+      - 'Вес'
+      - 'Вес индивидуальной упаковки'
+      - 'Вес транспортной упаковки'
+    paths:
+      - 'price'
+      - 'discount'
+      - 'quantity-in-stock'
+      - 'quantity-supplier'
+      - 'made-country'
+      - 'delivery-country'
+      - 'service-center'
+      - 'vendor-short'
+      - 'count'
+      - 'count-pack'
+      - 'count-carry'
+      - 'height'
+      - 'height-pack'
+      - 'height-carry'
+      - 'length'
+      - 'length-pack'
+      - 'length-carry'
+      - 'width'
+      - 'width-pack'
+      - 'width-carry'
+      - 'weight'
+      - 'weight-pack'
+      - 'weight-carry'
+
+    types:
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'INTEGER'
+      - 'INTEGER'
+      - 'STRING'
+      - 'STRING'
+      - 'STRING'
+      - 'STRING'
+      - 'INTEGER'
+      - 'INTEGER'
+      - 'INTEGER'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+      - 'DOUBLE'
+
+    units:
+      - 'CURRENCY'
+      - 'PERCENT'
+      - 'ITEM'
+      - 'ITEM'
+      - 'UNDEFINED'
+      - 'UNDEFINED'
+      - 'UNDEFINED'
+      - 'UNDEFINED'
+      - 'ITEM'
+      - 'ITEM'
+      - 'ITEM'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+      - 'MILLIMETER'
+
+url:
+  reservedWords:
+    - 'page'
+    - 'size'
+    - 'direction'
+    - 'property'
+    - 'is-need-property-choices'
+
+language:
+  abbrs:
+    - 'RU'
+    - 'EN'
+  names:
+    - 'Русский'
+    - 'English'
+
+frontend:
+  config:
+    uploadResource: https://storage.cloud.google.com/attrade-bucket
+    staticResource: ''
+  version:
+    CategoryHierarchy: 1.0
+    PictureMedia: 1.0
+    LanguageList: 1.0
+
+
+info:
+  url: http://localhost:8080
+  logo: Attrade
+debug: true
