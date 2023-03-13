@@ -212,7 +212,7 @@ scheduled:
 
 hibernate:
   search:
-    init: true
+    init: false
     purgeAllOnStart: true
     optimizeOnFinish: true
     batchSizeToLoadObjects: 100
@@ -350,4 +350,49 @@ frontend:
 info:
   url: http://localhost:8080
   logo: Attrade
+
 debug: true
+
+excel:
+  card:
+    column:
+      word: 0
+      translation: 1
+      workspace: 2
+      example: 3
+      exampleTranslation: 4
+      dictionary: 5
+      transcription: 6
+      learned: 7
+      sound: 8
+      creationLDT: 9
+      learnedLDT: 10
+      forgotLDT: 11
+      countForgot: 12
+      picture: 13
+      invisible: 14
+    row:
+      countSkipFirstRow: 1
+    template:
+      shortTemplateFilename: './src/main/resources/file/excel/template/short-engvoc.xlsx'
+      fullTemplateFilename: './src/main/resources/file/excel/template/engvoc.xlsx'
+      
+
+abbyy:
+  splitter:
+    latin:
+      cyrillic:
+        suffix_1: '—'
+        suffix_2: '--'
+        suffix_3: '-'
+        empty: ''
+
+dictionary:
+  supported:
+    - 'EnRu'
+  abbr:
+    - 'En'
+    - 'Ru'
+  ids:
+    - 1033
+    - 1049

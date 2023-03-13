@@ -1,5 +1,7 @@
 package by.sviryd.engvoc.util;
 
+import org.springframework.util.StringUtils;
+
 public class StringUtil {
     public static String trimIfNotNull(String text) {
         if (text != null) {
@@ -22,5 +24,10 @@ public class StringUtil {
         } else {
             return text;
         }
+    }
+    public static String getFilenameWithoutExtension(String filename){
+        String extension = StringUtils.getFilenameExtension(filename);
+        if (extension == null) return null;
+        return filename.substring(0,filename.indexOf(extension)-1);
     }
 }

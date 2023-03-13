@@ -1,12 +1,10 @@
 package by.sviryd.engvoc.domain;
 
-import by.sviryd.engvoc.interceptor.CategoryIndexingInterceptor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
 import org.hibernate.annotations.Formula;
-import org.hibernate.search.annotations.*;
-import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -23,10 +21,9 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Indexed(interceptor = CategoryIndexingInterceptor.class)
-@JsonIgnoreProperties(value = {"products", "properties"})
+@JsonIgnoreProperties(value = {"cards"})
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name", "parent"}))
-public class Category implements IIdParent, INamePath, Serializable {
+public class Dictionary implements IIdParent, Serializable {
     public static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,23 +35,14 @@ public class Category implements IIdParent, INamePath, Serializable {
     @Length(max = 100)
     @NotBlank
     @NonNull
-    @Fields({
-            @Field(index= Index.YES, analyze= Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram")),
-            @Field(name = "name_ascii", analyze = Analyze.YES, normalizer = @Normalizer(definition = "ascii"), store = Store.NO)
-    })
     @JsonView(Views.Name.class)
     private String name;
 
     @Min(0)
     private Long parent;
 
-    @Column(length = 255)
-    @Length(max = 255)
-    @JsonView(Views.Path.class)
-    private String path;
-
-    @Column(length = 150)
-    @Length(max = 150)
+    @Column(length = 50)
+    @Length(max = 50)
     @JsonView(Views.Picture.class)
     private String picture;
 
@@ -65,20 +53,17 @@ public class Category implements IIdParent, INamePath, Serializable {
     private boolean invisible;
 
     @JsonView(Views.ProductCount.class)
-    @Formula("(select count(*) from Product p where p.category_id = id and p.invisible = 0)")
-    private Long productCount;
+    @Formula("(select count(*) from Card p where p.dictionary_id = id)")
+    private Long countCard;
 
-    @OneToMany(mappedBy = "category")
-    @IndexedEmbedded(includePaths = { "name", "code"})
-    private List<Product> products = new ArrayList<>();
+    @OneToMany(mappedBy = "dictionary")
+    private List<Card> cards = new ArrayList<>();
 
-    @OneToMany(mappedBy = "category")
-    private List<Property> properties = new ArrayList<>();
-
-    public Category(String name) {
+    public Dictionary(String name) {
         this.name = name;
     }
-    public Category(String name, String picture) {
+
+    public Dictionary(String name, String picture) {
         this.name = name;
         this.picture = picture;
     }
