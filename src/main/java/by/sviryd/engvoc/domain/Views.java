@@ -157,6 +157,9 @@ public final class Views {
     public interface ProductRaw extends Id, Name, Code, Path, Picture, Price, Discount, PriceWithDiscount, PriceWithoutVatWithDiscount, Category, QuantityInStock, QuantitySupplier, Unit, CreationLDT {
     }
 
+    public interface Parent{}
+    public interface DictionaryRaw extends Id, Name, Parent, Picture, Priority, Invisible{}
+
     public interface Word{}
     public interface Translation{}
     public interface Example{}

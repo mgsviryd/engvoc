@@ -102,9 +102,9 @@
 <script>
     import {mapState} from 'vuex'
     import {mixin as clickaway} from 'vue-clickaway';
-    import PictureUpload from 'components/picture/PictureUpload.vue'
-    import CatalogueNavigation from 'components/breadcrumb/CatalogueNavigation.vue'
-    import Catalogue from 'components/catalogue/Catalogue.vue'
+    import PictureUpload from '../../components/picture/PictureUpload.vue'
+    import CatalogueNavigation from '../../components/breadcrumb/CatalogueNavigation.vue'
+    import Catalogue from '../../components/catalogue/Catalogue.vue'
 
     export default{
         components: {

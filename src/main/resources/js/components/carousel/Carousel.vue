@@ -26,7 +26,7 @@
 </template>
 
 <script>
-    import PictureStatic from 'components/picture/PictureStatic.vue'
+    import PictureStatic from '../../components/picture/PictureStatic.vue'
     export default {
         components: {
             PictureStatic,

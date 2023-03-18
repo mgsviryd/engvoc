@@ -9,10 +9,10 @@
 
 <script>
 
-    import Navbar from 'components/navbar/Navbar.vue'
-    import Navbar1 from 'components/navbar/Navbar1.vue'
-    import CategoryHierarchy from 'components/category/CategoryHierarchy.vue'
-    import Basket from 'components/basket/Basket.vue'
+    import Navbar from '../components/navbar/Navbar.vue'
+    import Navbar1 from '../components/navbar/Navbar1.vue'
+    import CategoryHierarchy from '../components/category/CategoryHierarchy.vue'
+    import Basket from '../components/basket/Basket.vue'
     export default{
         components: {
             Navbar,

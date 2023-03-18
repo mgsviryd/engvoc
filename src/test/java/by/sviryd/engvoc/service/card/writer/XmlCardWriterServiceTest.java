@@ -2,6 +2,7 @@ package by.sviryd.engvoc.service.card.writer;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.service.card.reader.XmlCardReaderService;
+import by.sviryd.engvoc.util.MultipartFileUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.List;

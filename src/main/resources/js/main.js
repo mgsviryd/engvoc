@@ -14,6 +14,12 @@ import UUID from 'vue-uuid';
 var VueScrollTo = require('vue-scrollto');
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
+import BootstrapVue from 'bootstrap-vue'
+import IconsPlugin from 'bootstrap-vue'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+import VueFileAgent from 'vue-file-agent';
+import VueFileAgentStyles from 'vue-file-agent/dist/vue-file-agent.css';
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
@@ -21,9 +27,10 @@ window.$ = $;
 Vue.component('vue-headful', vueHeadful);
 Vue.component('multiselect', Multiselect)
 Vue.component('VueSlider', VueSlider)
+
 Vue.use(VueCookies)
 Vue.use(VueWait)
-Vue.use(UUID);
+Vue.use(UUID)
 Vue.use(VueScrollTo, {
     container: "body",
     duration: 500,
@@ -37,6 +44,10 @@ Vue.use(VueScrollTo, {
     x: false,
     y: true
 })
+Vue.use(BootstrapVue)
+Vue.use(IconsPlugin)
+Vue.use(VueFileAgent);
+Vue.use(VueFileAgentStyles);
 
 connect()
 

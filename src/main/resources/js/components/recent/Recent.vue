@@ -37,10 +37,10 @@
 
 <script>
     import {mapState} from 'vuex'
-    import ProductRow from 'components/product/ProductRow.vue'
-    import GoogleCircle from 'components/spinner/GoogleCircle.vue'
-    import ConfirmAction from 'components/modal/ConfirmAction.vue'
-    import SortSingleDropdownRecent from 'components/pager/SortSingleDropdownRecent.vue'
+    import ProductRow from '../../components/product/ProductRow.vue'
+    import GoogleCircle from '../../components/spinner/GoogleCircle.vue'
+    import ConfirmAction from '../../components/modal/ConfirmAction.vue'
+    import SortSingleDropdownRecent from '../../components/pager/SortSingleDropdownRecent.vue'
     export default{
         components: {
             ProductRow,

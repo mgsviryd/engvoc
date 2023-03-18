@@ -136,8 +136,8 @@
 
 <script>
     import {mapState, mapActions, mapMutations} from 'vuex'
-    import Unit from 'components/types/Unit.vue'
-    import PictureUpload from 'components/picture/PictureUpload.vue'
+    import Unit from '../../components/types/Unit.vue'
+    import PictureUpload from '../../components/picture/PictureUpload.vue'
     export default {
         components: {
             Unit,

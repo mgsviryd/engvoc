@@ -18,6 +18,8 @@ import java.util.Map;
 public class FrontendConfig {
     @Autowired
     private ServerPathConfig serverPathConfig;
+    @Autowired
+    private InfoConfig infoConfig;
     private Map<String, String> config;
     private Map<String, String> version;
 
@@ -32,5 +34,7 @@ public class FrontendConfig {
     public void init(){
         config.put("uploadPicture", serverPathConfig.getUploadPicture());
         config.put("staticPicture", serverPathConfig.getStaticPicture());
+        config.put("url",infoConfig.getUrl());
+        config.put("logo",infoConfig.getLogo());
     }
 }

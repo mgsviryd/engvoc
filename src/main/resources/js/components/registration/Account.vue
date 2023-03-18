@@ -11,8 +11,8 @@
 
 <script>
     import { mapState } from 'vuex'
-    import AccountCabinet from 'components/registration/AccountCabinet.vue'
-    import AccountNew from 'components/registration/AccountNew.vue'
+    import AccountCabinet from '../../components/registration/AccountCabinet.vue'
+    import AccountNew from '../../components/registration/AccountNew.vue'
     export default{
         components: {
             AccountCabinet,

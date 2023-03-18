@@ -14,11 +14,12 @@
 
 <script>
     import {mapState} from 'vuex'
-    import Navbar from 'components/navbar/Navbar.vue'
-    import Navbar1 from 'components/navbar/Navbar1.vue'
-    import CategoryHierarchy from 'components/category/CategoryHierarchy.vue'
-    import Carousel from 'components/carousel/Carousel.vue'
-    import CategoryMain from 'components/carousel/CategoryMain.vue'
+    import Navbar from '../components/navbar/Navbar.vue'
+    import Navbar1 from '../components/navbar/Navbar1.vue'
+    import CategoryHierarchy from '../components/category/CategoryHierarchy.vue'
+    import Carousel from '../components/carousel/Carousel.vue'
+    import CategoryMain from '../components/carousel/CategoryMain.vue'
+
     export default{
         components: {
             Navbar,

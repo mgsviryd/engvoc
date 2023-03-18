@@ -12,11 +12,14 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/json/card")
@@ -62,9 +65,8 @@ public class CardRestController {
         return cardService.getCardsByDictionary(dictionary);
     }
 
-    @PostMapping("excel/file")
-    @JsonView(Views.CardPage.class)
-    public List<Card> excel(
+    @PostMapping("upload/excel/filename")
+    public List<Card> excelFilename(
             @RequestBody String json
     ) {
         JsonParser parser = new JsonParser();
@@ -73,7 +75,23 @@ public class CardRestController {
         File file = new File(filename);
         return excelCardShortReaderService.extract(file);
     }
-    @PostMapping("xml/file")
+    @PostMapping("upload/excel/file")
+    public List<Card> excelFile(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return excelCardShortReaderService.extract(file);
+    }
+
+    @PostMapping("upload/excel/files")
+    public List<Card> excelFiles(
+            @RequestParam("files") MultipartFile [] files
+    ) {
+        return Arrays.stream(files)
+                .map(excelCardShortReaderService::extract)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+    @PostMapping("upload/xml/filename")
     public List<Card> xml(
             @RequestBody String json
     ) throws Exception {
@@ -82,5 +100,20 @@ public class CardRestController {
         String filename = obj.get("filename").getAsString();
         File file = new File(filename);
         return xmlCardReaderService.extract(file);
+    }
+    @PostMapping("upload/xml/file")
+    public List<Card> xmlFile(
+            @RequestParam("file") MultipartFile file
+    ) throws Exception {
+        return xmlCardReaderService.extract(file);
+    }
+    @PostMapping("upload/xml/files")
+    public List<Card> xmlFiles(
+            @RequestParam("files") MultipartFile [] files
+    ) throws Exception {
+        return Arrays.stream(files)
+                .map(xmlCardReaderService::extract)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 }

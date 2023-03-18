@@ -30,9 +30,9 @@
 
 <script>
     import {mapState} from 'vuex'
-    import Account from 'components/registration/Account.vue'
-    import LoginButtons from 'components/login/LoginButtons.vue'
-    import Search from 'components/search/Search.vue'
+    import Account from '../../components/registration/Account.vue'
+    import LoginButtons from '../../components/login/LoginButtons.vue'
+    import Search from '../../components/search/Search.vue'
     export default{
         components: {
             Account,

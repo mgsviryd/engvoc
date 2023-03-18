@@ -2,6 +2,7 @@ package by.sviryd.engvoc.service.card.reader;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.Meaning;
 import by.sviryd.engvoc.service.card.AbbyyLatinCyrillicSplitterService;
 import by.sviryd.engvoc.service.card.DictionaryBindService;
 import by.sviryd.engvoc.util.FileExtensionUtil;
@@ -11,12 +12,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -45,32 +49,38 @@ public class XmlCardReaderService {
     @Autowired
     private AbbyyLatinCyrillicSplitterService splitter;
 
-    public List<Card> extract(List<File> files) throws Exception {
-        List<Card> cards = new ArrayList<>();
-        for (File file : files) {
-            cards.addAll(extract(file));
+    public List<Card> extract(File file) throws Exception {
+        validateIO(file);
+        String dictionaryName = dictionaryConfig.getDictionaryNameWithoutAbbr(file.getName());
+        if (dictionaryName == null) {
+            throw new IllegalArgumentException("File " + file + "is not supported dictionary.");
         }
-        return cards;
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(file);
+        return getCards(document, dictionaryName);
     }
 
-    public List<Card> extract(File file) throws Exception {
-        if (file.isDirectory()) {
-            throw new IllegalArgumentException("File " + file + "is not a file, it is a directory.");
+    public List<Card> extract(MultipartFile file){
+        if (!FileExtensionUtil.isXml(file.getName())) {
+            throw new IllegalArgumentException("File " + file + "is not xml.");
         }
         String dictionaryName = dictionaryConfig.getDictionaryNameWithoutAbbr(file.getName());
         if (dictionaryName == null) {
             throw new IllegalArgumentException("File " + file + "is not supported dictionary.");
         }
-        if (!file.exists()) {
-            throw new IllegalArgumentException("File " + file + "does not exist.");
+        SAXReader reader = new SAXReader();
+        Document document;
+        try {
+            document = reader.read(file.getInputStream());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
         }
-        if (!FileExtensionUtil.isXml(file.getName())) {
-            throw new IllegalArgumentException("File " + file + "is not xml.");
-        }
+        return getCards(document, dictionaryName);
+    }
+
+    private List<Card> getCards(Document document, String dictionaryName) {
         Dictionary dictionary = new Dictionary(dictionaryName);
         List<Card> cards = new ArrayList<>();
-        SAXReader reader = new SAXReader();
-        Document document = reader.read(file);
         Element root = document.getRootElement();
         for (Iterator<Element> it = root.elementIterator(CARD); it.hasNext(); ) {
             Element card = it.next();
@@ -111,6 +121,20 @@ public class XmlCardReaderService {
             }
         }
         return cards;
+    }
+
+
+    private void validateIO(File file) {
+        if (file.isDirectory()) {
+            throw new IllegalArgumentException("File " + file + "is not a file, it is a directory.");
+        }
+
+        if (!file.exists()) {
+            throw new IllegalArgumentException("File " + file + "does not exist.");
+        }
+        if (!FileExtensionUtil.isXml(file.getName())) {
+            throw new IllegalArgumentException("File " + file + "is not xml.");
+        }
     }
 
     private String getSound(Element eMeaning) {

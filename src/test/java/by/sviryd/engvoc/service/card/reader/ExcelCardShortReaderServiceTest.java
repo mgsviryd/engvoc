@@ -1,6 +1,7 @@
 package by.sviryd.engvoc.service.card.reader;
 
 import by.sviryd.engvoc.domain.Card;
+import by.sviryd.engvoc.util.MultipartFileUtil;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,9 +10,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -61,6 +64,18 @@ public class ExcelCardShortReaderServiceTest {
             count = cards.size();
         } catch (Exception e) {
         }
+        Assert.assertEquals(countInSheet, count);
+    }
+    public void testExtract4() throws IOException {
+        MultipartFile multipartFile = MultipartFileUtil.getMultipartFile(file);
+        List<Card> cards = service.extract(multipartFile);
+        int count = cards.size();
+        Assert.assertEquals(countInBook, count);
+    }
+    public void testExtract5() throws IOException {
+        MultipartFile multipartFile = MultipartFileUtil.getMultipartFile(file);
+        List<Card> cards = service.extract(multipartFile, sheetName);
+        int count = cards.size();
         Assert.assertEquals(countInSheet, count);
     }
 }

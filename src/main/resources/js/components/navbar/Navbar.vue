@@ -136,8 +136,8 @@
 
 <script>
     import {mapState} from 'vuex'
-    import LangDropdown from 'components/lang/LangDropdown.vue'
-    import Notifications from 'components/notifications/Notifications.vue'
+    import LangDropdown from '../../components/lang/LangDropdown.vue'
+    import Notifications from '../../components/notifications/Notifications.vue'
     export default{
         components: {
             LangDropdown,

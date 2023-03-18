@@ -5,16 +5,21 @@ import by.sviryd.engvoc.config.card.io.ExcelCardRowConfig;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
 import org.apache.logging.log4j.util.Strings;
+import org.apache.poi.EmptyFileException;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,28 +32,53 @@ public class ExcelCardShortReaderService {
     public List<Card> extract(File file, String sheetName) {
         try (FileInputStream fip = new FileInputStream(file);
              XSSFWorkbook workbook = new XSSFWorkbook(fip)) {
-            List<Card> cards = new ArrayList<>();
-            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                XSSFSheet sheet = workbook.getSheetAt(i);
-                if (sheet.getSheetName().equals(sheetName)) {
-                    List<Card> sheetCards = extract(sheet);
-                    cards.addAll(sheetCards);
-                    return cards;
-                }
-
-            }
-            return cards;
+            return getCards(sheetName, workbook);
         } catch (Exception e) {
             throw new IllegalArgumentException("Something wrong with " + file.getAbsolutePath());
         }
     }
 
+    public List<Card> extract(MultipartFile file, String sheetName) {
+        try (InputStream is = file.getInputStream();
+             XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+            return getCards(sheetName, workbook);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
+        }
+    }
+
+    @NotNull
+    private List<Card> getCards(String sheetName, XSSFWorkbook workbook) {
+        List<Card> cards = new ArrayList<>();
+        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+            XSSFSheet sheet = workbook.getSheetAt(i);
+            if (sheet.getSheetName().equals(sheetName)) {
+                List<Card> sheetCards = extract(sheet);
+                cards.addAll(sheetCards);
+                return cards;
+            }
+
+        }
+        return cards;
+    }
+
     public List<Card> extract(File file) {
-        try (FileInputStream fip = new FileInputStream(file);
-             XSSFWorkbook workbook = new XSSFWorkbook(fip)) {
+        try (FileInputStream is = new FileInputStream(file);
+             XSSFWorkbook workbook = new XSSFWorkbook(is)) {
             return extract(workbook);
         } catch (Exception e) {
             throw new IllegalArgumentException("Something wrong with " + file.getAbsolutePath());
+        }
+    }
+
+    public List<Card> extract(MultipartFile file) {
+        try (InputStream is = file.getInputStream();
+             XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+            return extract(workbook);
+        } catch (EmptyFileException e) {
+            return Collections.emptyList();
+        } catch (Exception e){
+            throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
         }
     }
 

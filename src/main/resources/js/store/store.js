@@ -1,17 +1,19 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import frontendApi from "api/frontend";
-import messagesApi from "api/messages";
+import messagesApi from "../api/messages";
 import pictureMediaApi from "api/pictureMedia";
 import languageApi from "api/language";
 import categoryHierarchyApi from "api/categoryHierarchy";
 import categoryApi from "api/category";
 import productApi from "api/product";
 import authenticationApi from "api/authentication";
+import cardApi from "../api/card";
 import VuexPersistence from "vuex-persist";
 import storeMethods from "store/storeMethods";
 import vlf from "../util/vlf";
 import date from "../util/date";
+import string from "../util/string";
 
 Vue.use(Vuex)
 
@@ -58,6 +60,7 @@ const persist = new VuexPersistence(
                 category: state.category,
                 categoryChoices: state.categoryChoices,
                 product: state.product,
+                cards: state.cards,
             }
         )
     }
@@ -68,6 +71,20 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            cards: {
+                db: {
+                    ids: [],
+                    dictionaries: [],
+                    cards: [],
+                },
+                upload: {
+                    id: 0,
+                    ids: [],
+                    dictionaries: [],
+                    filenames: [],
+                    cards: [],
+                }
+            },
             messages: [],
 
             authentication: {
@@ -141,10 +158,18 @@ export default new Vuex.Store(
                 map: {}
             },
 
-            notifications:[{"mark": "registrationActivation","creationLDT":"2020.12.12:10.10", "description":"registrationActivationDescription","path":"/", "canRemove":"false"}],
+            notifications: [{
+                "mark": "registrationActivation",
+                "creationLDT": "2020.12.12:10.10",
+                "description": "registrationActivationDescription",
+                "path": "/",
+                "canRemove": "false"
+            }],
         },
         getters: {
+            getCardsUploadId: state => () => state.cards.upload.id,
             sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id)),
+            getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
             getLangId: state => () => state.lang.id,
             getBasketChangeId: state => () => state.basketChange.id,
             getBasketId: state => () => state.basket.id,
@@ -169,7 +194,7 @@ export default new Vuex.Store(
                 let ids = state.favorite.products.map((x) => {
                     return x.id
                 })
-                return ids.indexOf(id) != -1
+                return ids.indexOf(id) !== -1
             },
             getSortOrderByIndex: state => index => {
                 return JSON.parse(JSON.stringify(state.sortOrder[index]))
@@ -185,16 +210,16 @@ export default new Vuex.Store(
                 }
                 return messages;
             },
-            getLangByAbbr: state => abbr =>{
+            getLangByAbbr: state => abbr => {
                 return state.lang.list[abbr]
             },
-            isAuthenticated: (state)=>{
+            isAuthenticated: (state) => {
                 return typeof state.authentication.user !== 'undefined' && state.authentication.user !== null
             },
-            getUsersTokens: (state)=>{
-                if(state.authentication.users.length == 0) {
+            getUsersTokens: (state) => {
+                if (state.authentication.users.length === 0) {
                     return new Array(0)
-                }else{
+                } else {
                     return state.authentication.users.map((x) => {
                         return x.token
                     })
@@ -202,22 +227,22 @@ export default new Vuex.Store(
             }
         },
         mutations: {
-            addMessageMutation(state, message){
+            addMessageMutation(state, message) {
                 state.messages = [
                     ...state.messages,
                     message
                 ]
             },
-            updateMessageMutation(state, message){
-                const updateIndex = state.messages.findIndex(item => item.id == message.id)
+            updateMessageMutation(state, message) {
+                const updateIndex = state.messages.findIndex(item => item.id === message.id)
                 state.messages = [
                     ...state.messages.slice(0, updateIndex),
                     message,
                     ...state.messages.slice(updateIndex + 1)
                 ]
             },
-            removeMessageMutation(state, message){
-                const deleteIndex = state.messages.findIndex(item => item.id == message.id)
+            removeMessageMutation(state, message) {
+                const deleteIndex = state.messages.findIndex(item => item.id === message.id)
                 if (deleteIndex > -1) {
                     state.messages = [
                         ...state.messages.slice(0, deleteIndex),
@@ -225,16 +250,16 @@ export default new Vuex.Store(
                     ]
                 }
             },
-            getMessageMutation(state, data){
+            getMessageMutation(state, data) {
                 state.messages = data
             },
-            updateFrontendMutation(state, data){
+            updateFrontendMutation(state, data) {
                 state.frontend = data
             },
-            getPictureMediaMutation(state, data){
+            getPictureMediaMutation(state, data) {
                 state.pictureMedia = data
             },
-            getCategoryHierarchyMutation(state, data){
+            getCategoryHierarchyMutation(state, data) {
                 state.categoryChildMapIds = data.childMapIds
                 state.categoryParentMapIds = data.parentMapIds
                 state.categoryRootIds = data.rootIds
@@ -242,18 +267,50 @@ export default new Vuex.Store(
                 state.categoryVersion = data.version
             },
 
-            getCategoryPageMutation(state, data){
+            getCategoryPageMutation(state, data) {
                 state.page = data['page']
                 state.category = data['category']
                 if (data['isNeedPropertyChoices']) {
                     state.propertyChoices = data['propertyChoices']
                 }
             },
-            getProductPageMutation(state, data){
+            getProductPageMutation(state, data) {
                 state.category = data.category
                 state.product = data
             },
-            addBasketProductMutation(state, data){
+
+            getCardsUploadFileMutation(state, payload) {
+                const data = payload.data
+                let id = state.cards.upload.id
+                const ids = []
+                const dictionaries = []
+                const lookup = {};
+                for (let i = 0; i < data.length; i++) {
+                    let name = data[i].dictionary.name;
+                    if (!(name in lookup)) {
+                        lookup[name] = 1;
+                        dictionaries.push(data[i].dictionary);
+                    }
+                }
+                for (let i = 0; i < dictionaries.length; i++) {
+                    ids.push(id++)
+                }
+                const filenames = []
+                for (let i = 0; i < dictionaries.length; i++) {
+                    filenames.push(payload.name)
+                }
+                const cards = []
+                for (let i = 0; i < dictionaries.length; i++) {
+                    cards.push(data.filter(item => string.isEqual(item.dictionary.name, dictionaries[i].name)))
+                }
+                state.cards.upload.id = id
+                state.cards.upload.ids.push(...ids)
+                state.cards.upload.dictionaries.push(...dictionaries)
+                state.cards.upload.filenames.push(...filenames)
+                state.cards.upload.cards.push(...cards)
+            },
+
+            addBasketProductMutation(state, data) {
                 let millis = date.getUTCMilliseconds(new Date())
                 let priceWithDiscount = data.product.priceWithDiscount
                 let count = data.count
@@ -267,7 +324,7 @@ export default new Vuex.Store(
                     return x.id
                 })
                 let index = ids.indexOf(data.product.id)
-                if (index == -1) {
+                if (index === -1) {
                     data.product["count"] = count
                     state.basket.products.push(data.product)
                 } else {
@@ -275,7 +332,7 @@ export default new Vuex.Store(
                 }
             },
 
-            updateBasketCountOfProductMutation(state, data){
+            updateBasketCountOfProductMutation(state, data) {
                 let ids = state.basket.products.map((x) => {
                     return x.id
                 })
@@ -288,11 +345,11 @@ export default new Vuex.Store(
                 state.basket.products[index].count = data.count
             },
 
-            removeBasketMutation(state){
+            removeBasketMutation(state) {
                 state.basket = defaultBasket
             },
 
-            removeBasketProductByIdMutation(state, deleteIndex){
+            removeBasketProductByIdMutation(state, deleteIndex) {
                 let ids = state.basket.products.map((x) => {
                     return x.id
                 })
@@ -310,7 +367,7 @@ export default new Vuex.Store(
                 state.basket.amount = amount
             },
 
-            updateBasketAmountMutation(state){
+            updateBasketAmountMutation(state) {
                 let amount = 0
                 for (let i = 0; i < state.basket.products.length; i++) {
                     let price = state.basket.products[i].priceWithDiscount
@@ -322,7 +379,7 @@ export default new Vuex.Store(
             },
 
 
-            addFavoriteProductMutation(state, product){
+            addFavoriteProductMutation(state, product) {
                 let millis = date.getUTCMilliseconds(new Date())
                 state.favoriteChange.id = millis
                 state.favoriteChange.mark = '+1'
@@ -336,7 +393,7 @@ export default new Vuex.Store(
                 }
             },
 
-            addRecentProductMutation(state, product){
+            addRecentProductMutation(state, product) {
                 let millis = date.getUTCMilliseconds(new Date())
                 let ids = state.recent.products.map((x) => {
                     return x.id
@@ -352,7 +409,7 @@ export default new Vuex.Store(
                 state.recent.products.push(product)
             },
 
-            removeProductFromRecentMutation(state, product){
+            removeProductFromRecentMutation(state, product) {
                 let ids = state.recent.products.map((x) => {
                     return x.id
                 })
@@ -363,7 +420,7 @@ export default new Vuex.Store(
                     ...state.recent.products.slice(index + 1)
                 ]
             },
-            removeOlderProductFromRecentMutation(state, product){
+            removeOlderProductFromRecentMutation(state, product) {
                 let ldts = state.recent.products.map((x) => {
                     return parseInt(x["recentUTCMillis"], 10)
                 })
@@ -376,7 +433,7 @@ export default new Vuex.Store(
                 ]
             },
 
-            removeProductFromFavoritesMutation(state, product){
+            removeProductFromFavoritesMutation(state, product) {
                 let ids = state.favorite.products.map((x) => {
                     return x.id
                 })
@@ -390,32 +447,32 @@ export default new Vuex.Store(
                 ]
             },
 
-            removeFavoriteProductsMutation(state){
+            removeFavoriteProductsMutation(state) {
                 state.favorite = defaultFavorite
             },
-            removeRecentProductsMutation(state){
+            removeRecentProductsMutation(state) {
                 state.recent = defaultRecent
             },
-            favoriteSetSortMutation(state, sort){
+            favoriteSetSortMutation(state, sort) {
                 state.favorite.sort = sort
             },
-            recentSetSortMutation(state, sort){
+            recentSetSortMutation(state, sort) {
                 state.recent.sort = sort
             },
-            basketSetSortMutation(state, sort){
+            basketSetSortMutation(state, sort) {
                 state.basket.sort = sort
             },
-            favoriteUpdateMutation(state, products){
+            favoriteUpdateMutation(state, products) {
                 state.favorite.products = products
             },
-            basketUpdateMutation(state, products){
+            basketUpdateMutation(state, products) {
                 state.basket.products = products
             },
-            recentUpdateMutation(state, products){
+            recentUpdateMutation(state, products) {
                 state.recent.products = products
             },
 
-            syncBasketStateWithLocalMutation(state, basketLocal){
+            syncBasketStateWithLocalMutation(state, basketLocal) {
                 lock.acquire('basket', () => {
                     if (typeof basketLocal === 'undefined' || basketLocal === null) {
                         //
@@ -428,7 +485,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            basketSyncLocalWithStateMutation(state){
+            basketSyncLocalWithStateMutation(state) {
                 let id = date.getUTCMilliseconds(new Date())
                 let basketCopy = Object.assign({}, state.basket)
                 basketCopy.id = id
@@ -436,7 +493,7 @@ export default new Vuex.Store(
                     state.basket.id = id
                 })
             },
-            syncFavoriteStateWithLocalMutation(state, favoriteLocal){
+            syncFavoriteStateWithLocalMutation(state, favoriteLocal) {
                 lock.acquire('favorite', () => {
                     if (typeof favoriteLocal === 'undefined' || favoriteLocal === null) {
                         //
@@ -449,7 +506,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            syncRecentStateWithLocalMutation(state, recentLocal){
+            syncRecentStateWithLocalMutation(state, recentLocal) {
                 lock.acquire('recent', () => {
                     if (typeof recentLocal === 'undefined' || recentLocal === null) {
                         //
@@ -462,7 +519,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            syncAuthenticationStateWithLocalMutation(state, authenticationLocal){
+            syncAuthenticationStateWithLocalMutation(state, authenticationLocal) {
                 lock.acquire('authentication', () => {
                     if (typeof authenticationLocal === 'undefined' || authenticationLocal === null) {
                         //
@@ -476,7 +533,7 @@ export default new Vuex.Store(
                 })
             },
 
-            favoriteSyncLocalWithStateMutation(state){
+            favoriteSyncLocalWithStateMutation(state) {
                 let id = date.getUTCMilliseconds(new Date())
                 let favoriteCopy = Object.assign({}, state.favorite)
                 favoriteCopy.id = id
@@ -484,7 +541,7 @@ export default new Vuex.Store(
                     state.favorite.id = id
                 })
             },
-            recentSyncLocalWithStateMutation(state){
+            recentSyncLocalWithStateMutation(state) {
                 let id = date.getUTCMilliseconds(new Date())
                 let recentCopy = Object.assign({}, state.recent)
                 recentCopy.id = id
@@ -492,7 +549,7 @@ export default new Vuex.Store(
                     state.recent.id = id
                 })
             },
-            authenticationSyncLocalWithStateMutation(state){
+            authenticationSyncLocalWithStateMutation(state) {
                 let id = date.getUTCMilliseconds(new Date())
                 let authenticationCopy = Object.assign({}, state.authentication)
                 authenticationCopy.id = id
@@ -500,24 +557,24 @@ export default new Vuex.Store(
                     state.authentication.id = id
                 })
             },
-            getLanguageMapMutation(state, props){
+            getLanguageMapMutation(state, props) {
                 let id = date.getUTCMilliseconds(new Date())
                 state.lang.map = props.data
                 state.lang.current = props.lang
                 state.lang.id = id
             },
-            getLanguageListMutation(state, data){
+            getLanguageListMutation(state, data) {
                 state.lang.list = data
             },
-            getAuthenticationMutation(state, data){
+            getAuthenticationMutation(state, data) {
                 state.authentication = data
             },
-            getActivationMutation(state, data){
-                if(state.authentication.user.id == data.id){
+            getActivationMutation(state, data) {
+                if (state.authentication.user.id === data.id) {
                     state.authentication.user.active = true
                 }
             },
-            removeNotificationMutation(state, index){
+            removeNotificationMutation(state, index) {
                 state.notifications = [
                     ...state.notifications.slice(0, index),
                     ...state.notifications.slice(index + 1)
@@ -525,7 +582,7 @@ export default new Vuex.Store(
             }
         },
         actions: {
-            async addMessageAction({commit, state}, message){
+            async addMessageAction({commit, state}, message) {
                 const result = await messagesApi.add(message)
                 const data = await result.json()
                 const index = state.messages.findIndex(item => item.id === data.id)
@@ -535,18 +592,18 @@ export default new Vuex.Store(
                     commit('addMessageMutation', data)
                 }
             },
-            async updateMessageAction({commit}, message){
+            async updateMessageAction({commit}, message) {
                 const result = await messagesApi.update(message)
                 const data = await result.json()
                 commit('updateMessageMutation', data)
             },
-            async removeMessageAction({commit}, message){
+            async removeMessageAction({commit}, message) {
                 const result = await messagesApi.remove(message.id)
                 if (result.ok) {
                     commit('removeMessageMutation', message)
                 }
             },
-            async getMessageAction({commit}){
+            async getMessageAction({commit}) {
                 const result = await messagesApi.get()
                 const data = await result.data
                 if (result.ok) {
@@ -554,7 +611,7 @@ export default new Vuex.Store(
                 }
             },
 
-            async updateFrontendAction({commit}){
+            async updateFrontendAction({commit}) {
                 const result = await frontendApi.getFrontend()
                 const data = await result.data
                 if (result.ok) {
@@ -562,21 +619,21 @@ export default new Vuex.Store(
                 }
             },
 
-            async setFrontendAction({commit}, data){
+            async setFrontendAction({commit}, data) {
                 commit('updateFrontendMutation', data)
             },
 
-            async getFrontendAction({commit}){
+            async getFrontendAction({commit}) {
                 const result = await frontendApi.getFrontend()
                 const data = await result.data
                 if (result.ok) {
                     return data
-                }else{
+                } else {
                     return null
                 }
             },
 
-            async getPictureMediaAction({commit}){
+            async getPictureMediaAction({commit}) {
                 const result = await pictureMediaApi.get()
                 const data = await result.data
                 if (result.ok) {
@@ -584,7 +641,7 @@ export default new Vuex.Store(
                 }
             },
 
-            async getCategoryHierarchyAction({commit}){
+            async getCategoryHierarchyAction({commit}) {
                 const result = await categoryHierarchyApi.getHierarchy()
                 const data = await result.data
                 if (result.ok) {
@@ -592,21 +649,21 @@ export default new Vuex.Store(
                 }
             },
 
-            async getCategoryPageAction({commit}, categoryChainUrl){
+            async getCategoryPageAction({commit}, categoryChainUrl) {
                 const result = await categoryApi.getCategoryPage(categoryChainUrl)
                 const data = await result.data
                 if (result.ok) {
                     commit('getCategoryPageMutation', data)
                 }
             },
-            async getProductPageAction({commit}, id){
+            async getProductPageAction({commit}, id) {
                 const result = await productApi.findById(id)
                 const data = await result.data
                 if (result.ok) {
                     commit('getProductPageMutation', data)
                 }
             },
-            async addBasketProductAction({commit}, data){
+            async addBasketProductAction({commit}, data) {
                 lock.acquire('basket', () => {
                     commit('addBasketProductMutation', data)
                     commit('basketSyncLocalWithStateMutation')
@@ -615,7 +672,7 @@ export default new Vuex.Store(
                 })
             },
 
-            async removeBasketAction({commit}){
+            async removeBasketAction({commit}) {
                 lock.acquire('basket', () => {
                     commit('removeBasketMutation')
                     commit('basketSyncLocalWithStateMutation')
@@ -624,7 +681,7 @@ export default new Vuex.Store(
                 })
             },
 
-            async removeBasketProductByIdAction({commit}, removeIndex){
+            async removeBasketProductByIdAction({commit}, removeIndex) {
                 lock.acquire('basket', () => {
                     commit('removeBasketProductByIdMutation', removeIndex)
                     commit('basketSyncLocalWithStateMutation')
@@ -633,7 +690,7 @@ export default new Vuex.Store(
                 })
             },
 
-            async updateBasketCountOfProductAction({commit}, data){
+            async updateBasketCountOfProductAction({commit}, data) {
                 lock.acquire('basket', () => {
                     commit('updateBasketCountOfProductMutation', data)
                     commit('basketSyncLocalWithStateMutation')
@@ -642,7 +699,7 @@ export default new Vuex.Store(
                 })
             },
 
-            async addFavoriteProductAction({commit}, product){
+            async addFavoriteProductAction({commit}, product) {
                 lock.acquire('favorite', () => {
                     commit('addFavoriteProductMutation', product)
                     commit('favoriteSyncLocalWithStateMutation')
@@ -650,7 +707,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async removeFavoriteProductAction({commit}, product){
+            async removeFavoriteProductAction({commit}, product) {
                 lock.acquire('favorite', () => {
                     commit('removeProductFromFavoritesMutation', product)
                     commit('favoriteSyncLocalWithStateMutation')
@@ -659,7 +716,7 @@ export default new Vuex.Store(
                 })
             },
 
-            async removeFavoriteAction({commit}){
+            async removeFavoriteAction({commit}) {
                 lock.acquire('favorite', () => {
                     commit('removeFavoriteProductsMutation')
                     commit('favoriteSyncLocalWithStateMutation')
@@ -667,16 +724,16 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async favoriteSetSortAction({commit}, sort){
+            async favoriteSetSortAction({commit}, sort) {
                 commit('favoriteSetSortMutation', sort)
             },
-            async recentSetSortAction({commit}, sort){
+            async recentSetSortAction({commit}, sort) {
                 commit('recentSetSortMutation', sort)
             },
-            async basketSetSortAction({commit}, sort){
+            async basketSetSortAction({commit}, sort) {
                 commit('basketSetSortMutation', sort)
             },
-            async favoriteUpdateAction({commit}, products){
+            async favoriteUpdateAction({commit}, products) {
                 lock.acquire('favorite', () => {
                     commit('favoriteUpdateMutation', products)
                     commit('favoriteSyncLocalWithStateMutation')
@@ -684,7 +741,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async basketUpdateAction({commit}, products){
+            async basketUpdateAction({commit}, products) {
                 lock.acquire('basket', () => {
                     commit('basketUpdateMutation', products)
                     commit('basketSyncLocalWithStateMutation')
@@ -692,7 +749,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async recentUpdateAction({commit}, products){
+            async recentUpdateAction({commit}, products) {
                 lock.acquire('recent', () => {
                     commit('recentUpdateMutation', products)
                     commit('recentSyncLocalWithStateMutation')
@@ -701,32 +758,32 @@ export default new Vuex.Store(
                 })
             },
 
-            async removeCookiesAndStateAction({commit, dispatch}){
+            async removeCookiesAndStateAction({commit, dispatch}) {
                 await dispatch('removeBasketAction')
                 await dispatch('removeFavoriteAction')
             },
 
-            async syncBasketStateWithLocalAction({commit}){
+            async syncBasketStateWithLocalAction({commit}) {
                 let basketLocal = await vlf.getItem('basket')
                 commit('syncBasketStateWithLocalMutation', basketLocal)
             },
 
-            async syncFavoriteStateWithLocalAction ({commit}){
+            async syncFavoriteStateWithLocalAction({commit}) {
                 let favoriteLocal = await vlf.getItem('favorite')
                 commit('syncFavoriteStateWithLocalMutation', favoriteLocal)
             },
 
-            async syncRecentStateWithLocalAction ({commit}){
+            async syncRecentStateWithLocalAction({commit}) {
                 let recentLocal = await vlf.getItem('recent')
                 commit('syncRecentStateWithLocalMutation', recentLocal)
             },
 
-            async syncAuthenticationStateWithLocalAction({commit}){
+            async syncAuthenticationStateWithLocalAction({commit}) {
                 let authenticationLocal = await vlf.getItem('authentication')
                 commit('syncAuthenticationStateWithLocalMutation', authenticationLocal)
             },
 
-            async removeRecentAction({commit}){
+            async removeRecentAction({commit}) {
                 lock.acquire('recent', () => {
                     commit('removeRecentProductsMutation')
                     commit('recentSyncLocalWithStateMutation')
@@ -734,7 +791,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async addRecentProductAction({commit}, product){
+            async addRecentProductAction({commit}, product) {
                 lock.acquire('recent', () => {
                     commit('addRecentProductMutation', product)
                     commit('recentSyncLocalWithStateMutation')
@@ -742,7 +799,7 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async getLanguageMapAction({commit}, lang){
+            async getLanguageMapAction({commit}, lang) {
                 const result = await languageApi.getMap(lang.abbr)
                 const data = await result.data
                 if (result.ok) {
@@ -750,29 +807,29 @@ export default new Vuex.Store(
                     commit('getLanguageMapMutation', props)
                 }
             },
-            async getLanguageListAction({commit}){
+            async getLanguageListAction({commit}) {
                 const result = await languageApi.getList()
                 const data = await result.data
                 if (result.ok) {
                     commit('getLanguageListMutation', data)
                 }
             },
-            async getAuthenticationAction({commit, getters}){
+            async getAuthenticationAction({commit, getters}) {
                 const result = await authenticationApi.getAuthentication(getters.getUsersTokens)
                 const data = await result.data
                 lock.acquire('authentication', () => {
-                if (result.ok) {
-                    commit('getAuthenticationMutation', data)
-                    commit('authenticationSyncLocalWithStateMutation')
-                }
+                    if (result.ok) {
+                        commit('getAuthenticationMutation', data)
+                        commit('authenticationSyncLocalWithStateMutation')
+                    }
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
             },
-            async removeNotificationAction({commit}, index){
+            async removeNotificationAction({commit}, index) {
                 commit('removeNotificationMutation', index)
             },
-            async getActivationAction({commit}, id){
+            async getActivationAction({commit}, id) {
                 const result = await authenticationApi.getActivation(id)
                 const data = await result.data
                 lock.acquire('authentication', () => {
@@ -780,13 +837,61 @@ export default new Vuex.Store(
                         commit('getActivationMutation', data)
                         commit('authenticationSyncLocalWithStateMutation')
                         return data
-                    }else {
+                    } else {
                         return null
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
-            }
+            },
+            async getUploadExcelFilesAction({commit}, payload) {
+                const formData = payload.formData
+                const result = await cardApi.uploadExcelFiles(formData)
+                const data = await result.data
+                lock.acquire('cardUpload', () => {
+                    if (result.ok) {
+                        commit('getUploadExcelFileMutation', {data: data, name: payload.name})
+                    }
+                }).catch((err) => {
+                    console.log(err) // output: error
+                })
+            },
+            async getUploadXmlFilesAction({commit}, payload) {
+                const formData = payload.formData
+                const result = await cardApi.uploadXmlFiles(formData)
+                const data = await result.data
+                lock.acquire('cardUpload', () => {
+                    if (result.ok) {
+                        commit('getUploadXmlFileMutation', {data: data, name: payload.name})
+                    }
+                }).catch((err) => {
+                    console.log(err) // output: error
+                })
+            },
+            async getUploadExcelFileAction({commit}, payload) {
+                const formData = payload.formData
+                const result = await cardApi.uploadExcelFile(formData)
+                const data = await result.data
+                lock.acquire('cardUpload', () => {
+                    if (result.ok) {
+                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
+                    }
+                }).catch((err) => {
+                    console.log(err) // output: error
+                })
+            },
+            async getUploadXmlFileAction({commit}, payload) {
+                const formData = payload.formData
+                const result = await cardApi.uploadXmlFile(formData)
+                const data = await result.data
+                lock.acquire('cardUpload', () => {
+                    if (result.ok) {
+                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
+                    }
+                }).catch((err) => {
+                    console.log(err) // output: error
+                })
+            },
         },
     }
 )

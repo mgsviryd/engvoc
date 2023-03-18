@@ -150,8 +150,8 @@
 
 <script>
     import {mapState, mapActions} from 'vuex'
-    import Unit from 'components/types/Unit.vue'
-    import PictureUpload from 'components/picture/PictureUpload.vue'
+    import Unit from '../../components/types/Unit.vue'
+    import PictureUpload from '../../components/picture/PictureUpload.vue'
     import storeMethods from "store/storeMethods";
     export default {
         components: {

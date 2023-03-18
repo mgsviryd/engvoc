@@ -45,14 +45,14 @@
 
 <script>
     import {mapState} from 'vuex'
-    import ProductRow from 'components/product/ProductRow.vue'
-    import SizerDropdown from 'components/pager/SizerDropdown.vue'
-    import Navigation from 'components/pager/Navigation.vue'
-    import PageLine from 'components/pager/PageLine.vue'
-    import Pager from 'components/pager/Pager.vue'
-    import SortSingleDropdown from 'components/pager/SortSingleDropdown.vue'
-    import GoogleCircle from 'components/spinner/GoogleCircle.vue'
-    import PropertyChoices from 'components/category/PropertyChoices.vue'
+    import ProductRow from '../../components/product/ProductRow.vue'
+    import SizerDropdown from '../../components/pager/SizerDropdown.vue'
+    import Navigation from '../../components/pager/Navigation.vue'
+    import PageLine from '../../components/pager/PageLine.vue'
+    import Pager from '../../components/pager/Pager.vue'
+    import SortSingleDropdown from '../../components/pager/SortSingleDropdown.vue'
+    import GoogleCircle from '../../components/spinner/GoogleCircle.vue'
+    import PropertyChoices from '../../components/category/PropertyChoices.vue'
 
     export default{
         components: {

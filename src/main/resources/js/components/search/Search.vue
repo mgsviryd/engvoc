@@ -51,11 +51,11 @@
 
 <script>
     import {mapState} from 'vuex'
-    import CategoryRow from 'components/category/CategoryRow.vue'
-    import ProductRow from 'components/product/ProductRow.vue'
+    import CategoryRow from '../../components/category/CategoryRow.vue'
+    import ProductRow from '../../components/product/ProductRow.vue'
     import * as _ from 'lodash'
-    import searchApi from 'api/search'
-    import GoogleCircle from 'components/spinner/GoogleCircle.vue'
+    import searchApi from '../../api/search'
+    import GoogleCircle from '../../components/spinner/GoogleCircle.vue'
 
     export default {
         components: {

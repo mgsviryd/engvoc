@@ -22,14 +22,4 @@ public class FrontendRestController {
         frontend.put("version", frontendConfig.getVersion());
         return frontend;
     }
-
-//    @GetMapping("config")
-//    public Map<String, String> getFrontendConfig() {
-//        return frontendConfig.getConfig();
-//    }
-//
-//    @GetMapping("version")
-//    public Map<String, String> getFrontendVersion() {
-//        return frontendConfig.getVersion();
-//    }
 }

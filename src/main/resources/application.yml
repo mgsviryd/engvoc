@@ -71,7 +71,7 @@ registration:
 logging:
   level:
     by:
-      attrade:
+      sviryd:
         controller: DEBUG
         config: DEBUG
         service: ERROR
@@ -348,10 +348,10 @@ frontend:
 
 
 info:
-  url: http://localhost:8080
-  logo: Attrade
+  url: 'http://localhost:8080'
+  logo: EngVoc
 
-debug: true
+debug: false
 
 excel:
   card:

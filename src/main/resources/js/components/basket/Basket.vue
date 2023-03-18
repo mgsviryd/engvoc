@@ -79,10 +79,10 @@
 
 <script>
     import {mapState} from 'vuex'
-    import BasketProductRow from 'components/product/BasketProductRow.vue'
-    import ConfirmAction from 'components/modal/ConfirmAction.vue'
-    import GoogleCircle from 'components/spinner/GoogleCircle.vue'
-    import SortSingleDropdownBasket from 'components/pager/SortSingleDropdownBasket.vue'
+    import BasketProductRow from '../../components/product/BasketProductRow.vue'
+    import ConfirmAction from '../../components/modal/ConfirmAction.vue'
+    import GoogleCircle from '../../components/spinner/GoogleCircle.vue'
+    import SortSingleDropdownBasket from '../../components/pager/SortSingleDropdownBasket.vue'
 
     export default{
         components: {

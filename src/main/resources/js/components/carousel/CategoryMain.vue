@@ -53,7 +53,7 @@
 </template>
 
 <script>
-    import CategoryMainGroup from 'components/group/CategoryMainGroup.vue'
+    import CategoryMainGroup from '../../components/group/CategoryMainGroup.vue'
     export default {
         components: {
             CategoryMainGroup

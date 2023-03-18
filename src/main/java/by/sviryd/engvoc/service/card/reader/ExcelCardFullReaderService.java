@@ -12,9 +12,11 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +51,15 @@ public class ExcelCardFullReaderService {
             return extract(workbook);
         } catch (Exception e) {
             throw new IllegalArgumentException("Something wrong with " + file.getAbsolutePath());
+        }
+    }
+
+    public List<Card> extract(MultipartFile file) {
+        try (InputStream is = file.getInputStream();
+             XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+            return extract(workbook);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
         }
     }
 
@@ -108,7 +119,6 @@ public class ExcelCardFullReaderService {
             return Strings.EMPTY;
         }
     }
-
 
     private String getCellOrException(XSSFRow row, int index) {
         return row.getCell(index).getStringCellValue();

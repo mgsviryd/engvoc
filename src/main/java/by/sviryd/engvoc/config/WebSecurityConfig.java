@@ -56,6 +56,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(
                         "/",
+                        "/card**",
                         "/login**",
                         "/logout",
                         "/search**",
@@ -97,6 +98,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoringAntMatchers("/message/**")
                 .ignoringAntMatchers("/json/**")
                 .ignoringAntMatchers("/category/hierarchy/**")
+                .ignoringAntMatchers("/card/**")
         ;
         http
                 .addFilterBefore(ssoFilter(), UsernamePasswordAuthenticationFilter.class)
