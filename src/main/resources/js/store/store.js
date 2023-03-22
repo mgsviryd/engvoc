@@ -73,15 +73,12 @@ export default new Vuex.Store(
         state: {
             cards: {
                 db: {
-                    ids: [],
                     dictionaries: [],
                     cards: [],
                 },
                 upload: {
-                    id: 0,
-                    ids: [],
-                    dictionaries: [],
                     filenames: [],
+                    dictionaries: [],
                     cards: [],
                 }
             },
@@ -167,7 +164,9 @@ export default new Vuex.Store(
             }],
         },
         getters: {
-            getCardsUploadId: state => () => state.cards.upload.id,
+            getCardsDBByDictionaryInx: state => i => {
+                return state.cards.db.cards[i]
+            },
             sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
             getLangId: state => () => state.lang.id,
@@ -227,6 +226,9 @@ export default new Vuex.Store(
             }
         },
         mutations: {
+            // add(state, data){},
+            // update(state,data){},
+            // delete(state, data){}
             addMessageMutation(state, message) {
                 state.messages = [
                     ...state.messages,
@@ -281,30 +283,27 @@ export default new Vuex.Store(
 
             getCardsUploadFileMutation(state, payload) {
                 const data = payload.data
-                let id = state.cards.upload.id
-                const ids = []
+                const d = new Date
+                const millis = date.getUTCMilliseconds(d)
                 const dictionaries = []
                 const lookup = {};
                 for (let i = 0; i < data.length; i++) {
-                    let name = data[i].dictionary.name;
+                    let dictionary = data[i].dictionary
+                    dictionary.id = millis + i
+                    let name = dictionary.name
                     if (!(name in lookup)) {
                         lookup[name] = 1;
-                        dictionaries.push(data[i].dictionary);
+                        dictionaries.push(dictionary)
                     }
-                }
-                for (let i = 0; i < dictionaries.length; i++) {
-                    ids.push(id++)
                 }
                 const filenames = []
                 for (let i = 0; i < dictionaries.length; i++) {
-                    filenames.push(payload.name)
+                    filenames.push({name: payload.name, date: d})
                 }
                 const cards = []
                 for (let i = 0; i < dictionaries.length; i++) {
                     cards.push(data.filter(item => string.isEqual(item.dictionary.name, dictionaries[i].name)))
                 }
-                state.cards.upload.id = id
-                state.cards.upload.ids.push(...ids)
                 state.cards.upload.dictionaries.push(...dictionaries)
                 state.cards.upload.filenames.push(...filenames)
                 state.cards.upload.cards.push(...cards)
@@ -850,7 +849,7 @@ export default new Vuex.Store(
                 const data = await result.data
                 lock.acquire('cardUpload', () => {
                     if (result.ok) {
-                        commit('getUploadExcelFileMutation', {data: data, name: payload.name})
+                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
@@ -862,7 +861,7 @@ export default new Vuex.Store(
                 const data = await result.data
                 lock.acquire('cardUpload', () => {
                     if (result.ok) {
-                        commit('getUploadXmlFileMutation', {data: data, name: payload.name})
+                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
                     }
                 }).catch((err) => {
                     console.log(err) // output: error

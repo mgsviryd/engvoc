@@ -67,7 +67,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/pre-login",
                         "/product",
                         "/json**",
-                        "/test").permitAll()
+                        "/test",
+                        "/app"
+                )
+                .permitAll()
                 .anyRequest().permitAll()
 
                 .and()

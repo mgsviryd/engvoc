@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import App from '../pages/App.vue'
 import Card from '../pages/Card.vue'
 import Root from 'pages/Root.vue'
 import Category from 'pages/Category.vue'
@@ -12,6 +13,7 @@ import Activation from '../components/notifications/Activation.vue'
 Vue.use(VueRouter)
 
 const routes = [
+    { path: '/app', name: 'app', component: App },
     { path: '/', name: 'root', component: Root },
     { path: '/card', name: 'card', component: Card },
     { path: '/category/:path/:id', name: 'category', component: Category,},

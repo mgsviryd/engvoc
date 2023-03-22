@@ -19,6 +19,6 @@ public class AppController {
 
     @GetMapping()
     public String index(Model model) {
-        return "app";
+        return "main";
     }
 }
