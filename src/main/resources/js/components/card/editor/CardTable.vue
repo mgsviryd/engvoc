@@ -11,12 +11,12 @@
       </tr>
       </thead>
       <tbody class="mt-4">
+
       <table-row v-for="(card,i) in dictionaryCards"
                  :key="`A-${i}`"
                  :card="card"
                  :cardN="i"
       >
-
       </table-row>
       </tbody>
     </table>
@@ -73,6 +73,33 @@ export default {
   methods: {
     fetchData() {
     },
+    drag(card, i) {
+      console.info("DRAG")
+      let payload = {
+        type: "card",
+        pull: "replace", // copy
+        push: "add", // replace
+        item: card,
+        id: i,
+        markSource: this.markSource,
+        sourceInx: this.dictionaryInx
+      }
+      this.store.commit('dragMutation', payload)
+    },
+    drop(card, i) {
+      console.info("DROP")
+      let payload = {
+        type: "card",
+        pull: "replace", // copy
+        push: "add", // replace
+        item: card,
+        id: i,
+        markSource: this.markSource,
+        sourceInx: this.dictionaryInx
+      }
+      this.store.commit('dropMutation', payload)
+    }
+
   },
 }
 </script>

@@ -71,6 +71,7 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            drapDropPayload: {},
             cards: {
                 db: {
                     dictionaries: [],
@@ -226,9 +227,29 @@ export default new Vuex.Store(
             }
         },
         mutations: {
-            // add(state, data){},
-            // update(state,data){},
-            // delete(state, data){}
+            dragMutation(state, payload){
+                state.drapDropPayload = payload
+            },
+            dropMutation(state, payload){
+                payload = {
+                    // status: "drop",
+                    type: "card",
+                    pull: "replace", // copy
+                    push: "add", // replace
+                    item: card,
+                    id: i,
+                    markSource: this.markSource,
+                    sourceInx: this.dictionaryInx
+                }
+                if (payload.type === "card"){
+                    if(payload.markSource === "upload"){
+
+                    }
+                    if(payload.markSource === "db"){
+
+                    }
+                }
+            },
             addMessageMutation(state, message) {
                 state.messages = [
                     ...state.messages,
