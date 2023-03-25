@@ -1,17 +1,18 @@
 <template>
-    <div>
-        <card-nav></card-nav>
-    </div>
+  <div>
+    <card-nav></card-nav>
+  </div>
 </template>
 
 <script>
-    import CardNav from '../components/card/CardNav.vue'
+import CardNav from '../components/card/CardNav.vue'
 
-    export default {
-      components: {
-        CardNav
-      }
-    }
+
+export default {
+  components: {
+    CardNav,
+  },
+}
 </script>
 
 <style>

@@ -10,7 +10,6 @@ import vueHeadful from 'vue-headful';
 import Multiselect from 'vue-multiselect'
 import VueCookies from 'vue-cookies'
 import VueWait from 'vue-wait'
-import UUID from 'vue-uuid';
 var VueScrollTo = require('vue-scrollto');
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
@@ -30,7 +29,6 @@ Vue.component('VueSlider', VueSlider)
 
 Vue.use(VueCookies)
 Vue.use(VueWait)
-Vue.use(UUID)
 Vue.use(VueScrollTo, {
     container: "body",
     duration: 500,

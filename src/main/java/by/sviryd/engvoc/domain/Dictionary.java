@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.Formula;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
@@ -39,7 +40,13 @@ public class Dictionary implements IIdParent, Serializable {
     private String name;
 
     @Min(0)
-    private Long parent;
+    private Long parent = 0L;
+
+    @Column(length = 50)
+    @Length(max = 50)
+    @JsonView(Views.Picture.class)
+    @Value("${dictionary.dbName}")
+    private String source;
 
     @Column(length = 50)
     @Length(max = 50)
@@ -58,6 +65,11 @@ public class Dictionary implements IIdParent, Serializable {
 
     @OneToMany(mappedBy = "dictionary")
     private List<Card> cards = new ArrayList<>();
+
+    public Dictionary(Long id) {
+        this.id = id;
+    }
+
 
     public Dictionary(String name) {
         this.name = name;

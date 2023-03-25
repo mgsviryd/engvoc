@@ -12,6 +12,9 @@ public class DictionaryBindService {
     @Autowired
     private DictionaryConfig config;
 
+    public String getDbName(){return config.getDbName();}
+    public String getUploadName(){return config.getUploadName();}
+
     public boolean isSupportedAbbr(String abbr) {
         return config.getSupported().contains(abbr);
     }

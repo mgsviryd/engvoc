@@ -143,24 +143,6 @@ export default {
   },
   methods: {
     fetchData() {
-      // this.$wait.start('loading')
-      // this.showComponent = false
-      // // this.products = this.basket.products
-      // this.updateBasketClear()
-      // this.showComponent = true
-      // this.$wait.end('loading')
-    },
-    updateBasketClear() {
-      // this.isBasketClear = this.products === null || this.products.length === 0
-    },
-    removeBasket() {
-      // this.$store.dispatch('removeBasketAction')
-    },
-    confirmClear() {
-      // this.removeBasket()
-    },
-    rejectClear() {
-
     },
     activateLevel1() {
       this.disactiveAll()

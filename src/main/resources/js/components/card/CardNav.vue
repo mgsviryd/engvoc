@@ -1,9 +1,12 @@
 <template>
-  <div v-if="showComponent" class="navbar-navbar">
-    <div class="parts-navbar-navbar">
+  <div  class="navbar-navbar"
+  >
+    <div v-if="showComponent" class="parts-navbar-navbar"
+    >
       <nav
           class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-2 mb-0 shadow border-bottom border-secondary"
-          style=" width:100%;">
+          style=" width:100%;"
+      >
 
         <div class="btn-group btn-group-md btn-group-justified">
 
@@ -123,6 +126,11 @@ import Settings from '../../components/card/Settings.vue'
 import LangDropdown from '../../components/lang/LangDropdown.vue'
 
 export default {
+  created() {
+    this.$root.$on('dragover', payload => {
+
+    });
+  },
   components: {
     Card,
     Dictionary,
@@ -173,7 +181,15 @@ export default {
       this.isButtonActive3 = false
       this.isButtonActive4 = false
       this.isButtonActive5 = false
-    }
+    },
+    dragover: _.throttle(() => {
+      console.info("dragover: nowhere")
+      let payload = {
+        type: "noWhere",
+        ldt: new Date(),
+      }
+      this.$emit('dragover', payload)
+    }, 30),
   }
 }
 </script>

@@ -3,13 +3,15 @@ package by.sviryd.engvoc.service;
 import by.sviryd.engvoc.config.PictureMediaConfig;
 import by.sviryd.engvoc.config.ServerPathConfig;
 import by.sviryd.engvoc.domain.dto.PictureMediaDTO;
-import by.sviryd.engvoc.io.ImageDownloader;
+import by.sviryd.engvoc.io.MultipartDownloader;
+import by.sviryd.engvoc.io.UrlToFileDownloader;
 import by.sviryd.engvoc.service.imageResizer.ImageResizerService;
 import by.sviryd.engvoc.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -42,7 +44,10 @@ public class PictureMediaService {
     private ImageService imageService;
 
     @Autowired
-    private ImageDownloader imageDownloader;
+    private UrlToFileDownloader urlToFileDownloader;
+
+    @Autowired
+    private MultipartDownloader multipartDownloader;
 
 
     @PostConstruct
@@ -204,7 +209,7 @@ public class PictureMediaService {
     }
 
     private String getMainPath() {
-        return serverPathConfig.getAbsolute() + serverPathConfig.getUploadPicture();
+        return Paths.get(serverPathConfig.getAbsolute() + serverPathConfig.getUploadPicture()).normalize().toString();
     }
 
     private void walkAndRemoveIfNotExistsInMain(Path mainPath, Path childPath) {
@@ -317,6 +322,19 @@ public class PictureMediaService {
             return fileName.toString();
         }
     }
+    public String savePictureOrRollback(MultipartFile file) {
+        if (file == null) {
+            return null;
+        }
+        String targetPathName = getPictureMediaPathNameAsUUID(file.getOriginalFilename());
+        String pathName = savePictureOrRollback(file, targetPathName, pictureMediaConfig.getPictureMedias());
+        if (pathName == null) {
+            return null;
+        } else {
+            Path fileName = Paths.get(pathName).getFileName();
+            return fileName.toString();
+        }
+    }
 
     public String savePictureOrRollback(URL url, String targetPathName, List<PictureMediaDTO> pictureMedias) {
         if (url == null){
@@ -328,12 +346,40 @@ public class PictureMediaService {
         }
         return targetPathName;
     }
+    public String savePictureOrRollback(MultipartFile file, String targetPathName, List<PictureMediaDTO> pictureMedias) {
+        if (file == null){
+            return null;
+        }
+        if (!savePicture(file, targetPathName, pictureMedias)) {
+            deletePathIfExists(Paths.get(targetPathName));
+            return null;
+        }
+        return targetPathName;
+    }
 
     private boolean savePicture(URL url, String targetPathName, List<PictureMediaDTO> pictureMedias) {
-        if (!imageDownloader.downloadByUrl(url, targetPathName)) {
+        if (!urlToFileDownloader.download(url, targetPathName)) {
             return false;
         }
-        Path target = Paths.get(targetPathName);
+        Path target = Paths.get(targetPathName).normalize();
+        String mimeType;
+        try {
+            mimeType = imageService.getMimeType(target.toFile());
+        } catch (IOException e) {
+            log.error("Cannot receive mime type.", e);
+            return false;
+        }
+        if (!compressImage(target, mimeType, MAX_COMPRESSION_QUALITY)) {
+            return false;
+        }
+        return saveAllMediaAndMarkers(target, mimeType, pictureMedias);
+    }
+
+    private boolean savePicture(MultipartFile multipartFile, String targetPathName, List<PictureMediaDTO> pictureMedias) {
+        if (!multipartDownloader.download(multipartFile, targetPathName)) {
+            return false;
+        }
+        Path target = Paths.get(targetPathName).normalize();
         String mimeType;
         try {
             mimeType = imageService.getMimeType(target.toFile());

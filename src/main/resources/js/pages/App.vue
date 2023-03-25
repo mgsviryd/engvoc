@@ -16,7 +16,7 @@
         computed: mapState(['profile']),
         methods: mapMutations(['addMessageMutation', 'updateMessageMutation', 'removeMessageMutation']),
         created() {
-            this.$store.dispatch('getMessageAction'),
+            this.$store.dispatch('getMessagesAction'),
             addHandler(data => {
                 if (data.objectType === 'MESSAGE') {
                     switch (data.eventType) {

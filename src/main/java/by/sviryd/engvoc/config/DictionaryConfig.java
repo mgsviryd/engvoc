@@ -15,4 +15,6 @@ public class DictionaryConfig {
     private List<String> supported;
     private List<String> abbr;
     private List<Integer> ids;
+    private String dbName;
+    private String uploadName;
 }

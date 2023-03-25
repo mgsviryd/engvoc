@@ -10,11 +10,17 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface CardRepo extends JpaRepository<Card, Long> {
+public interface CardRepo extends JpaRepository<Card, Long>, CardCustomRepo {
 
     @Query("select d from Card d where d.dictionary = :dictionary")
     Page<Card> getCardsByDictionary(@Param("dictionary") Dictionary dictionary, Pageable pageable);
 
     @Query("select d from Card d where d.dictionary = :dictionary")
     List<Card> getCardsByDictionary(@Param("dictionary") Dictionary dictionary);
+
+    Card findDistinctByWordAndTranslation(String word, String translation);
+
+    void deleteByDictionary(Dictionary dictionary);
+    void deleteByDictionaryIn(List<Dictionary>dictionaries);
+    void deleteByIdIn(List<Long> ids);
 }

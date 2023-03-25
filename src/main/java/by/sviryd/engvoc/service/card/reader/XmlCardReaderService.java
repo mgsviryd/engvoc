@@ -2,7 +2,6 @@ package by.sviryd.engvoc.service.card.reader;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.Meaning;
 import by.sviryd.engvoc.service.card.AbbyyLatinCyrillicSplitterService;
 import by.sviryd.engvoc.service.card.DictionaryBindService;
 import by.sviryd.engvoc.util.FileExtensionUtil;
@@ -12,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -60,7 +57,7 @@ public class XmlCardReaderService {
         return getCards(document, dictionaryName);
     }
 
-    public List<Card> extract(MultipartFile file){
+    public List<Card> extract(MultipartFile file) {
         if (!FileExtensionUtil.isXml(file.getName())) {
             throw new IllegalArgumentException("File " + file + "is not xml.");
         }

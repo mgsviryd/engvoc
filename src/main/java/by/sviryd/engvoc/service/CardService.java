@@ -9,15 +9,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @Slf4j
+@Transactional
 public class CardService {
     @Autowired
     private CardRepo cardRepo;
-
 
     public long count() {
         return cardRepo.count();
@@ -29,10 +30,6 @@ public class CardService {
 
     public List<Card> findAll() {
         return cardRepo.findAll();
-    }
-
-    public List<Card> findAllById(List<Long> ids) {
-        return cardRepo.findAllById(ids);
     }
 
     public Card save(Card card) {
@@ -51,11 +48,36 @@ public class CardService {
     public Page<Card> getCardsByDictionary(Dictionary dictionary, Pageable pageable) {
         return cardRepo.getCardsByDictionary(dictionary, pageable);
     }
+
     public List<Card> getCardsByDictionary(Dictionary dictionary) {
         return cardRepo.getCardsByDictionary(dictionary);
     }
 
     public Page<Card> findAll(Pageable pageable) {
         return cardRepo.findAll(pageable);
+    }
+
+    public List<Card> findDistinctByWordAndTranslation(List<Card> cards) {
+        return cardRepo.findDistinctByWordAndTranslation(cards);
+    }
+
+    public Card findDistinctByWordAndTranslation(String word, String translation) {
+        return cardRepo.findDistinctByWordAndTranslation(word, translation);
+    }
+
+    public void deleteByDictionary(Dictionary dictionary) {
+        cardRepo.deleteByDictionary(dictionary);
+    }
+
+    public void deleteByDictionaryIn(List<Dictionary> dictionaries) {
+        cardRepo.deleteByDictionaryIn(dictionaries);
+    }
+
+    public void deleteByIdIn(List<Long> ids) {
+        cardRepo.deleteByIdIn(ids);
+    }
+
+    public List<Card> findAllById(List<Long> ids) {
+        return cardRepo.findAllById(ids);
     }
 }

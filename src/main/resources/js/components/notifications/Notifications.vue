@@ -119,7 +119,7 @@
             },
             canRemove(index){
                 return this.notifications[index].canRemove == 'true'
-            }
+            },
         },
     }
 </script>

@@ -5,5 +5,5 @@ export default {
     add: message => messages.save({}, message),
     update: message => messages.update({id: message.id}, message),
     remove: id => messages.remove({id}), // actually id: id - but use short form
-    get: () => messages.get()
+    get: () => messages.get(),
 }

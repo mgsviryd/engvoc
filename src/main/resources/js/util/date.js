@@ -1,5 +1,6 @@
 export default {
     getUTCMilliseconds(date){
+        if (typeof date === 'undefined' || date === null) return 0;
         return date.getTime() - (date.getTimezoneOffset() * 60000);
     },
     convertDateToUTC(date){

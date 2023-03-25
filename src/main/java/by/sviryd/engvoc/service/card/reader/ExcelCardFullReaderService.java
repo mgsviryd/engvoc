@@ -4,6 +4,7 @@ import by.sviryd.engvoc.config.card.io.ExcelCardColumnConfig;
 import by.sviryd.engvoc.config.card.io.ExcelCardRowConfig;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.service.card.DictionaryBindService;
 import by.sviryd.engvoc.util.StringConverterUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -26,6 +27,8 @@ public class ExcelCardFullReaderService {
     private ExcelCardRowConfig rowConfig;
     @Autowired
     private ExcelCardColumnConfig columnConfig;
+    @Autowired
+    private DictionaryBindService bindService;
 
     public List<Card> extract(File file, String sheetName) {
         try (FileInputStream fip = new FileInputStream(file);
@@ -98,7 +101,7 @@ public class ExcelCardFullReaderService {
                 .translation(getCellOrException(row, columnConfig.getTranslation()))
                 .example(getCellOrEmptyValue(row, columnConfig.getExample()))
                 .exampleTranslation(getCellOrEmptyValue(row, columnConfig.getExampleTranslation()))
-                .dictionary(new Dictionary(getCellOrEmptyValue(row, columnConfig.getDictionary())))
+                .dictionary(new Dictionary(Long.parseLong(getCellOrEmptyValue(row, columnConfig.getDictionary()))))
                 .transcription(getCellOrEmptyValue(row, columnConfig.getTranscription()))
                 .learned(StringConverterUtil.getBoolean(getCellOrEmptyValue(row, columnConfig.getLearned())))
                 .sound(getCellOrEmptyValue(row, columnConfig.getSound()))

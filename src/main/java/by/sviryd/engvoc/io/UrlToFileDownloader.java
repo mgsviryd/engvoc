@@ -14,13 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class ImageDownloader {
+public class UrlToFileDownloader {
     private static final int CONNECTION_TIMEOUT = 10000;
     private static final int READ_TIMEOUT = 20000;
     private static final int TASK_SUBMIT_EXTRA = 1000;
     private static final int TASK_TIMEOUT = TASK_SUBMIT_EXTRA + CONNECTION_TIMEOUT + READ_TIMEOUT;
 
-    public boolean downloadByUrl(URL url, String pathName) {
+    public boolean download(URL url, String pathName) {
         ExecutorService service = null;
         boolean[] isDownload = {true};
         try {

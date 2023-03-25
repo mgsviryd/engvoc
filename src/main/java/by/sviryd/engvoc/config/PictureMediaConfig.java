@@ -47,7 +47,7 @@ public class PictureMediaConfig {
                     medias.get(i),
                     compressionPercents.get(i),
                     compressionWidths.get(i),
-                    serverPathConfig.getAbsolute() + serverPathConfig.getUpload() + serverPathConfig.getUploadPicture()));
+                    serverPathConfig.getAbsolute() + serverPathConfig.getUploadPicture()));
         }
         return list;
     }

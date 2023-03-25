@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @ToString(of = {"id", "word", "translation", "example", "exampleTranslation", "transcription", "learned"})
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"word", "translation"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -51,7 +51,6 @@ import java.time.LocalDateTime;
         }
 )
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"word", "translation"}))
-
 public class Card implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -83,7 +82,6 @@ public class Card implements Serializable {
 
     @Column(length = 500)
     @Length(max = 500)
-    @NotBlank
     @Fields({
             @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram1")),
             @Field(name = "name_ascii1", analyze = Analyze.YES, normalizer = @Normalizer(definition = "ascii1"), store = Store.NO)
@@ -93,7 +91,6 @@ public class Card implements Serializable {
 
     @Column(length = 500)
     @Length(max = 500)
-    @NotBlank
     @Fields({
             @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram1")),
             @Field(name = "name_ascii1", analyze = Analyze.YES, normalizer = @Normalizer(definition = "ascii1"), store = Store.NO)
@@ -103,7 +100,6 @@ public class Card implements Serializable {
 
     @Column(length = 100)
     @Length(max = 100)
-    @NotBlank
     @JsonView(Views.Transcription.class)
     private String transcription;
 

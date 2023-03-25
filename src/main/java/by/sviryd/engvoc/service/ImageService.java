@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -183,7 +184,7 @@ public class ImageService {
         ImageOutputStream ios = null;
         try {
             File compressedImageFile = new File(outputPathName);
-            os = new FileOutputStream(compressedImageFile);
+            os = Files.newOutputStream(compressedImageFile.toPath());
             Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType(mimeType);
             writer = writers.next();
             if (writer == null) {

@@ -72,7 +72,7 @@ public class ExcelCardFullWriterService {
             if (dictionary == null) {
                 cell.setCellValue(StringConverterUtil.EMPTY);
             } else {
-                cell.setCellValue(dictionary.getName());
+                cell.setCellValue(dictionary.getId());
             }
             cell.setCellStyle(style);
 

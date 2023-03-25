@@ -10,15 +10,17 @@
       <div class="col-10 m-0 p-0">
         <div class="row m-0 p-0 justify-content-center" style="width: 100%">
       <div class="=col m-0 p-0">
-        <card-table :mark-source="props1.markSource"
-                    :dictionaryInx="props1.dictionaryInx"
+        <card-table v-if="props1.markSource"
+                    :mark-source="props1.markSource"
+                    :dictionaryId="props1.dictionaryId"
                     :rowToScrollId="props1.rowToScrollId"
         ></card-table>
       </div>
 
       <div class="col m-0 p-0">
-        <card-table :mark-source="props2.markSource"
-                    :dictionaryInx="props2.dictionaryInx"
+        <card-table v-if="props2.markSource"
+            :mark-source="props2.markSource"
+                    :dictionaryId="props2.dictionaryId"
                     :rowToScrollId="props2.rowToScrollId"
         ></card-table>
       </div>
@@ -51,13 +53,13 @@ export default {
       instance1: "left",
       instance2: "right",
       props1: {
-        markSource: "",
-        dictionaryInx: -1,
+        markSource: null,
+        dictionaryId: -1,
         rowToScrollId: -1,
       },
       props2: {
-        markSource: "",
-        dictionaryInx: -1,
+        markSource: null,
+        dictionaryId: -1,
         rowToScrollId: -1,
       },
     }
@@ -74,11 +76,11 @@ export default {
     loadDictionary(i, markSource, instance){
         if(instance === this.instance1){
           this.props1.markSource = markSource
-          this.props1.dictionaryInx = i
+          this.props1.dictionaryId = i
         }
         if (instance === this.instance2){
           this.props2.markSource = markSource
-          this.props2.dictionaryInx = i
+          this.props2.dictionaryId = i
         }
       return []
     }

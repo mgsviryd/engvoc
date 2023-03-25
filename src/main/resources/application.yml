@@ -9,7 +9,7 @@ spring:
   jpa:
     generate-ddl: false
     show-sql: true
-    hibernate.ddl-auto: validate
+    hibernate.ddl-auto: create
 
   thymeleaf:
     cache: false
@@ -45,7 +45,7 @@ server:
   language: en
   path:
     createDirectories: false
-    absolute: /../attrade-upload
+    absolute: /../engvoc-upload
     upload: /upload
     uploadPicture: /upload/picture
     staticPicture: /static/picture
@@ -396,3 +396,5 @@ dictionary:
   ids:
     - 1033
     - 1049
+  dbName: 'db'
+  uploadName: 'upload'

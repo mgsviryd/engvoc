@@ -1,6 +1,24 @@
 <template>
-  <div class="card-table-">
-    <table class="table table-light table-hover table-bordered border-2 border-dark table-sm">
+  <div v-if="show" class="card-table-"
+       @dragover="dragover(null, -1)"
+       @dragleave="dragleave(null,-1)"
+       draggable="true"
+  >
+
+    <div class="d-block bg-dark" style="width: 100%;">
+      <div class="btn-group btn-group-sm btn-group-justified">
+        <button class="btn btn-light m-1 py-0 px-1"
+        >
+          <small>
+            <b>
+              SELECTED
+            </b>
+          </small>
+        </button>
+      </div>
+    </div>
+    <table class="table caption-top bg-white table-hover table-bordered border-2 border-dark table-sm"
+    >
       <thead class="thead-dark b-table-no-border-collapse" style="position: sticky; top: 0;">
       <tr>
         <th class="st-squeeze border-2 border-secondary border-left-0">N</th>
@@ -10,44 +28,143 @@
         <th class="st-squeeze border-2 border-secondary border-right-0"></th>
       </tr>
       </thead>
-      <tbody class="mt-4">
-
-      <table-row v-for="(card,i) in dictionaryCards"
-                 :key="`A-${i}`"
-                 :card="card"
-                 :cardN="i"
+      <tbody class="mt-4"
+             draggable="true"
+             @dragenter="preventDragdropNowhere()"
       >
-      </table-row>
+
+      <tr v-for="(card,i) in dictionaryCards"
+          v-model="dictionaryCards"
+          :key="`A-${card.id}`"
+          :id="getCardElementId(card.id)"
+          @dragstart="dragstart(card, i)"
+          @dragover="dragover(card, i)"
+          @dragleave="dragleave(card,i)"
+          @click.prevent.stop="selectCard(card)"
+          draggable="true"
+      >
+        <td class="st-squeeze border-secondary border-1 border-left-0">{{ i + 1 }}</td>
+        <td class="st-text-shift border-secondary border-1">{{ card.word }}</td>
+        <td class="st-text-shift border-secondary border-1">{{ card.translation }}</td>
+        <td class="st-text-shift border-secondary border-1">
+          {{ card.example }}
+          <br/>
+          {{ card.exampleTranslation }}
+        </td>
+        <td class="st-squeeze border-secondary border-1 border-right-0"><input type="checkbox">
+        </td>
+      </tr>
       </tbody>
     </table>
+    <div v-if="showEmpty"
+         class="blank container-fluid d-block"
+         @dragover="dragover(null, -1)"
+         @dragleave="dragleave(null,-1)"
+         draggable="true"
+    >
+    </div>
   </div>
 </template>
 
 <script>
 import {mapState} from "vuex";
-import TableRow from "./CardRow.vue";
 import string from "../../../util/string";
+import * as _ from 'lodash'
 
 export default {
+  created() {
+    this.fetchData()
+    this.showEmpty = typeof this.dictionaryCards === 'undefined' || this.dictionaryCards.length === 0;
+  },
   props: [
     'markSource',
-    'dictionaryInx',
+    'dictionaryId',
     'rowToScrollId',
   ],
-  components: {
-    TableRow,
-  },
+  components: {},
   watch: {
-    $route: 'fetchData',
+    $route: [
+      'fetchData',
+    ],
+
+    storeDictionaryCards() {
+      this.fetchData()
+    }
   },
   data() {
-    return {}
+    return {
+      card: {
+        word: null,
+        translation: null,
+        example: null,
+        exampleTranslation: null,
+      },
+      dictionaryCards: [],
+      selectedCardIds: [],
+      show: true,
+      showEmpty: false,
+      type: "card",
+      pull: "delete",
+      dragstartType: null,
+      dragdrop: {
+        start: {
+          type: "",
+          operation: "add", // add / update // add-update
+          ldt: null,
+          pull: "", // preserve / delete
+          pullItems: [],
+          actions: {
+            removeAllAction: "",
+            addAllAction: "",
+            updateAllAction: "",
+            addUpdateAllAction: "",
+          },
+          pullSourceId: -1,
+        },
+        over: {
+          type: "",
+          ldt: null,
+        },
+        leave: {
+          type: "",
+          ldt: null,
+          push: "", // preserve / delete
+          pushItems: [],
+          removeAllAction: "",
+          addAllAction: "",
+          updateAllAction: "",
+          addUpdateAllAction: "",
+          pushSourceId: -1,
+        },
+      },
+    }
   },
   computed: {
     ...mapState([
       'cards',
       'lang',
     ]),
+    storeDictionaryCards() {
+      if (this.markSource === "upload") {
+        return this.$store.getters.getCardsUploadByDictionaryId(this.dictionaryId)
+      }
+      if (this.markSource === "db") {
+        return this.$store.getters.getCardsDbByDictionaryId(this.dictionaryId)
+      }
+      return []
+    },
+    removeAllAction() {
+      return string.convertLowerToCamelCase([this.type, this.markSource, "remove", "all", "action"])
+    },
+    addAllAction() {
+      return string.convertLowerToCamelCase([this.type, this.markSource, "add", "all", "action"])
+    },
+    updateAllAction() {
+      return string.convertLowerToCamelCase([this.type, this.markSource, "update", "all", "action"])
+    },
+    addUpdateAllAction() {
+      return string.convertLowerToCamelCase([this.type, this.markSource, "add", "update", "all", "action"])
+    },
     word() {
       return string.getWithFirstCapital(this.lang.map.word)
     },
@@ -60,46 +177,110 @@ export default {
     learned() {
       return string.getWithFirstCapital(this.lang.map.learned)
     },
-    dictionaryCards() {
-      if (this.markSource === "upload") {
-        return this.cards.upload.cards[this.dictionaryInx]
-      }
-      if (this.markSource === "db") {
-        return this.$store.getters.getCardsDBByDictionaryInx(this.dictionaryInx)
-      }
-      return []
-    }
   },
   methods: {
     fetchData() {
-    },
-    drag(card, i) {
-      console.info("DRAG")
-      let payload = {
-        type: "card",
-        pull: "replace", // copy
-        push: "add", // replace
-        item: card,
-        id: i,
-        markSource: this.markSource,
-        sourceInx: this.dictionaryInx
+      this.show = false
+      if (this.isSourceExists()) {
+        this.show = true
+        this.showEmpty = typeof this.storeDictionaryCards === 'undefined' || this.storeDictionaryCards.length === 0
+        this.dictionaryCards = this.storeDictionaryCards
+        this.updateSelected()
       }
-      this.store.commit('dragMutation', payload)
     },
-    drop(card, i) {
-      console.info("DROP")
-      let payload = {
-        type: "card",
-        pull: "replace", // copy
-        push: "add", // replace
-        item: card,
-        id: i,
-        markSource: this.markSource,
-        sourceInx: this.dictionaryInx
+    updateSelected() {
+      this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)
+    },
+    getCardElementId(id) {
+      return "card" + id
+    },
+    isSelected(card) {
+      return this.selectedCardIds.indexOf(card.id) >= 0
+    },
+    selectCard(card) {
+      const inx = this.selectedCardIds.findIndex(id => id === card.id)
+      if (inx < 0) {
+        this.selectedCardIds.push(card.id)
+        $("#" + this.getCardElementId(card.id)).addClass("card-select")
+      } else {
+        this.selectedCardIds.splice(inx, 1)
+        $("#" + this.getCardElementId(card.id)).removeClass("card-select")
       }
-      this.store.commit('dropMutation', payload)
-    }
+    },
+    isSourceExists() {
+      if (this.markSource === "upload") {
+        return this.$store.getters.isUploadDictionaryExists(this.dictionaryId)
+      }
+      if (this.markSource === "db") {
+        return this.$store.getters.isDbDictionaryExists(this.dictionaryId)
+      }
+    },
 
+    preventDragdropNowhere() {
+      // console.info("dragenterNowhere")
+      let payload = {
+        type: "Nowhere",
+        ldt: new Date(),
+      }
+      this.$root.$emit('dragover', payload)
+    },
+    dragstart(card, i) {
+      // console.info("dragstart: " + this.dictionaryId)
+      let items = []
+      if (this.isSelected(card)) {
+        items = this.dictionaryCards.filter(x=> this.selectedCardIds.findIndex(id=> id === x.id)>=0)
+      } else {
+        items.push(card)
+      }
+      let payload = {
+        type: "card",
+        operation: "add", // add / update / add-update
+        ldt: new Date(),
+        pull: "delete", // preserve / delete
+        pullItems: items,
+        actions: {
+          removeAllAction: this.removeAllAction,
+          addAllAction: this.addAllAction,
+          updateAllAction: this.updateAllAction,
+          addUpdateAllAction: this.addUpdateAllAction,
+        },
+        pullSourceId: this.dictionaryId,
+      }
+      this.dragdrop.start = payload
+      this.$root.$emit('dragstart', payload)
+    },
+    dragover: _.throttle(function (card, i) {
+      // console.info("dragover: " + this.dictionaryId)
+      let payload = {
+        type: "card",
+        ldt: new Date(),
+      }
+      this.dragdrop.over = payload
+      this.$root.$emit('dragover', payload)
+    }, 30),
+
+    dragleave: _.throttle(function (card, i) {
+      // console.info("dragleave: " + this.dictionaryId)
+      const items = []
+      if (card !== null) {
+        items.push(card)
+      }
+      const payload = {
+        type: "card",
+        ldt: new Date(),
+        push: "preserve", // preserve / delete
+        pushItems: items,
+        actions: {
+          removeAllAction: this.removeAllAction,
+          addAllAction: this.addAllAction,
+          updateAllAction: this.updateAllAction,
+          addUpdateAllAction: this.addUpdateAllAction,
+        },
+        pushSourceId: this.dictionaryId,
+      }
+      this.dragdrop.leave = payload
+      this.$root.$emit('dragleave', payload)
+    }, 30),
   },
 }
 </script>
@@ -115,7 +296,7 @@ table {
   font-family: Calibri;
 }
 
-th, td:not(.st-squeeze) {
+th, td:not(.st-squeeze, .st-text-shift) {
   width: 8%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -128,4 +309,23 @@ th, td:not(.st-squeeze) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.st-text-shift {
+  width: 150px;
+  overflow-wrap: anywhere;
+}
+
+.blank {
+  height: 500px;
+  overflow-y: auto;
+}
+
+.card-select {
+  background-color: #eaeaea;
+}
+
+.draw-dragover {
+  background-color: red;
+}
+
 </style>

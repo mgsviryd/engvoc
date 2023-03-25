@@ -46,7 +46,7 @@
                 return this.root + path + this.slash + this.markerPath
             },
             isDefaultPictureFileName(name){
-                return this.pictureMedia.defaultPictureFileName == name
+                return this.pictureMedia.defaultPictureFileName === name
             },
         },
     }

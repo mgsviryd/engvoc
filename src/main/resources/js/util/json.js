@@ -18,12 +18,15 @@ export default {
         }
         return arr
     },
-    isEqualByProperties(json1, json2, ...property){
+    isEqualByProperties(json1, json2, ...property) {
         for (let i = 0; i < property.length; i++) {
-            if (json1[property[i]] !== json2[property[i]]){
+            if (json1[property[i]] !== json2[property[i]]) {
                 return false;
             }
         }
         return true;
-    }
+    },
+    isEmpty(json) {
+        return Object.keys(json).length === 0;
+    },
 }

@@ -7,14 +7,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class DictionaryService {
     @Autowired
     private DictionaryRepo dictionaryRepo;
+
+    public void delete(Dictionary dictionary) {
+        dictionaryRepo.delete(dictionary);
+    }
 
     public Dictionary save(Dictionary dictionary) {
         return dictionaryRepo.save(dictionary);
@@ -71,5 +77,17 @@ public class DictionaryService {
 
     public List<Dictionary> findAll() {
         return dictionaryRepo.findAll();
+    }
+
+    public List<Dictionary> findDistinctByNameAndParent(List<Dictionary> dictionaries) {
+        return dictionaryRepo.findDistinctByNameAndParent(dictionaries);
+    }
+
+    public void deleteByIdIn(List<Long> ids) {
+        dictionaryRepo.deleteByIdIn(ids);
+    }
+
+    public List<Dictionary> findAllById(List<Long> ids) {
+        return dictionaryRepo.findAllById(ids);
     }
 }
