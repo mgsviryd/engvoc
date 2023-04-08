@@ -30,7 +30,7 @@
            @dragenter="preventDragdropNowhere()"
       >
         <button v-for="(d,i) in dbDictionaries"
-                :key="`A-${i}`"
+                :key="`A-${d.id}`"
                 :id="inst + 'dbDictionary' + d.id"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                 @click="parentLoadDbDictionary(d.id)"
@@ -60,7 +60,6 @@
     >
       <context-menu ref="deleteUpload">
         <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-success">ADD NEW</button>
           <button class="btn btn-outline-danger" @click="deleteUpload">DELETE</button>
         </div>
       </context-menu>
@@ -78,20 +77,20 @@
     ></add-dictionary-modal>
     <div class="collapse" :id="getCollapseForUpload()">
       <div v-for="(ldt,i) in uploadLDTs"
-           :key="`A-${i}`"
+           :key="`A-${ldt}`"
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
                 :href="hash+getCollapseForUploadLDTs(i)" role="button"
                 aria-expanded="false"
                 :aria-controls="getCollapseForUploadLDTs(i)">
-          <span class="st-text-shift">{{ ldt }}</span>
+          <span class="st-text-shift">{{ getShortLdt(ldt) }}</span>
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
         <div class="collapse" :id="getCollapseForUploadLDTs(i)">
           <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
-                    :key="`A-${ii}`"
+                    :key="`B-${d.id}`"
                     :id="inst + 'uploadDictionary'+ d.id"
                     class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                     @click="parentLoadUploadDictionary(d.id)"
@@ -114,12 +113,21 @@
 <script>
 import contextMenu from 'vue-context-menu'
 import {mapState, mapGetters} from "vuex";
-import date from "../../../util/date"
-import json from "../../../util/json"
 import addDictionaryModal from "./AddDictionaryModal.vue";
-import string from "../../../util/string";
 
 export default {
+  created() {
+    this.$root.$on('confirm-dragstart', (dragdrop) => {
+      if(this.isCurrentDragstart(dragdrop) && !this.isInsideSameSource(dragdrop)){
+        this.confirmDragstart(dragdrop)
+      }
+    })
+    this.$root.$on('confirm-dragleave', (dragdrop) => {
+      if(this.isCurrentDragleave(dragdrop) && !this.isInsideSameSource(dragdrop)){
+        this.confirmDragleave(dragdrop)
+      }
+    })
+  },
   components: {
     contextMenu,
     addDictionaryModal,
@@ -140,7 +148,7 @@ export default {
       'getDbDictionaryInx',
     ]),
     uploadLDTs() {
-      return this.getCardsUploadCreationLDTs.map(item => item.toLocaleString())
+      return this.getCardsUploadCreationLDTs
     },
     uploadDictionaries() {
       return this.cards.upload.dictionaries
@@ -197,6 +205,7 @@ export default {
             updateAllAction: "",
             addUpdateAllAction: "",
           },
+          markSource: "",
           pullSourceId: -1,
         },
         over: {
@@ -214,6 +223,7 @@ export default {
             updateAllAction: "",
             addUpdateAllAction: "",
           },
+          markSource: "",
           pushSourceId: -1,
         },
       },
@@ -222,6 +232,13 @@ export default {
   methods: {
     fetchData() {
 
+    },
+    getShortLdt(ldt){
+      if(ldt){
+        return ldt.toLocaleString()
+      }else{
+        return "custom"
+      }
     },
     updateActiveDbElemId(id) {
       if (this.activeDictionaryElemId) {
@@ -280,6 +297,56 @@ export default {
     openRefDeleteDb(i) {
       this.$refs.deleteDbDictionary[i].open()
     },
+
+    isInsideSameSource(dragdrop) {
+      return dragdrop.start.markSource === dragdrop.leave.markSource && dragdrop.start.pullSourceId === dragdrop.leave.pushSourceId
+    },
+    isCurrentDragstart(dragdrop){
+      return this.dragdrop.start.type === dragdrop.start.type && this.dragdrop.start.ldt === dragdrop.start.ldt
+    },
+    isCurrentDragleave(dragdrop){
+      return this.dragdrop.leave.type === dragdrop.leave.type && this.dragdrop.leave.ldt === dragdrop.leave.ldt
+    },
+    confirmDragstart(dragdrop){
+      if (dragdrop.start.pull === "delete") {
+        this.$store.dispatch(dragdrop.start.actions.removeAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.start.pullSourceId
+            })
+      }
+    },
+    confirmDragleave(dragdrop){
+      if (dragdrop.leave.push === "delete") {
+        this.$store.dispatch(dragdrop.leave.actions.removeAllAction,
+            {
+              cards: dragdrop.start.pushItems,
+              id: dragdrop.start.pushSourceId
+            })
+      }
+      if (dragdrop.start.operation === "add") {
+        this.$store.dispatch(dragdrop.leave.actions.addAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.leave.pushSourceId
+            })
+      }
+      if (dragdrop.start.operation === "update") {
+        this.$store.dispatch(dragdrop.leave.actions.updateAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.leave.pushSourceId
+            })
+      }
+      if (dragdrop.start.operation === "addUpdate") {
+        this.$store.dispatch(dragdrop.leave.actions.addUpdateAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.leave.pushSourceId
+            })
+      }
+    },
+
     preventDragdropNowhere() {
       let payload = {
         type: "Nowhere",
@@ -297,6 +364,7 @@ export default {
         pull: "delete", // preserve / delete
         pullItems: items,
         actions: this.db.actions,
+        markSource: this.db.markSource,
         pullSourceId: d.id,
       }
       this.dragdrop.start = payload
@@ -316,11 +384,11 @@ export default {
       // console.info("dragleave: " + d.id)
       const items = []
       const payload = {
-        type: "card",
         ldt: new Date(),
         push: "preserve", // preserve / delete
         pushItems: items,
         actions: this.db.actions,
+        markSource: this.db.markSource,
         pushSourceId: d.id,
       }
       this.dragdrop.leave = payload
@@ -336,6 +404,7 @@ export default {
         pull: "delete", // preserve / delete
         pullItems: items,
         actions: this.upload.actions,
+        markSource: this.upload.markSource,
         pullSourceId: d.id,
       }
       this.dragdrop.start = payload

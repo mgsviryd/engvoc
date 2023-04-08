@@ -477,10 +477,10 @@ export default new Vuex.Store(
                 state.cards.db.dictionaries = data
             },
 
-            addDictionaryUploadMutation(state, dictionary) {
+            addDictionaryUploadMutation(state, payload) {
                 state.cards.upload.dictionaries = [
                     ...state.cards.upload.dictionaries,
-                    dictionary
+                    payload.dictionary
                 ]
                 state.cards.upload.cards = [
                     ...state.cards.upload.cards,
@@ -1265,8 +1265,12 @@ export default new Vuex.Store(
                     commit('setActionMutation', {id: payload.actionId, errors: data.errors})
                 }
             },
-            async addDictionaryUploadAction({commit}, dictionary) {
-                commit('addDictionaryUploadMutation', dictionary)
+            async addDictionaryUploadAction({commit, dispatch}, payload) {
+                const picture = await dispatch('addPictureAction', payload)
+                payload.dictionary.id = uuidv4()
+                payload.dictionary.picture = picture
+                commit('addDictionaryUploadMutation', payload)
+                commit('setActionMutation', {id: payload.actionId, errors: {}})
             },
             async deleteCardsUploadAction({commit}) {
                 commit('deleteCardsUploadMutation')

@@ -73,6 +73,17 @@ import * as _ from 'lodash'
 
 export default {
   created() {
+    this.$root.$on('confirm-dragstart', (dragdrop) => {
+      if (this.isCurrentDragstart(dragdrop) && !this.isInsideSameSource(dragdrop)) {
+        this.confirmDragstart(dragdrop)
+      }
+    })
+    this.$root.$on('confirm-dragleave', (dragdrop) => {
+      if (this.isCurrentDragleave(dragdrop) && !this.isInsideSameSource(dragdrop)) {
+        this.confirmDragleave(dragdrop)
+      }
+    })
+
     this.fetchData()
     this.showEmpty = typeof this.dictionaryCards === 'undefined' || this.dictionaryCards.length === 0;
   },
@@ -119,6 +130,7 @@ export default {
             updateAllAction: "",
             addUpdateAllAction: "",
           },
+          markSource: "",
           pullSourceId: -1,
         },
         over: {
@@ -134,6 +146,7 @@ export default {
           addAllAction: "",
           updateAllAction: "",
           addUpdateAllAction: "",
+          markSource: "",
           pushSourceId: -1,
         },
       },
@@ -216,6 +229,55 @@ export default {
       }
     },
 
+    isInsideSameSource(dragdrop) {
+      return dragdrop.start.markSource === dragdrop.leave.markSource && dragdrop.start.pullSourceId === dragdrop.leave.pushSourceId
+    },
+    isCurrentDragstart(dragdrop) {
+      return this.dragdrop.start.type === dragdrop.start.type && this.dragdrop.start.ldt === dragdrop.start.ldt
+    },
+    isCurrentDragleave(dragdrop) {
+      return this.dragdrop.leave.type === dragdrop.leave.type && this.dragdrop.leave.ldt === dragdrop.leave.ldt
+    },
+    confirmDragstart(dragdrop) {
+      if (dragdrop.start.pull === "delete") {
+        this.$store.dispatch(dragdrop.start.actions.removeAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.start.pullSourceId
+            })
+      }
+    },
+    confirmDragleave(dragdrop) {
+      if (dragdrop.leave.push === "delete") {
+        this.$store.dispatch(dragdrop.leave.actions.removeAllAction,
+            {
+              cards: dragdrop.start.pushItems,
+              id: dragdrop.start.pushSourceId
+            })
+      }
+      if (dragdrop.start.operation === "add") {
+        this.$store.dispatch(dragdrop.leave.actions.addAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.leave.pushSourceId
+            })
+      }
+      if (dragdrop.start.operation === "update") {
+        this.$store.dispatch(dragdrop.leave.actions.updateAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.leave.pushSourceId
+            })
+      }
+      if (dragdrop.start.operation === "addUpdate") {
+        this.$store.dispatch(dragdrop.leave.actions.addUpdateAllAction,
+            {
+              cards: dragdrop.start.pullItems,
+              id: dragdrop.leave.pushSourceId
+            })
+      }
+    },
+
     preventDragdropNowhere() {
       // console.info("dragenterNowhere")
       let payload = {
@@ -228,7 +290,7 @@ export default {
       // console.info("dragstart: " + this.dictionaryId)
       let items = []
       if (this.isSelected(card)) {
-        items = this.dictionaryCards.filter(x=> this.selectedCardIds.findIndex(id=> id === x.id)>=0)
+        items = this.dictionaryCards.filter(x => this.selectedCardIds.findIndex(id => id === x.id) >= 0)
       } else {
         items.push(card)
       }
@@ -244,6 +306,7 @@ export default {
           updateAllAction: this.updateAllAction,
           addUpdateAllAction: this.addUpdateAllAction,
         },
+        markSource: this.markSource,
         pullSourceId: this.dictionaryId,
       }
       this.dragdrop.start = payload
@@ -276,6 +339,7 @@ export default {
           updateAllAction: this.updateAllAction,
           addUpdateAllAction: this.addUpdateAllAction,
         },
+        markSource: this.markSource,
         pushSourceId: this.dictionaryId,
       }
       this.dragdrop.leave = payload

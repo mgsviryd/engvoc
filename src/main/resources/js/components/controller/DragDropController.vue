@@ -31,6 +31,7 @@ export default {
           addAllAction: "",
           updateAllAction: "",
           addUpdateAllAction: "",
+          markSource: "",
           pullSourceId: -1,
         },
         over: {
@@ -45,6 +46,7 @@ export default {
           addAllAction: "", // action from store
           updateAllAction: "", // action from store
           addUpdateAllAction: "", // action from store
+          markSource: "",
           pushSourceId: -1,
         },
       },
@@ -82,58 +84,15 @@ export default {
     },
     executeDragDrop(millis) {
       if (this.currentMillis === millis) {
-        if (this.isNotSameType() || this.isInsideSameSource()) {
+        if (this.isNotSameType()) {
           return;
         }
-        // console.info("executeDragDrop")
-        if (this.dragdrop.start.pull === "delete") {
-          this.$store.dispatch(this.dragdrop.start.actions.removeAllAction,
-              {
-                cards: this.dragdrop.start.pullItems,
-                id: this.dragdrop.start.pullSourceId
-              })
-        }
-        if (this.dragdrop.leave.push === "delete") {
-          this.$store.dispatch(this.dragdrop.leave.actions.removeAllAction,
-              {
-                cards: this.dragdrop.start.pushItems,
-                id: this.dragdrop.start.pushSourceId
-              })
-        }
-        if (this.dragdrop.start.operation === "add") {
-          this.$store.dispatch(this.dragdrop.leave.actions.addAllAction,
-              {
-                cards: this.dragdrop.start.pullItems,
-                id: this.dragdrop.leave.pushSourceId
-              })
-        }
-        if (this.dragdrop.start.operation === "update") {
-          this.$store.dispatch(this.dragdrop.leave.actions.updateAllAction,
-              {
-                cards: this.dragdrop.start.pullItems,
-                id: this.dragdrop.leave.pushSourceId
-              })
-        }
-        if (this.dragdrop.start.operation === "addUpdate") {
-          this.$store.dispatch(this.dragdrop.leave.actions.addUpdateAllAction,
-              {
-                cards: this.dragdrop.start.pullItems,
-                id: this.dragdrop.leave.pushSourceId
-              })
-        }
+        this.$root.$emit('confirm-dragstart', this.dragdrop)
+        this.$root.$emit('confirm-dragleave', this.dragdrop)
       }
     },
     isNotSameType() {
       return this.dragdrop.start.type !== this.dragdrop.over.type || this.dragdrop.over.type !== this.dragdrop.leave.type
-    },
-    isInsideSameSource() {
-      return this.dragdrop.start.actions.addAllAction === this.dragdrop.leave.actions.addAllAction && this.dragdrop.start.pullSourceId === this.dragdrop.leave.pushSourceId
-    },
-    abortDragstart() {
-      this.$root.$emit('abort-dragstart', {ldt: this.dragdrop.start.ldt})
-    },
-    preDeleteDragstart() {
-      this.$root.$emit('pre-delete-dragstart', {ldt: this.dragdrop.start.ldt})
     },
   },
 
