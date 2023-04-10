@@ -2,17 +2,14 @@
 </template>
 
 <script>
-import {mapState} from "vuex"
 import date from "../../util/date"
 
 export default {
   created() {
     this.$root.$on('dragstart', payload => {
-      this.$root.$emit('start-dragdrop', {type: payload.type})
       this.dragdrop.start = payload
     });
     this.$root.$on('dragover', payload => {
-      // if (this.dragdrop.over) this.$root.$emit('change-dragover', this.dragdrop.over)
       this.dragdrop.over = payload
     });
     this.$root.$on('dragleave', payload => {
