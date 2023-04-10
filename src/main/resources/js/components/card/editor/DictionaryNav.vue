@@ -33,12 +33,12 @@
                 :key="`A-${d.id}`"
                 :id="inst + 'dbDictionary' + d.id"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
-                @click="parentLoadDbDictionary(d.id)"
-                @contextmenu.prevent="openRefDeleteDb(i)"
+                draggable="true"
                 @dragstart="dragstartDb(d)"
                 @dragover="dragoverDb(d)"
                 @dragleave="dragleaveDb(d)"
-                draggable="true"
+                @contextmenu.prevent="openRefDeleteDb(i)"
+                @click.prevent.stop="parentLoadDbDictionary(d.id)"
         >
           <context-menu ref="deleteDbDictionary">
             <div class="btn-group-vertical btn-group-sm d-block">
@@ -88,16 +88,19 @@
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
         <div class="collapse" :id="getCollapseForUploadLDTs(i)">
-          <div class="btn-group-vertical btn-group-sm d-block">
+          <div class="btn-group-vertical btn-group-sm d-block"
+               draggable="true"
+               @dragenter="preventDragdropNowhere()"
+          >
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
                     :key="`B-${d.id}`"
                     :id="inst + 'uploadDictionary'+ d.id"
                     class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
-                    @click="parentLoadUploadDictionary(d.id)"
+                    draggable="true"
                     @dragstart="dragstartUpload(d)"
                     @dragover="dragoverUpload(d)"
                     @dragleave="dragleaveUpload(d)"
-                    draggable="true"
+                    @click.prevent.stop="parentLoadUploadDictionary(d.id)"
             >
               <span class="st-text-shift">{{ d.name }}</span>
               <span class="st-right badge badge-light border bg-white badge-pill">{{getCountUploadDictionary(d)}}</span>
@@ -378,7 +381,7 @@ export default {
       }
       this.dragdrop.over = payload
       this.$root.$emit('dragover', payload)
-    }, 30),
+    }, 40),
 
     dragleaveDb: _.throttle(function (d) {
       // console.info("dragleave: " + d.id)
@@ -393,7 +396,7 @@ export default {
       }
       this.dragdrop.leave = payload
       this.$root.$emit('dragleave', payload)
-    }, 30),
+    }, 40),
     dragstartUpload(d) {
       // console.info("dragstart: " + d.id)
       const items = this.getCardsUploadByDictionaryId(d.id)
@@ -418,7 +421,7 @@ export default {
       }
       this.dragdrop.over = payload
       this.$root.$emit('dragover', payload)
-    }, 30),
+    }, 40),
 
     dragleaveUpload: _.throttle(function (d) {
       // console.info("dragleave: " + d.id)
@@ -433,7 +436,7 @@ export default {
       }
       this.dragdrop.leave = payload
       this.$root.$emit('dragleave', payload)
-    }, 30),
+    }, 40),
   },
 }
 </script>

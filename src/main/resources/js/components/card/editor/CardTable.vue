@@ -1,8 +1,7 @@
 <template>
   <div v-if="show" class="card-table-"
-       @dragover="dragover(null, -1)"
-       @dragleave="dragleave(null,-1)"
        draggable="true"
+       @dragenter="preventDragdropNowhere()"
   >
 
     <div class="d-block bg-dark" style="width: 100%;">
@@ -28,18 +27,16 @@
         <th class="st-squeeze border-2 border-secondary border-right-0"></th>
       </tr>
       </thead>
-      <tbody class="mt-4"
-             draggable="true"
-             @dragenter="preventDragdropNowhere()"
-      >
+      <tbody class="mt-4">
 
       <tr v-for="(card,i) in dictionaryCards"
           v-model="dictionaryCards"
           :key="`A-${card.id}`"
           :id="getCardElementId(card.id)"
-          @dragstart="dragstart(card, i)"
-          @dragover="dragover(card, i)"
-          @dragleave="dragleave(card,i)"
+          @dragstart="dragstart($event, card, i)"
+          @dragover="dragover($event,card, i)"
+          @dragleave="dragleave($event,card,i)"
+          @dragend="dragend($event,card,i)"
           @click.prevent.stop="selectCard(card)"
           draggable="true"
       >
@@ -58,8 +55,8 @@
     </table>
     <div v-if="showEmpty"
          class="blank container-fluid d-block"
-         @dragover="dragover(null, -1)"
-         @dragleave="dragleave(null,-1)"
+         @dragover="dragover($event,null, -1)"
+         @dragleave="dragleave($event,null,-1)"
          draggable="true"
     >
     </div>
@@ -73,6 +70,26 @@ import * as _ from 'lodash'
 
 export default {
   created() {
+    this.dragdrop = this.defaultDragdrop
+    this.$root.$on('start-dragdrop', (payload) => {
+      if (payload.type === this.type) {
+        this.isDragdropInProcess = true
+      }
+    })
+    this.$root.$on('end-dragdrop', (payload) => {
+      console.info("end-dragdrop")
+      if (payload.type === this.type) {
+        this.isDragdropInProcess = false
+        this.offDragdropStyle()
+        this.offDragstartStyle(this.dragdrop.start.pullItems.map(x => x.id))
+        this.dragdrop = this.defaultDragdrop
+      }
+    })
+    // this.$root.$on('change-dragover', (payload) => {
+    //   if(this.isDragdropInProcess && payload.ldt === this.dragdrop.over.ldt){
+    //     this.offDragdropStyle()
+    //   }
+    // })
     this.$root.$on('confirm-dragstart', (dragdrop) => {
       if (this.isCurrentDragstart(dragdrop) && !this.isInsideSameSource(dragdrop)) {
         this.confirmDragstart(dragdrop)
@@ -88,6 +105,7 @@ export default {
     this.showEmpty = typeof this.dictionaryCards === 'undefined' || this.dictionaryCards.length === 0;
   },
   props: [
+    'inst',
     'markSource',
     'dictionaryId',
     'rowToScrollId',
@@ -97,10 +115,9 @@ export default {
     $route: [
       'fetchData',
     ],
-
     storeDictionaryCards() {
       this.fetchData()
-    }
+    },
   },
   data() {
     return {
@@ -110,14 +127,17 @@ export default {
         example: null,
         exampleTranslation: null,
       },
-      dictionaryCards: [],
-      selectedCardIds: [],
+      name: "card-table",
       show: true,
       showEmpty: false,
+      dictionaryCards: [],
+      selectedCardIds: [],
       type: "card",
-      pull: "delete",
-      dragstartType: null,
-      dragdrop: {
+      isDragdropInProcess: false,
+      dragoverTarget: null,
+
+      dragdrop: {},
+      defaultDragdrop: {
         start: {
           type: "",
           operation: "add", // add / update // add-update
@@ -205,7 +225,7 @@ export default {
       this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)
     },
     getCardElementId(id) {
-      return "card" + id
+      return this.inst + this.name + "card" + id
     },
     isSelected(card) {
       return this.selectedCardIds.indexOf(card.id) >= 0
@@ -231,6 +251,35 @@ export default {
 
     isInsideSameSource(dragdrop) {
       return dragdrop.start.markSource === dragdrop.leave.markSource && dragdrop.start.pullSourceId === dragdrop.leave.pushSourceId
+    },
+
+    onDragstartStyle(cardIds) {
+      console.info("onDragstartStyle")
+      cardIds.forEach(id => $("#" + this.getCardElementId(id)).addClass("dragstart-process"))
+    },
+    offDragstartStyle(cardIds) {
+      console.info("offDragstartStyle")
+      cardIds.forEach(id => $("#" + this.getCardElementId(id)).removeClass("dragstart-process"))
+    },
+
+    async onDragdropStyle(event, card, i) {
+      if (card) {
+        if (this.isDragdropInProcess) {
+          if (event.target) {
+            let target = event.target.closest('tr');
+            if (target) {
+              if (this.dragoverTarget !== null && this.dragoverTarget !== target) {
+                $("#" + this.dragoverTarget.id).removeClass("dragover-process")
+              }
+              $("#" + target.id).addClass("dragover-process")
+              this.dragoverTarget = target
+            }
+          }
+        }
+      }
+    },
+    offDragdropStyle() {
+      if (this.dragoverTarget) $("#" + this.dragoverTarget.id).removeClass("dragover-process")
     },
     isCurrentDragstart(dragdrop) {
       return this.dragdrop.start.type === dragdrop.start.type && this.dragdrop.start.ldt === dragdrop.start.ldt
@@ -280,13 +329,18 @@ export default {
 
     preventDragdropNowhere() {
       // console.info("dragenterNowhere")
+      this.offDragdropStyle()
+      this.preventDragdropNowhereThrottle()
+    },
+    preventDragdropNowhereThrottle: _.throttle(function () {
       let payload = {
         type: "Nowhere",
         ldt: new Date(),
       }
       this.$root.$emit('dragover', payload)
-    },
-    dragstart(card, i) {
+    }, 100),
+
+    dragstart($event, card, i) {
       // console.info("dragstart: " + this.dictionaryId)
       let items = []
       if (this.isSelected(card)) {
@@ -310,10 +364,15 @@ export default {
         pullSourceId: this.dictionaryId,
       }
       this.dragdrop.start = payload
+      this.onDragstartStyle(this.dragdrop.start.pullItems.map(x => x.id))
       this.$root.$emit('dragstart', payload)
     },
-    dragover: _.throttle(function (card, i) {
+    dragover(event, card, i) {
       // console.info("dragover: " + this.dictionaryId)
+      this.onDragdropStyle(event, card, i)
+      this.dragoverThrottle(card, i)
+    },
+    dragoverThrottle: _.throttle(function (card, i) {
       let payload = {
         type: "card",
         ldt: new Date(),
@@ -322,8 +381,11 @@ export default {
       this.$root.$emit('dragover', payload)
     }, 30),
 
-    dragleave: _.throttle(function (card, i) {
-      // console.info("dragleave: " + this.dictionaryId)
+    dragleave(event, card, i) {
+      // if (card) console.info("dragleave: " + card.id)
+      this.dragleaveThrottle(card, i)
+    },
+    dragleaveThrottle: _.throttle(function (card, i) {
       const items = []
       if (card !== null) {
         items.push(card)
@@ -345,6 +407,9 @@ export default {
       this.dragdrop.leave = payload
       this.$root.$emit('dragleave', payload)
     }, 30),
+    dragend($event, card, i) {
+      this.$root.$emit('dragend', {type: this.type})
+    },
   },
 }
 </script>
@@ -388,8 +453,16 @@ th, td:not(.st-squeeze, .st-text-shift) {
   background-color: #eaeaea;
 }
 
-.draw-dragover {
-  background-color: red;
+.dragover-process {
+  border-style: solid;
+  border-color: green;
+  background-color: greenyellow;
+}
+
+.dragstart-process {
+  border-style: solid;
+  border-color: red;
+  background-color: pink;
 }
 
 </style>

@@ -8,13 +8,18 @@ import date from "../../util/date"
 export default {
   created() {
     this.$root.$on('dragstart', payload => {
+      this.$root.$emit('start-dragdrop', {type: payload.type})
       this.dragdrop.start = payload
     });
     this.$root.$on('dragover', payload => {
+      // if (this.dragdrop.over) this.$root.$emit('change-dragover', this.dragdrop.over)
       this.dragdrop.over = payload
     });
     this.$root.$on('dragleave', payload => {
       this.dragdrop.leave = payload
+    });
+    this.$root.$on('dragend', payload => {
+      this.$root.$emit('end-dragdrop', {type: payload.type})
     });
   },
 
@@ -62,9 +67,7 @@ export default {
     dragdrop: {
       handler: function (newVal, oldVal) {
         if (newVal.leave.ldt === null && oldVal.leave.ldt === null) return;
-        if (newVal.leave.ldt !== null
-            // && newVal.over.ldt !== null
-        ) {
+        if (newVal.leave.ldt !== null) {
           let millisOver = 0;
           if (newVal.over.ldt !== null) {
             millisOver = date.getUTCMilliseconds(newVal.over.ldt)
@@ -84,15 +87,14 @@ export default {
     },
     executeDragDrop(millis) {
       if (this.currentMillis === millis) {
-        if (this.isNotSameType()) {
-          return;
+        if (this.isSameType()) {
+          this.$root.$emit('confirm-dragstart', this.dragdrop)
+          this.$root.$emit('confirm-dragleave', this.dragdrop)
         }
-        this.$root.$emit('confirm-dragstart', this.dragdrop)
-        this.$root.$emit('confirm-dragleave', this.dragdrop)
       }
     },
-    isNotSameType() {
-      return this.dragdrop.start.type !== this.dragdrop.over.type || this.dragdrop.over.type !== this.dragdrop.leave.type
+    isSameType() {
+      return this.dragdrop.start.type === this.dragdrop.over.type && this.dragdrop.over.type === this.dragdrop.leave.type
     },
   },
 

@@ -14,6 +14,7 @@
                     :mark-source="props1.markSource"
                     :dictionaryId="props1.dictionaryId"
                     :rowToScrollId="props1.rowToScrollId"
+                    :inst="instance1"
         ></card-table>
       </div>
 
@@ -22,6 +23,7 @@
             :mark-source="props2.markSource"
                     :dictionaryId="props2.dictionaryId"
                     :rowToScrollId="props2.rowToScrollId"
+                    :inst="instance2"
         ></card-table>
       </div>
       </div>
@@ -48,8 +50,6 @@ export default {
   },
   data() {
     return {
-      upload: "upload",
-      db: "db",
       instance1: "left",
       instance2: "right",
       props1: {
