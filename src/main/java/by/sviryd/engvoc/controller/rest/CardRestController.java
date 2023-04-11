@@ -5,6 +5,7 @@ import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.service.CardService;
 import by.sviryd.engvoc.service.CardUniqueService;
+import by.sviryd.engvoc.service.DictionaryService;
 import by.sviryd.engvoc.service.card.reader.ExcelCardShortReaderService;
 import by.sviryd.engvoc.service.card.reader.XmlCardReaderService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -33,6 +34,8 @@ import java.util.stream.Stream;
 public class CardRestController {
     @Autowired
     private CardService cardService;
+    @Autowired
+    private DictionaryService dictionaryService;
     @Autowired
     private ExcelCardShortReaderService excelCardShortReaderService;
     @Autowired
@@ -87,9 +90,9 @@ public class CardRestController {
         Card cardDb = cardService.findDistinctByWordAndTranslation(card.getWord(), card.getTranslation());
         Card saved = null;
         Card notSaved = null;
-        if (cardDb == null) {
+        if (cardDb != null) {
             BeanUtils.copyProperties(card, cardDb, "id");
-            saved = cardService.save(card);
+            saved = cardService.save(cardDb);
         } else {
             notSaved = card;
         }
@@ -224,7 +227,7 @@ public class CardRestController {
     public Map<Object, Object> saveAllUnique(
             @RequestBody List<Card> cards
     ) {
-        cards.forEach(x-> x.setId(null));
+        cards.forEach(x -> x.setId(null));
         List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
         cards.removeAll(repeatedInList);
         List<Card> db = cardService.findDistinctByWordAndTranslation(cards);
@@ -245,13 +248,13 @@ public class CardRestController {
     public Map<Object, Object> updateAllUnique(
             @RequestBody List<Card> cards
     ) {
-        cards.forEach(x-> x.setId(null));
+        cards.forEach(x -> x.setId(null));
         List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
         cards.removeAll(repeatedInList);
         List<Card> alreadyIn = cardService.findDistinctByWordAndTranslation(cards);
-        List<Card> repeated = cards.stream().filter(x -> alreadyIn.stream().anyMatch(y -> y.getWord().equals(x.getWord()) && y.getTranslation().equals(x.getWord()))).collect(Collectors.toList());
+        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
         IntStream.range(0, repeated.size()).forEach((x) -> BeanUtils.copyProperties(repeated.get(x), alreadyIn.get(x), getNullPropertyNames(repeated.get(x))));
-        cards.remove(repeated);
+        cards.removeAll(repeated);
         cards.addAll(repeatedInList);
         List<Card> saved = new ArrayList<>();
         if (!alreadyIn.isEmpty()) {
@@ -267,11 +270,11 @@ public class CardRestController {
     public Map<Object, Object> addUpdateAllUnique(
             @RequestBody List<Card> cards
     ) {
-        cards.forEach(x-> x.setId(null));
+        cards.forEach(x -> x.setId(null));
         List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
         cards.removeAll(repeatedInList);
         List<Card> alreadyIn = cardService.findDistinctByWordAndTranslation(cards);
-        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards,alreadyIn);
+        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
         IntStream.range(0, repeated.size()).forEach((x) -> BeanUtils.copyProperties(repeated.get(x), alreadyIn.get(x), getNullPropertyNames(repeated.get(x))));
         List<Card> saved = new ArrayList<>();
         if (!cards.isEmpty()) {
@@ -280,6 +283,60 @@ public class CardRestController {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("saved", saved);
         data.put("notSaved", repeatedInList);
+        return data;
+    }
+
+    @PostMapping("updateDictionary")
+    public Map<Object, Object> updateDictionary(
+            @RequestBody String json
+    ) {
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        Long cardId = obj.get("cardId").getAsLong();
+        Long dictionaryId = obj.get("dictionaryId").getAsLong();
+        Optional<Card> cardOpt = cardService.findById(cardId);
+        Optional<Dictionary> dictionaryOpt = dictionaryService.findById(dictionaryId);
+        Card saved = null;
+        Card notSaved = null;
+        if (cardOpt.isPresent()) {
+            notSaved = cardOpt.get();
+            if (dictionaryOpt.isPresent()) {
+                notSaved.setDictionary(dictionaryOpt.get());
+                saved = cardService.save(notSaved);
+                notSaved = null;
+            }
+        }
+        HashMap<Object, Object> data = new HashMap<>();
+        data.put("saved", saved);
+        data.put("notSaved", notSaved);
+        return data;
+    }
+
+    @PostMapping("updateDictionaryAll")
+    public Map<Object, Object> updateDictionaryAll(
+            @RequestBody String json
+    ) {
+        Gson gson = new Gson();
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        JsonArray cardIdsJson = obj.get("cardIds").getAsJsonArray();
+        Type arrayOfLongType = new TypeToken<ArrayList<Long>>() {
+        }.getType();
+        List<Long> cardIds = gson.fromJson(cardIdsJson, arrayOfLongType);
+        Long dictionaryId = obj.get("dictionaryId").getAsLong();
+        List<Card> cards = cardService.findAllById(cardIds);
+        Optional<Dictionary> dictionaryOpt = dictionaryService.findById(dictionaryId);
+        List<Card> saved = new ArrayList<>();
+        List<Card> notSaved = cards;
+        if (dictionaryOpt.isPresent()) {
+            Dictionary dictionary = dictionaryOpt.get();
+            notSaved.forEach(card -> card.setDictionary(dictionary));
+            saved = cardService.saveAll(notSaved);
+            notSaved = null;
+        }
+        HashMap<Object, Object> data = new HashMap<>();
+        data.put("saved", saved);
+        data.put("notSaved", notSaved);
         return data;
     }
 

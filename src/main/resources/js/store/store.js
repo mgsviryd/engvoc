@@ -15,7 +15,6 @@ import storeMethods from "store/storeMethods";
 import vlf from "../util/vlf";
 import date from "../util/date";
 import string from "../util/string";
-import { v4 as uuidv4 } from 'uuid';
 
 Vue.use(Vuex)
 
@@ -75,6 +74,22 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            dragdrop: {},
+            dragdropActions: {
+                db: {
+                    removeAllAction: "cardDbRemoveAllAction",
+                    addAllAction: "cardDbAddAllAction",
+                    updateAllAction: "cardDbUpdateAllAction",
+                    addUpdateAllAction: "cardDbAddUpdateAllAction",
+                    updateDictionaryAllAction: "cardDbUpdateDictionaryAllAction"
+                },
+                upload: {
+                    removeAllAction: "cardUploadRemoveAllAction",
+                    addAllAction: "cardUploadAddAllAction",
+                    updateAllAction: "cardUploadUpdateAllAction",
+                    addUpdateAllAction: "cardUploadAddUpdateAllAction",
+                },
+            },
             pictures: [],
             action: {
                 id: 0,
@@ -82,10 +97,14 @@ export default new Vuex.Store(
             },
             cards: {
                 db: {
+                    sourceMark: "db",
                     dictionaries: [],
                     cards: [],
                 },
                 upload: {
+                    sourceMark: "upload",
+                    dictionaryId: 0,
+                    cardId: 0,
                     dictionaries: [],
                     cards: [],
                 },
@@ -173,24 +192,32 @@ export default new Vuex.Store(
             }],
         },
         getters: {
+            incrementAndGetCardUploadId: state => () => {
+                state.cards.upload.cardId = state.cards.upload.cardId + 1;
+                return state.cards.upload.sourceMark + state.cards.upload.cardId
+            },
+            incrementAndGetDictionaryUploadId: state => () => {
+                state.cards.upload.dictionaryId = state.cards.upload.dictionaryId + 1;
+                return state.cards.upload.sourceMark + state.cards.upload.dictionaryId
+            },
             getActionId: state => () => state.action.id,
             getCardsDBByDictionaryInx: state => i => {
                 if (state.cards.db.dictionaries.length <= i) return []
                 const dictionaryId = state.cards.db.dictionaries[i].id
                 return state.cards.db.cards.filter((x) => x.dictionary.id === dictionaryId)
             },
-            getCardsDbByDictionaryId: state => id => {
+            getCardsByDictionaryDbId: state => id => {
                 return state.cards.db.cards.filter((x) => x.dictionary.id === id)
             },
-            getCardsUploadByDictionaryId: state => id => {
+            getCardsByDictionaryUploadId: state => id => {
                 const inx = state.cards.upload.dictionaries.findIndex(item => item.id === id)
                 return state.cards.upload.cards[inx]
             },
             isDbSource: state => (source) => {
-                return source === "db"
+                return source === state.cards.db.sourceMark
             },
             isUploadSource: state => (source) => {
-                return source === "upload"
+                return source === state.cards.upload.sourceMark
             },
             getCardsUploadCreationLDTs: state => [...new Set(state.cards.upload.dictionaries.map(item => item.creationLDT))],
             isDbDictionaryExists: state => (id) => {
@@ -204,6 +231,9 @@ export default new Vuex.Store(
             },
             getUploadDictionaryInx: state => (id) => {
                 return state.cards.upload.dictionaries.findIndex(item => item.id === id)
+            },
+            getDbDictionaryById: (state, getters) => (id) => {
+                return state.cards.db.dictionaries[getters.getDbDictionaryInx(id)]
             },
             sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
@@ -264,6 +294,17 @@ export default new Vuex.Store(
             }
         },
         mutations: {
+            //dragdrop
+            dragdropDefaultMutation(state) {
+                state.dragdrop = {}
+            },
+            setDragdropStartMutation(state, payload) {
+                state.dragdrop.start = payload
+            },
+            setDragdropEndMutation(state, payload) {
+                state.dragdrop.end = payload
+            },
+
             // errors
             setActionMutation(state, payload) {
                 state.action.errors = payload.errors
@@ -344,6 +385,8 @@ export default new Vuex.Store(
             },
 
             deleteCardsUploadMutation(state) {
+                state.cards.upload.cardId = 0
+                state.cards.upload.dictionaryId = 0
                 state.cards.upload.cards = []
                 state.cards.upload.dictionaries = []
             },
@@ -355,17 +398,18 @@ export default new Vuex.Store(
             getCardsUploadFileMutation(state, payload) {
                 const data = payload.data
                 const d = new Date()
+                let cardId = 0
                 data.forEach((card, i) => {
-                    card.id = uuidv4();
+                    card.id = cardId++
                 })
                 const dictionaries = []
                 const lookup = {};
+                let dictionaryId = 0
                 for (let i = 0; i < data.length; i++) {
                     let dictionary = data[i].dictionary
                     dictionary.creationLDT = d
                     dictionary.source = payload.name
-                    dictionary.id = uuidv4();
-
+                    dictionary.id = dictionaryId++
                     let name = dictionary.name
                     if (!(name in lookup)) {
                         lookup[name] = 1;
@@ -389,7 +433,7 @@ export default new Vuex.Store(
                 }))
             },
             cardUploadAddAllMutation(state, payload) {
-                payload.cards.forEach((item, i) => item.id = uuidv4())
+                payload.cards.forEach((item, i) => item.id = this.getters.incrementAndGetCardUploadId())
                 state.cards.upload.cards[payload.inx].push(...payload.cards)
             },
             cardUploadUpdateAllMutation(state, payload) {
@@ -397,7 +441,7 @@ export default new Vuex.Store(
                 state.cards.upload.cards[payload.inx].forEach((item, i) => {
                     let iIds = ids.indexOf(item.id)
                     if (iIds > 0) {
-                        state.cards.upload.cards[inx][i] = payload.cards[iIds]
+                        state.cards.upload.cards[payload.inx].splice(i, 1, payload.cards[iIds])
                     }
                 });
             },
@@ -409,7 +453,7 @@ export default new Vuex.Store(
                     if (iIds >= 0) {
                         state.cards.upload.cards[iIds] = item
                     } else {
-                        item.id = uuidv4();
+                        item.id = this.getters.incrementAndGetCardUploadId()
                         newCards.push(item)
                     }
                 })
@@ -425,23 +469,25 @@ export default new Vuex.Store(
                 state.cards.db.cards.push(...payload.cards)
             },
             cardDbUpdateAllMutation(state, payload) {
-                const ids = payload.cards.map((item) => item.id)
-                state.cards.db.cards.forEach((item, i) => {
-                    let iIds = ids.indexOf(item.id)
-                    if (iIds === 0) {
-                        state.cards.db.cards[i] = payload.cards[iIds]
-                    }
-                });
+                if (payload.cards.length > 0) {
+                    const ids = state.cards.db.cards.map((card) => card.id)
+                    payload.cards.forEach((card, i) => {
+                        let iIds = ids.indexOf(card.id)
+                        if (iIds >= 0) {
+                            state.cards.db.cards.splice(iIds, 1, card)
+                        }
+                    })
+                }
             },
             cardDbAddUpdateAllMutation(state, payload) {
-                const ids = state.cards.db.cards.map((item) => item.id)
+                const ids = state.cards.db.cards.map((card) => card.id)
                 const newCards = []
-                payload.cards.forEach((item, i) => {
-                    let iIds = ids.indexOf((item.id))
+                payload.cards.forEach((card, i) => {
+                    let iIds = ids.indexOf(card.id)
                     if (iIds >= 0) {
-                        state.cards.db.cards[iIds] = item
+                        state.cards.db.cards[iIds] = card
                     } else {
-                        newCards.push(item)
+                        newCards.push(card)
                     }
                 })
                 state.cards.db.cards.push(...newCards)
@@ -1148,7 +1194,7 @@ export default new Vuex.Store(
                     const result = await cardApi.remove(payload.cards[0].id)
                     const data = await result.data
                     if (result.ok) {
-                        commit('removeCardDbMutation', data)
+                        commit('removeCardDbMutation', payload.cards[0])
                     }
                 } else {
                     const result = await cardApi.deleteByIdIn({ids: payload.cards.map(x => x.id)})
@@ -1158,7 +1204,7 @@ export default new Vuex.Store(
                 }
             },
             async cardDbAddAllAction({commit, state, getters}, payload) {
-                payload.cards.forEach(item=> item.id=null)
+                payload.cards.forEach(item => item.id = null)
                 const inx = getters.getDbDictionaryInx(payload.id)
                 payload.cards.forEach((x) => x.dictionary = state.cards.db.dictionaries[inx])
                 if (payload.cards.length === 1) {
@@ -1178,7 +1224,7 @@ export default new Vuex.Store(
                 }
             },
             async cardDbUpdateAllAction({commit}, payload) {
-                payload.cards.forEach(item=> item.id=null)
+                payload.cards.forEach(item => item.id = null)
                 if (payload.cards.length === 1) {
                     const result = await cardApi.updateUnique(payload.cards[0])
                     const data = await result.data
@@ -1196,7 +1242,7 @@ export default new Vuex.Store(
                 }
             },
             async cardDbAddUpdateAllAction({commit}, payload) {
-                payload.cards.forEach(item=> item.id=null)
+                payload.cards.forEach(item => item.id = null)
                 if (payload.cards.length === 1) {
                     const result = await cardApi.addUpdateUnique(payload.cards[0])
                     const data = await result.data
@@ -1209,6 +1255,23 @@ export default new Vuex.Store(
                     const data = await result.data
                     if (result.ok) {
                         commit('cardDbAddUpdateAllMutation', {cards: data.saved})
+                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
+                    }
+                }
+            },
+            async cardDbUpdateDictionaryAllAction({commit, state, getters, dispatch}, payload) {
+                if (payload.cards.length === 1) {
+                    const result = await cardApi.updateDictionary(payload.cards[0].id, payload.id)
+                    const data = await result.data
+                    if (result.ok) {
+                        commit('updateCardDbMutation', data.saved)
+                        commit('addCardNotSavedMutation', {cards: data.notSaved})
+                    }
+                } else if (payload.cards.length > 1) {
+                    const result = await cardApi.updateDictionaryAll(payload.cards.map(card => card.id), payload.id)
+                    const data = await result.data
+                    if (result.ok) {
+                        commit('cardDbUpdateAllMutation', {cards: data.saved})
                         commit('addCardsNotSavedMutation', {cards: data.notSaved})
                     }
                 }
@@ -1265,9 +1328,9 @@ export default new Vuex.Store(
                     commit('setActionMutation', {id: payload.actionId, errors: data.errors})
                 }
             },
-            async addDictionaryUploadAction({commit, dispatch}, payload) {
+            async addDictionaryUploadAction({commit, getters, dispatch}, payload) {
                 const picture = await dispatch('addPictureAction', payload)
-                payload.dictionary.id = uuidv4()
+                payload.dictionary.id = getters.incrementAndGetDictionaryUploadId()
                 payload.dictionary.picture = picture
                 commit('addDictionaryUploadMutation', payload)
                 commit('setActionMutation', {id: payload.actionId, errors: {}})
@@ -1287,6 +1350,79 @@ export default new Vuex.Store(
                     commit('deleteDictionaryDbMutation', payload.id)
                 }
             },
+
+            //dragdrop
+            dragdropStartAction({commit}, payload) {
+                commit('setDragdropStartMutation', payload)
+            },
+            dragdropEndAndExecuteAction({commit, state, dispatch}, payload) {
+                commit('setDragdropEndMutation', payload)
+                if (!state.dragdrop.start
+                    || !state.dragdrop.end
+                    || state.dragdrop.start.groups.filter(x => state.dragdrop.end.groups.findIndex(y => y === x) >= 0).length === 0
+                    || (!state.dragdrop.end.options.isDragdropInside
+                        && state.dragdrop.start.data.sourceMark === state.dragdrop.end.data.sourceMark
+                        && state.dragdrop.start.data.sourceId === state.dragdrop.end.data.sourceId)
+                ) {
+                    commit('dragdropDefaultMutation')
+                    return
+                }
+                if (state.dragdrop.start.groups.indexOf("card") >= 0) {
+                    dispatch("dragdropExecuteCardAction")
+                }
+            },
+            dragdropExecuteCardAction({commit, state, dispatch}) {
+                const actions = state.dragdropActions
+                let actionsStart = actions[state.dragdrop.start.data.sourceMark];
+                let actionsEnd = actions[state.dragdrop.end.data.sourceMark];
+
+                if (state.dragdrop.start.data.sourceMark === state.dragdrop.end.data.sourceMark
+                    && state.dragdrop.start.data.sourceMark === state.cards.db.sourceMark
+                ) {
+                    dispatch(actionsStart.updateDictionaryAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                    return
+                }
+                // console.info("passReturn")
+                if (state.dragdrop.end.options.pull === "delete") {
+                    dispatch(actionsStart.removeAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.start.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.push === "delete") {
+                    dispatch(actionsEnd.removeAllAction,
+                        {
+                            cards: state.dragdrop.end.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.operation === "add") {
+                    dispatch(actionsEnd.addAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.operation === "update") {
+                    dispatch(actionsEnd.updateAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.operation === "addUpdate") {
+                    dispatch(actionsEnd.addUpdateAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+            }
         },
     }
 )

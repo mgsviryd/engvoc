@@ -1,7 +1,7 @@
 <template>
   <div class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block">
     <button class="btn  btn-primary text-left rounded-0  border-1 border-secondary" data-toggle="collapse"
-            :href="hash+getCollapseForDb()"
+            :href="'#'+getCollapseForDb()"
             role="button"
             aria-expanded="false"
             :aria-controls="getCollapseForDb()"
@@ -25,20 +25,16 @@
         :store-action="dbStoreAction"
     ></add-dictionary-modal>
     <div class="collapse" :id="getCollapseForDb()">
-      <div class="btn-group-vertical btn-group-sm d-block"
-           draggable="true"
-           @dragenter="preventDragdropNowhere()"
-      >
+      <div class="btn-group-vertical btn-group-sm d-block">
         <button v-for="(d,i) in dbDictionaries"
                 :key="`A-${d.id}`"
-                :id="inst + 'dbDictionary' + d.id"
+                :id="getDictionaryDbElementId(d)"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
+                @mousedown.prevent.stop="mousedown(d, cardDbSourceMark)"
+                @mouseup.prevent.stop="mouseup(d , cardDbSourceMark)"
                 draggable="true"
-                @dragstart="dragstartDb(d)"
-                @dragover="dragoverDb(d)"
-                @dragleave="dragleaveDb(d)"
+                @click.prevent.stop="parentLoadDictionary(d, cardDbSourceMark)"
                 @contextmenu.prevent="openRefDeleteDb(i)"
-                @click.prevent.stop="parentLoadDbDictionary(d.id)"
         >
           <context-menu ref="deleteDbDictionary">
             <div class="btn-group-vertical btn-group-sm d-block">
@@ -46,13 +42,13 @@
             </div>
           </context-menu>
           <span class="st-text-shift">{{ d.name }}</span>
-          <span class="st-right badge badge-light border badge-pill"> {{ getCountDbDictionary(d) }} </span>
+          <span class="st-right badge badge-light bg-white border badge-pill"> {{ getCountDbDictionary(d) }} </span>
         </button>
       </div>
     </div>
 
     <button class="btn  btn-primary text-left rounded-0 m-0  border-1 border-secondary" data-toggle="collapse"
-            :href="hash+getCollapseForUpload()"
+            :href="'#'+getCollapseForUpload()"
             role="button"
             aria-expanded="false"
             :aria-controls="getCollapseForUpload()"
@@ -81,26 +77,22 @@
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
-                :href="hash+getCollapseForUploadLDTs(i)" role="button"
+                :href="'#'+getCollapseForUploadLDTs(i)" role="button"
                 aria-expanded="false"
                 :aria-controls="getCollapseForUploadLDTs(i)">
           <span class="st-text-shift">{{ getShortLdt(ldt) }}</span>
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
         <div class="collapse" :id="getCollapseForUploadLDTs(i)">
-          <div class="btn-group-vertical btn-group-sm d-block"
-               draggable="true"
-               @dragenter="preventDragdropNowhere()"
-          >
+          <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
                     :key="`B-${d.id}`"
-                    :id="inst + 'uploadDictionary'+ d.id"
+                    :id="getDictionaryUploadElementId(d)"
                     class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                     draggable="true"
-                    @dragstart="dragstartUpload(d)"
-                    @dragover="dragoverUpload(d)"
-                    @dragleave="dragleaveUpload(d)"
-                    @click.prevent.stop="parentLoadUploadDictionary(d.id)"
+                    @mousedown.prevent.stop="mousedown(d, cardUploadSourceMark)"
+                    @mouseup.prevent.stop="mouseup(d , cardUploadSourceMark)"
+                    @click.prevent.stop="parentLoadDictionary(d, cardUploadSourceMark)"
             >
               <span class="st-text-shift">{{ d.name }}</span>
               <span class="st-right badge badge-light border bg-white badge-pill">{{getCountUploadDictionary(d)}}</span>
@@ -110,6 +102,7 @@
         </div>
       </div>
     </div>
+    <GlobalEvents @mouseup="mouseupOutside()"/>
   </div>
 </template>
 
@@ -120,30 +113,26 @@ import addDictionaryModal from "./AddDictionaryModal.vue";
 
 export default {
   created() {
-    this.$root.$on('confirm-dragstart', (dragdrop) => {
-      if(this.isCurrentDragstart(dragdrop) && !this.isInsideSameSource(dragdrop)){
-        this.confirmDragstart(dragdrop)
-      }
+    this.$root.$on('dragdrop-init', (payload) => {
+      this.dragdropInit(payload)
     })
-    this.$root.$on('confirm-dragleave', (dragdrop) => {
-      if(this.isCurrentDragleave(dragdrop) && !this.isInsideSameSource(dragdrop)){
-        this.confirmDragleave(dragdrop)
-      }
+    this.$root.$on('dragdrop-destroy', () => {
+      this.dragdropDestroy()
     })
   },
   components: {
     contextMenu,
     addDictionaryModal,
   },
-  props: ['inst'],
+  props: ['instanceMark'],
   computed: {
     ...mapState([
       'cards',
       'lang',
     ]),
     ...mapGetters([
-      'getCardsDbByDictionaryId',
-      'getCardsUploadByDictionaryId',
+      'getCardsByDictionaryDbId',
+      'getCardsByDictionaryUploadId',
       'isDbSource',
       'isUploadSource',
       'getCardsUploadCreationLDTs',
@@ -165,76 +154,36 @@ export default {
     dbCards() {
       return this.cards.db.cards
     },
-    db() {
-      return {
-        markSource: "db",
-        actions: {
-          removeAllAction: 'cardDbRemoveAllAction',
-          addAllAction: 'cardDbAddAllAction',
-          updateAllAction: 'cardDbUpdateAllAction',
-          addUpdateAllAction: 'cardDbAddUpdateAllAction',
-        },
-      }
+    cardDbSourceMark(){
+      return this.cards.db.sourceMark
     },
-    upload() {
-      return {
-        markSource: "upload",
-        actions: {
-          removeAllAction: 'cardUploadRemoveAllAction',
-          addAllAction: 'cardUploadAddAllAction',
-          updateAllAction: 'cardUploadUpdateAllAction',
-          addUpdateAllAction: 'cardUploadAddUpdateAllAction',
-        },
-      }
-    },
+    cardUploadSourceMark(){
+      return this.cards.upload.sourceMark
+    }
   },
   data() {
     return {
-      hash: "#",
+      name: "dictionary-nav",
       activeDictionaryElemId: null,
       uploadStoreAction: 'addDictionaryUploadAction',
       dbStoreAction: 'addDictionaryDbWithPictureAction',
-      type: "card",
-      dragdrop: {
-        start: {
-          type: "",
-          operation: "add", // add / update // addUpdate
-          ldt: null,
-          pull: "", // preserve / delete
-          pullItems: [],
-          actions: {
-            removeAllAction: "",
-            addAllAction: "",
-            updateAllAction: "",
-            addUpdateAllAction: "",
-          },
-          markSource: "",
-          pullSourceId: -1,
-        },
-        over: {
-          type: "",
-          ldt: null,
-        },
-        leave: {
-          type: "",
-          ldt: null,
-          push: "", // preserve / delete
-          pushItems: [],
-          actions: {
-            removeAllAction: "",
-            addAllAction: "",
-            updateAllAction: "",
-            addUpdateAllAction: "",
-          },
-          markSource: "",
-          pushSourceId: -1,
-        },
-      },
+
+      groups: ["card"],
+      isMouseInClick: false,
+      groupsInProcess: [],
+      dragDictionary: null,
+      dragSourceMark: null,
     }
   },
   methods: {
     fetchData() {
 
+    },
+    getDictionaryDbElementId(dictionary){
+      return this.instanceMark + this.name + this.cardDbSourceMark + dictionary.id
+    },
+    getDictionaryUploadElementId(dictionary){
+      return this.instanceMark + this.name + this.cardUploadSourceMark + dictionary.id
     },
     getShortLdt(ldt){
       if(ldt){
@@ -243,19 +192,13 @@ export default {
         return "custom"
       }
     },
-    updateActiveDbElemId(id) {
+    async updateActiveDictionaryElemId(d, sourceMark) {
       if (this.activeDictionaryElemId) {
         $("#" + this.activeDictionaryElemId).removeClass("active-dictionary")
       }
-      $("#" + this.inst + "dbDictionary" + id).addClass("active-dictionary")
-      this.activeDictionaryElemId = this.inst + "dbDictionary" + id
-    },
-    updateActiveUploadElemId(id) {
-      if (this.activeDictionaryElemId) {
-        $("#" + this.activeDictionaryElemId).removeClass("active-dictionary")
-      }
-      $("#" + this.inst + "uploadDictionary" + id).addClass("active-dictionary")
-      this.activeDictionaryElemId = this.inst + "uploadDictionary" + id
+      if (sourceMark === this.cardDbSourceMark) this.activeDictionaryElemId = this.getDictionaryDbElementId(d)
+      if (sourceMark === this.cardUploadSourceMark) this.activeDictionaryElemId = this.getDictionaryUploadElementId(d)
+      $("#" + this.activeDictionaryElemId).addClass("active-dictionary")
     },
     getCountDbDictionary(d) {
       return this.dbCards.filter(item => item.dictionary.id === d.id).length
@@ -271,21 +214,17 @@ export default {
       return this.uploadDictionaries.filter(item => item.creationLDT === ldt)
     },
     getCollapseForDb() {
-      return this.inst + "collapseDb"
+      return this.instanceMark + "collapseDb"
     },
     getCollapseForUpload() {
-      return this.inst + "collapseUpload"
+      return this.instanceMark + "collapseUpload"
     },
     getCollapseForUploadLDTs(i) {
-      return this.inst + "collapseFilenames" + i
+      return this.instanceMark + "collapseFilenames" + i
     },
-    parentLoadDbDictionary(id) {
-      this.updateActiveDbElemId(id)
-      return this.$emit('loadDictionary', id, "db", this.inst)
-    },
-    parentLoadUploadDictionary(id) {
-      this.updateActiveUploadElemId(id)
-      return this.$emit('loadDictionary', id, "upload", this.inst)
+    parentLoadDictionary(d, sourceMark) {
+      this.updateActiveDictionaryElemId(d, sourceMark)
+      return this.$emit('loadDictionary', d.id, sourceMark, this.instanceMark)
     },
 
     deleteUpload() {
@@ -301,142 +240,101 @@ export default {
       this.$refs.deleteDbDictionary[i].open()
     },
 
-    isInsideSameSource(dragdrop) {
-      return dragdrop.start.markSource === dragdrop.leave.markSource && dragdrop.start.pullSourceId === dragdrop.leave.pushSourceId
+    mousedown(d, sourceMark) {
+      this.isMouseInClick = true
+      setTimeout(() => {
+        if (this.isMouseInClick) {
+          this.groupsInProcess = this.groups
+          let items = []
+          if (sourceMark === this.cardDbSourceMark) items = this.getCardsByDictionaryDbId(d.id)
+          if (sourceMark === this.cardUploadSourceMark) items = this.getCardsByDictionaryUploadId(d.id)
+          if (items.length === 0) return
+          this.dragDictionary = d
+          this.dragSourceMark = sourceMark
+          this.activateDragstartStyle(d, sourceMark)
+          this.$root.$emit("dragdrop-init", {groups: this.groups})
+          const start = {
+            groups: this.groups,
+            data: {
+              items: items,
+              sourceMark: sourceMark,
+              sourceId: d.id,
+            },
+          }
+          this.$store.dispatch("dragdropStartAction", start)
+        }
+      }, 2)
     },
-    isCurrentDragstart(dragdrop){
-      return this.dragdrop.start.type === dragdrop.start.type && this.dragdrop.start.ldt === dragdrop.start.ldt
-    },
-    isCurrentDragleave(dragdrop){
-      return this.dragdrop.leave.type === dragdrop.leave.type && this.dragdrop.leave.ldt === dragdrop.leave.ldt
-    },
-    confirmDragstart(dragdrop){
-      if (dragdrop.start.pull === "delete") {
-        this.$store.dispatch(dragdrop.start.actions.removeAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.start.pullSourceId
-            })
+    mouseup(d, sourceMark) {
+      this.isMouseInClick = false
+      if (this.groupsInProcess.length > 0) {
+        this.$root.$emit("dragdrop-destroy")
+        const items = []
+        const end = {
+          groups: this.groups,
+          options: {
+            pull: "delete", // preserve / delete
+            push: "preserve", // preserve / delete
+            operation: "add", // add / update / add-update
+            isDragdropInside: false,
+            isDragdropSplice: false,
+          },
+          data: {
+            items: items,
+            sourceMark: sourceMark,
+            sourceId: d.id,
+          }
+        }
+        this.$store.dispatch("dragdropEndAndExecuteAction", end)
       }
     },
-    confirmDragleave(dragdrop){
-      if (dragdrop.leave.push === "delete") {
-        this.$store.dispatch(dragdrop.leave.actions.removeAllAction,
-            {
-              cards: dragdrop.start.pushItems,
-              id: dragdrop.start.pushSourceId
-            })
-      }
-      if (dragdrop.start.operation === "add") {
-        this.$store.dispatch(dragdrop.leave.actions.addAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.leave.pushSourceId
-            })
-      }
-      if (dragdrop.start.operation === "update") {
-        this.$store.dispatch(dragdrop.leave.actions.updateAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.leave.pushSourceId
-            })
-      }
-      if (dragdrop.start.operation === "addUpdate") {
-        this.$store.dispatch(dragdrop.leave.actions.addUpdateAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.leave.pushSourceId
-            })
+    dragdropInit(payload){
+      this.setFilteredGroupsInProcess(payload.groups)
+      this.activateDragoverStyle(this.dbDictionaries, this.uploadDictionaries)
+    },
+    dragdropDestroy(){
+      this.deactivateDragstartStyle(this.dragDictionary, this.dragSourceMark)
+      this.deactivateDragoverStyle(this.dbDictionaries, this.uploadDictionaries)
+      this.isMouseInClick = false
+      this.groupsInProcess = []
+      this.dragDictionary = null
+      this.dragSourceMark = null
+    },
+    mouseupOutside(){
+      if (this.isDragdropInProcess()){
+        this.dragdropDestroy()
       }
     },
-
-    preventDragdropNowhere() {
-      let payload = {
-        type: "Nowhere",
-        ldt: new Date(),
-      }
-      this.$root.$emit('dragover', payload)
+    isDragdropInProcess(){
+      return this.groupsInProcess.length > 0
     },
-    dragstartDb(d) {
-      // console.info("dragstart: " + d.id)
-      const items = this.getCardsDbByDictionaryId(d.id)
-      let payload = {
-        type: "card",
-        operation: "add", // add / update / add-update
-        ldt: new Date(),
-        pull: "delete", // preserve / delete
-        pullItems: items,
-        actions: this.db.actions,
-        markSource: this.db.markSource,
-        pullSourceId: d.id,
-      }
-      this.dragdrop.start = payload
-      this.$root.$emit('dragstart', payload)
+    async setFilteredGroupsInProcess(groups) {
+      this.groupsInProcess = this.groups.filter(x => groups.indexOf(x) >= 0)
     },
-    dragoverDb: _.throttle(function (d) {
-      // console.info("dragover: " + d.id)
-      let payload = {
-        type: "card",
-        ldt: new Date(),
+    async activateDragstartStyle(d, sourceMark) {
+      if (sourceMark === this.cardUploadSourceMark){
+        $("#" + this.getDictionaryUploadElementId(d)).addClass("dragstart")
       }
-      this.dragdrop.over = payload
-      this.$root.$emit('dragover', payload)
-    }, 40),
-
-    dragleaveDb: _.throttle(function (d) {
-      // console.info("dragleave: " + d.id)
-      const items = []
-      const payload = {
-        ldt: new Date(),
-        push: "preserve", // preserve / delete
-        pushItems: items,
-        actions: this.db.actions,
-        markSource: this.db.markSource,
-        pushSourceId: d.id,
+      if (sourceMark === this.cardDbSourceMark){
+        $("#" + this.getDictionaryDbElementId(d)).addClass("dragstart")
       }
-      this.dragdrop.leave = payload
-      this.$root.$emit('dragleave', payload)
-    }, 40),
-    dragstartUpload(d) {
-      // console.info("dragstart: " + d.id)
-      const items = this.getCardsUploadByDictionaryId(d.id)
-      let payload = {
-        type: "card",
-        operation: "add", // add / update / add-update
-        ldt: new Date(),
-        pull: "delete", // preserve / delete
-        pullItems: items,
-        actions: this.upload.actions,
-        markSource: this.upload.markSource,
-        pullSourceId: d.id,
-      }
-      this.dragdrop.start = payload
-      this.$root.$emit('dragstart', payload)
     },
-    dragoverUpload: _.throttle(function (d) {
-      // console.info("dragover: " + d.id)
-      let payload = {
-        type: "card",
-        ldt: new Date(),
+    async deactivateDragstartStyle(d, sourceMark) {
+      if (sourceMark === this.cardUploadSourceMark){
+        $("#" + this.getDictionaryUploadElementId(d)).removeClass("dragstart")
       }
-      this.dragdrop.over = payload
-      this.$root.$emit('dragover', payload)
-    }, 40),
-
-    dragleaveUpload: _.throttle(function (d) {
-      // console.info("dragleave: " + d.id)
-      const items = []
-      const payload = {
-        type: "card",
-        ldt: new Date(),
-        push: "preserve", // preserve / delete
-        pushItems: items,
-        actions: this.upload.actions,
-        pushSourceId: d.id,
+      if (sourceMark === this.cardDbSourceMark){
+        $("#" + this.getDictionaryDbElementId(d)).removeClass("dragstart")
       }
-      this.dragdrop.leave = payload
-      this.$root.$emit('dragleave', payload)
-    }, 40),
+    },
+    async activateDragoverStyle(dictionariesDb, dictionariesUpload) {
+      dictionariesDb.forEach(d => $("#" + this.getDictionaryDbElementId(d)).addClass("dragover"))
+      dictionariesUpload.forEach(d => $("#" + this.getDictionaryUploadElementId(d)).addClass("dragover"))
+    },
+    async deactivateDragoverStyle(dictionariesDb, dictionariesUpload) {
+      dictionariesDb.forEach(d => $("#" + this.getDictionaryDbElementId(d)).removeClass("dragover"))
+      dictionariesUpload.forEach(d => $("#" + this.getDictionaryUploadElementId(d)).removeClass("dragover"))
+    },
   },
 }
 </script>
@@ -451,10 +349,6 @@ export default {
   overflow-wrap: anywhere;
 }
 
-.st-text-shift:hover {
-
-}
-
 .st-right {
   float: right
 }
@@ -466,5 +360,16 @@ i {
 .active-dictionary {
   background-color: gray;
   color: white;
+}
+.dragover:hover {
+  border-style: solid;
+  border-color: green;
+  background-color: greenyellow;
+}
+
+.dragstart {
+  border-style: solid;
+  border-color: red;
+  background-color: pink;
 }
 </style>

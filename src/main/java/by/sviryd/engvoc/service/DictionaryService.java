@@ -90,4 +90,7 @@ public class DictionaryService {
     public List<Dictionary> findAllById(List<Long> ids) {
         return dictionaryRepo.findAllById(ids);
     }
+    public Optional<Dictionary> findById(Long id) {
+        return dictionaryRepo.findById(id);
+    }
 }

@@ -1,30 +1,31 @@
 <template>
-  <div v-if="show" class="card-table-"
-       draggable="true"
-       @dragenter="preventDragdropNowhere()"
-  >
+  <div v-if="show" class="card-table-">
+    <table class="table bg-white table-hover table-bordered border-2 border-dark table-sm">
+      <thead class="thead-dark"
+             style="position: sticky; top: 0;"
 
-    <div class="d-block bg-dark" style="width: 100%;">
-      <div class="btn-group btn-group-sm btn-group-justified">
-        <button class="btn btn-light m-1 py-0 px-1"
-        >
-          <small>
-            <b>
-              SELECTED
-            </b>
-          </small>
-        </button>
-      </div>
-    </div>
-    <table class="table caption-top bg-white table-hover table-bordered border-2 border-dark table-sm"
-    >
-      <thead class="thead-dark b-table-no-border-collapse" style="position: sticky; top: 0;">
-      <tr>
-        <th class="st-squeeze border-2 border-secondary border-left-0">N</th>
-        <th class="border-2 border-secondary">{{ word }}</th>
-        <th class="border-2 border-secondary">{{ translation }}</th>
-        <th class="border-2 border-secondary">{{ example }}</th>
-        <th class="st-squeeze border-2 border-secondary border-right-0"></th>
+      >
+      <tr class="bg-dark border-0"
+          style="position: sticky;"
+      >
+        <th colspan="10" class="border-0 p-0">
+          <div class="btn-group btn-group-sm btn-group-justified">
+            <button class="btn btn-light m-1 py-0 px-1"
+                    @mousedown.prevent.stop="mousedownSelected()">
+              <span class="st-text-shift">
+          <small><b>SELECTED</b></small>
+        </span>
+              <span class="st-right badge badge-light bg-white border badge-pill">{{ selectedCardIds.length }}</span>
+            </button>
+          </div>
+        </th>
+      </tr>
+      <tr class="border-0">
+        <th class="st-squeeze border-0 border-left-0">N</th>
+        <th class="border-0">{{ word }}</th>
+        <th class="border-0">{{ translation }}</th>
+        <th class="border-0">{{ example }}</th>
+        <th class="st-squeeze border-0 border-right-0"></th>
       </tr>
       </thead>
       <tbody class="mt-4">
@@ -33,33 +34,31 @@
           v-model="dictionaryCards"
           :key="`A-${card.id}`"
           :id="getCardElementId(card.id)"
-          @dragstart="dragstart($event, card, i)"
-          @dragover="dragover($event,card, i)"
-          @dragleave="dragleave($event,card,i)"
-          @dragend="dragend($event,card,i)"
-          @click.prevent.stop="selectCard(card)"
+          @mousedown.prevent.stop="mousedown(card, i)"
+          @mouseup.prevent.stop="mouseup(card, i)"
           draggable="true"
+          @click.prevent.stop="selectCard(card)"
       >
-        <td class="st-squeeze border-secondary border-1 border-left-0">{{ i + 1 }}</td>
-        <td class="st-text-shift border-secondary border-1">{{ card.word }}</td>
-        <td class="st-text-shift border-secondary border-1">{{ card.translation }}</td>
-        <td class="st-text-shift border-secondary border-1">
+        <td class="st-squeeze border-1 border-secondary border-left-0">{{ i + 1 }}</td>
+        <td class="st-text-shift border-1 border-secondary">{{ card.word }}</td>
+        <td class="st-text-shift border-1 border-secondary">{{ card.translation }}</td>
+        <td class="st-text-shift border-1 border-secondary">
           {{ card.example }}
           <br/>
           {{ card.exampleTranslation }}
         </td>
-        <td class="st-squeeze border-secondary border-1 border-right-0"><input type="checkbox">
+        <td class="st-squeeze border-1 border-secondary border-right-0"><input type="checkbox">
         </td>
       </tr>
       </tbody>
     </table>
     <div v-if="showEmpty"
+         :id="blankElementId"
          class="blank container-fluid d-block"
-         @dragover="dragover($event,null, -1)"
-         @dragleave="dragleave($event,null,-1)"
-         draggable="true"
+         @mouseup="mouseup(null,-1)"
     >
     </div>
+    <GlobalEvents @mouseup="mouseupOutside()"/>
   </div>
 </template>
 
@@ -70,34 +69,20 @@ import * as _ from 'lodash'
 
 export default {
   created() {
-    this.dragdrop = this.defaultDragdrop
-    this.$root.$on('end-dragdrop', (payload) => {
-      // console.info("end-dragdrop")
-      if (payload.type === this.type) {
-        this.offDragstartStyle(this.dragdrop.start.pullItems.map(x => x.id))
-        this.dragdrop = this.defaultDragdrop
-      }
+    this.$root.$on('dragdrop-init', (payload) => {
+      this.dragdropInit(payload)
     })
-    this.$root.$on('confirm-dragstart', (dragdrop) => {
-      if (this.isCurrentDragstart(dragdrop) && !this.isInsideSameSource(dragdrop)) {
-        this.confirmDragstart(dragdrop)
-      }
-    })
-    this.$root.$on('confirm-dragleave', (dragdrop) => {
-      if (this.isCurrentDragleave(dragdrop)) {
-        if (!this.isInsideSameSource(dragdrop)) {
-          this.confirmDragleave(dragdrop)
-        }
-      }
+    this.$root.$on('dragdrop-destroy', () => {
+      this.dragdropDestroy()
     })
 
     this.fetchData()
     this.showEmpty = typeof this.dictionaryCards === 'undefined' || this.dictionaryCards.length === 0;
   },
   props: [
-    'inst',
-    'markSource',
-    'dictionaryId',
+    'instance',
+    'sourceMark',
+    'sourceId',
     'rowToScrollId',
   ],
   components: {},
@@ -109,82 +94,25 @@ export default {
       this.fetchData()
     },
   },
-  data() {
-    return {
-      card: {
-        word: null,
-        translation: null,
-        example: null,
-        exampleTranslation: null,
-      },
-      name: "card-table",
-      show: true,
-      showEmpty: false,
-      dictionaryCards: [],
-      selectedCardIds: [],
-      type: "card",
-
-      dragdrop: {},
-      defaultDragdrop: {
-        start: {
-          type: "",
-          operation: "add", // add / update // add-update
-          ldt: null,
-          pull: "", // preserve / delete
-          pullItems: [],
-          actions: {
-            removeAllAction: "",
-            addAllAction: "",
-            updateAllAction: "",
-            addUpdateAllAction: "",
-          },
-          markSource: "",
-          pullSourceId: -1,
-        },
-        over: {
-          type: "",
-          ldt: null,
-        },
-        leave: {
-          type: "",
-          ldt: null,
-          push: "", // preserve / delete
-          pushItems: [],
-          removeAllAction: "",
-          addAllAction: "",
-          updateAllAction: "",
-          addUpdateAllAction: "",
-          markSource: "",
-          pushSourceId: -1,
-        },
-      },
-    }
-  },
   computed: {
     ...mapState([
       'cards',
       'lang',
     ]),
     storeDictionaryCards() {
-      if (this.markSource === "upload") {
-        return this.$store.getters.getCardsUploadByDictionaryId(this.dictionaryId)
+      if (this.sourceMark === this.cardDbSourceMark) {
+        return this.$store.getters.getCardsByDictionaryDbId(this.sourceId)
       }
-      if (this.markSource === "db") {
-        return this.$store.getters.getCardsDbByDictionaryId(this.dictionaryId)
+      if (this.sourceMark === this.cardUploadSourceMark) {
+        return this.$store.getters.getCardsByDictionaryUploadId(this.sourceId)
       }
       return []
     },
-    removeAllAction() {
-      return string.convertLowerToCamelCase([this.type, this.markSource, "remove", "all", "action"])
+    cardDbSourceMark() {
+      return this.cards.db.sourceMark
     },
-    addAllAction() {
-      return string.convertLowerToCamelCase([this.type, this.markSource, "add", "all", "action"])
-    },
-    updateAllAction() {
-      return string.convertLowerToCamelCase([this.type, this.markSource, "update", "all", "action"])
-    },
-    addUpdateAllAction() {
-      return string.convertLowerToCamelCase([this.type, this.markSource, "add", "update", "all", "action"])
+    cardUploadSourceMark() {
+      return this.cards.upload.sourceMark
     },
     word() {
       return string.getWithFirstCapital(this.lang.map.word)
@@ -198,6 +126,29 @@ export default {
     learned() {
       return string.getWithFirstCapital(this.lang.map.learned)
     },
+  },
+  data() {
+    return {
+      name: "card-table-",
+      card: {
+        word: null,
+        translation: null,
+        example: null,
+        exampleTranslation: null,
+      },
+      show: true,
+      showEmpty: false,
+      dictionaryCards: [],
+      selectedCardIds: [],
+      blankElementId: this.instance + this.name + "blank",
+
+      groups: ["card"],
+      isMouseInClick: false,
+      groupsInProcess: [],
+      isDragdropInside: false,
+      isDragdropSplice: false,
+      dragCards: [],
+    }
   },
   methods: {
     fetchData() {
@@ -213,7 +164,7 @@ export default {
       this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)
     },
     getCardElementId(id) {
-      return this.inst + this.name + "card" + id
+      return this.instance + this.name + id
     },
     isSelected(card) {
       return this.selectedCardIds.indexOf(card.id) >= 0
@@ -229,163 +180,129 @@ export default {
       }
     },
     isSourceExists() {
-      if (this.markSource === "upload") {
-        return this.$store.getters.isUploadDictionaryExists(this.dictionaryId)
+      if (this.sourceMark === this.cardDbSourceMark) {
+        return this.$store.getters.isDbDictionaryExists(this.sourceId)
       }
-      if (this.markSource === "db") {
-        return this.$store.getters.isDbDictionaryExists(this.dictionaryId)
+      if (this.sourceMark === this.cardUploadSourceMark) {
+        return this.$store.getters.isUploadDictionaryExists(this.sourceId)
       }
+      return false
     },
 
-    isInsideSameSource(dragdrop) {
-      return dragdrop.start.markSource === dragdrop.leave.markSource && dragdrop.start.pullSourceId === dragdrop.leave.pushSourceId
-    },
+    mousedown(card, i) {
+      // console.info("mousedown: "+ this.sourceId)
+      this.isMouseInClick = true
+      setTimeout(() => {
+        if (this.isMouseInClick) {
 
-    onDragstartStyle(cardIds) {
-      // console.info("onDragstartStyle")
-      cardIds.forEach(id => $("#" + this.getCardElementId(id)).addClass("dragstart-process"))
+          this.groupsInProcess = this.groups
+          let items = []
+          if (card) {
+            items.push(card)
+            this.dragCards = items
+          }
+          this.activateDragstartStyle(items)
+          this.$root.$emit("dragdrop-init", {groups: this.groups})
+          const start = {
+            groups: this.groups,
+            data: {
+              items: items,
+              sourceMark: this.sourceMark,
+              sourceId: this.sourceId,
+            },
+          }
+          this.$store.dispatch("dragdropStartAction", start)
+        }
+      }, 2)
     },
-    offDragstartStyle(cardIds) {
-      // console.info("offDragstartStyle")
-      cardIds.forEach(id => $("#" + this.getCardElementId(id)).removeClass("dragstart-process"))
+    mousedownSelected() {
+      // console.info("mousedownSelected: "+ this.sourceId)
+      this.isMouseInClick = true
+      setTimeout(() => {
+        if (this.isMouseInClick) {
+          if (this.selectedCardIds.length < 1) {
+            return
+          }
+          this.groupsInProcess = this.groups
+          const items = this.dictionaryCards.filter(card => this.selectedCardIds.findIndex(id => id === card.id) >= 0)
+          this.dragCards = items
+          this.activateDragstartStyle(items)
+          this.$root.$emit("dragdrop-init", {groups: this.groups})
+          const start = {
+            groups: this.groups,
+            data: {
+              items: items,
+              sourceMark: this.sourceMark,
+              sourceId: this.sourceId,
+            },
+          }
+          this.$store.dispatch("dragdropStartAction", start)
+        }
+      }, 2)
     },
-
-    isCurrentDragstart(dragdrop) {
-      return this.dragdrop.start.type === dragdrop.start.type && this.dragdrop.start.ldt === dragdrop.start.ldt
-    },
-    isCurrentDragleave(dragdrop) {
-      return this.dragdrop.leave.type === dragdrop.leave.type && this.dragdrop.leave.ldt === dragdrop.leave.ldt
-    },
-
-    deleteCards(cards){
-      // this.dictionaryCards = this.dictionaryCards
-    },
-    confirmDragstart(dragdrop) {
-      this.deleteCards(dragdrop.start.pullItems)
-      if (dragdrop.start.pull === "delete") {
-        this.$store.dispatch(dragdrop.start.actions.removeAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.start.pullSourceId
-            })
+    mouseup(card, i) {
+      // console.info("mouseup: "+ this.sourceId)
+      this.isMouseInClick = false
+      if (this.groupsInProcess.length > 0) {
+        this.$root.$emit("dragdrop-destroy")
+        const items = []
+        if (card) {
+          items.push(card)
+        }
+        const end = {
+          groups: this.groups,
+          options: {
+            pull: "delete", // preserve / delete
+            push: "preserve", // preserve / delete
+            operation: "add", // add / update / add-update
+            isDragdropInside: false,
+            isDragdropSplice: false,
+          },
+          data: {
+            items: items,
+            sourceMark: this.sourceMark,
+            sourceId: this.sourceId,
+          }
+        }
+        this.$store.dispatch("dragdropEndAndExecuteAction", end)
       }
     },
-    confirmDragleave(dragdrop) {
-      if (dragdrop.leave.push === "delete") {
-        this.$store.dispatch(dragdrop.leave.actions.removeAllAction,
-            {
-              cards: dragdrop.start.pushItems,
-              id: dragdrop.start.pushSourceId
-            })
-      }
-      if (dragdrop.start.operation === "add") {
-        this.$store.dispatch(dragdrop.leave.actions.addAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.leave.pushSourceId
-            })
-      }
-      if (dragdrop.start.operation === "update") {
-        this.$store.dispatch(dragdrop.leave.actions.updateAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.leave.pushSourceId
-            })
-      }
-      if (dragdrop.start.operation === "addUpdate") {
-        this.$store.dispatch(dragdrop.leave.actions.addUpdateAllAction,
-            {
-              cards: dragdrop.start.pullItems,
-              id: dragdrop.leave.pushSourceId
-            })
+    dragdropInit(payload) {
+      this.setFilteredGroupsInProcess(payload.groups)
+      this.activateDragoverStyle(this.dictionaryCards)
+    },
+    dragdropDestroy() {
+      this.deactivateDragstartStyle(this.dragCards)
+      this.deactivateDragoverStyle(this.dictionaryCards)
+      this.isMouseInClick = false
+      this.groupsInProcess = []
+      this.dragCards = []
+    },
+    mouseupOutside() {
+      if (this.isDragdropInProcess()) {
+        this.dragdropDestroy()
       }
     },
-
-    preventDragdropNowhere() {
-      // console.info("dragenterNowhere")
-      this.preventDragdropNowhereThrottle()
+    isDragdropInProcess() {
+      return this.groupsInProcess.length > 0
     },
-    preventDragdropNowhereThrottle: _.throttle(function () {
-      let payload = {
-        type: "Nowhere",
-        ldt: new Date(),
-      }
-      this.$root.$emit('dragover', payload)
-    }, 100),
-
-    dragstart($event, card, i) {
-      // console.info("dragstart: " + this.dictionaryId)
-      let items = []
-      if (this.isSelected(card)) {
-        items = this.dictionaryCards.filter(x => this.selectedCardIds.findIndex(id => id === x.id) >= 0)
-      } else {
-        items.push(card)
-      }
-      let payload = {
-        type: "card",
-        operation: "add", // add / update / add-update
-        ldt: new Date(),
-        pull: "delete", // preserve / delete
-        pullItems: items,
-        actions: {
-          removeAllAction: this.removeAllAction,
-          addAllAction: this.addAllAction,
-          updateAllAction: this.updateAllAction,
-          addUpdateAllAction: this.addUpdateAllAction,
-        },
-        markSource: this.markSource,
-        pullSourceId: this.dictionaryId,
-      }
-      this.dragdrop.start = payload
-      this.onDragstartStyle(this.dragdrop.start.pullItems.map(x => x.id))
-      this.$root.$emit('dragstart', payload)
+    async setFilteredGroupsInProcess(groups) {
+      this.groupsInProcess = this.groups.filter(x => groups.indexOf(x) >= 0)
     },
-    dragover(event, card, i) {
-      // console.info("dragover: " + this.dictionaryId)
-      event.preventDefault()
-      this.dragoverThrottle(card, i)
+    async activateDragstartStyle(cards) {
+      cards.forEach(card => $("#" + this.getCardElementId(card.id)).addClass("dragstart"))
     },
-    dragoverThrottle: _.throttle(function (card, i) {
-      let payload = {
-        type: "card",
-        ldt: new Date(),
-      }
-      this.dragdrop.over = payload
-      this.$root.$emit('dragover', payload)
-    }, 30),
-
-    dragleave(event, card, i) {
-      // if (card) console.info("dragleave: " + card.id)
-      event.preventDefault()
-      const cards = []
-      cards.push(card)
-      this.dragleaveThrottle(card, i)
+    async deactivateDragstartStyle(cards) {
+      cards.forEach(card => $("#" + this.getCardElementId(card.id)).removeClass("dragstart"))
     },
-    dragleaveThrottle: _.throttle(function (card, i) {
-      const items = []
-      if (card !== null) {
-        items.push(card)
-      }
-      const payload = {
-        type: "card",
-        ldt: new Date(),
-        push: "preserve", // preserve / delete
-        pushItems: items,
-        actions: {
-          removeAllAction: this.removeAllAction,
-          addAllAction: this.addAllAction,
-          updateAllAction: this.updateAllAction,
-          addUpdateAllAction: this.addUpdateAllAction,
-        },
-        markSource: this.markSource,
-        pushSourceId: this.dictionaryId,
-      }
-      this.dragdrop.leave = payload
-      this.$root.$emit('dragleave', payload)
-    }, 30),
-    dragend(event, card, i) {
-      this.$root.$emit('dragend', {type: this.type})
+    async activateDragoverStyle(cards) {
+      cards.forEach(card => $("#" + this.getCardElementId(card.id)).addClass("dragover"))
+      $("#" + this.blankElementId).addClass("dragover")
     },
+    async deactivateDragoverStyle(cards) {
+      cards.forEach(card => $("#" + this.getCardElementId(card.id)).removeClass("dragover"))
+      $("#" + this.blankElementId).removeClass("dragover")
+    }
   },
 }
 </script>
@@ -429,13 +346,13 @@ th, td:not(.st-squeeze, .st-text-shift) {
   background-color: #eaeaea;
 }
 
-.dragover-process {
+.dragover:hover {
   border-style: solid;
   border-color: green;
   background-color: greenyellow;
 }
 
-.dragstart-process {
+.dragstart {
   border-style: solid;
   border-color: red;
   background-color: pink;

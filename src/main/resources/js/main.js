@@ -19,6 +19,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import VueFileAgent from 'vue-file-agent';
 import VueFileAgentStyles from 'vue-file-agent/dist/vue-file-agent.css';
+import GlobalEvents from 'vue-global-events'
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
@@ -26,6 +27,7 @@ window.$ = $;
 Vue.component('vue-headful', vueHeadful);
 Vue.component('multiselect', Multiselect)
 Vue.component('VueSlider', VueSlider)
+Vue.component('GlobalEvents', GlobalEvents)
 
 Vue.use(VueCookies)
 Vue.use(VueWait)

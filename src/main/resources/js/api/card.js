@@ -33,4 +33,7 @@ export default {
     saveAllUnique: (cards) => Vue.http.post(db + "/saveAllUnique", cards),
     updateAllUnique: (cards) => Vue.http.post(db + "/updateAllUnique", cards),
     addUpdateAllUnique: (cards) => Vue.http.post(db + "/addUpdateAllUnique", cards),
+
+    updateDictionary: (cardId, dictionaryId) => Vue.http.post(db + "/updateDictionary", {cardId: cardId, dictionaryId: dictionaryId}),
+    updateDictionaryAll: (cardIds, dictionaryId) => Vue.http.post(db + "/updateDictionaryAll", {cardIds: cardIds, dictionaryId: dictionaryId}),
 }
