@@ -25,10 +25,7 @@
         :store-action="dbStoreAction"
     ></add-dictionary-modal>
     <div class="collapse" :id="getCollapseForDb()">
-      <div class="btn-group-vertical btn-group-sm d-block"
-           draggable="true"
-           @dragenter="preventDragdropNowhere()"
-      >
+      <div class="btn-group-vertical btn-group-sm d-block">
         <button v-for="(d,i) in dbDictionaries"
                 :key="`A-${d.id}`"
                 :id="inst + 'dbDictionary' + d.id"

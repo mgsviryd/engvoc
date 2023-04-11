@@ -15,7 +15,7 @@ import storeMethods from "store/storeMethods";
 import vlf from "../util/vlf";
 import date from "../util/date";
 import string from "../util/string";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 Vue.use(Vuex)
 
@@ -75,6 +75,21 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            dragdrop: {},
+            dragdropActions: {
+                db: {
+                    removeAllAction: "cardDbRemoveAllAction",
+                    addAllAction: "cardDbAddAllAction",
+                    updateAllAction: "cardDbUpdateAllAction",
+                    addUpdateAllAction: "cardDbAddUpdateAllAction",
+                },
+                upload: {
+                    removeAllAction: "cardUploadRemoveAllAction",
+                    addAllAction: "cardUploadAddAllAction",
+                    updateAllAction: "cardUploadUpdateAllAction",
+                    addUpdateAllAction: "cardUploadAddUpdateAllAction",
+                },
+            },
             pictures: [],
             action: {
                 id: 0,
@@ -264,6 +279,17 @@ export default new Vuex.Store(
             }
         },
         mutations: {
+            //dragdrop
+            dragdropDefaultMutation(state) {
+                state.dragdrop = {}
+            },
+            setDragdropStartMutation(state, payload) {
+                state.dragdrop.start = payload
+            },
+            setDragdropEndMutation(state, payload) {
+                state.dragdrop.end = payload
+            },
+
             // errors
             setActionMutation(state, payload) {
                 state.action.errors = payload.errors
@@ -1148,7 +1174,7 @@ export default new Vuex.Store(
                     const result = await cardApi.remove(payload.cards[0].id)
                     const data = await result.data
                     if (result.ok) {
-                        commit('removeCardDbMutation', data)
+                        commit('removeCardDbMutation', payload.cards[0] )
                     }
                 } else {
                     const result = await cardApi.deleteByIdIn({ids: payload.cards.map(x => x.id)})
@@ -1158,7 +1184,7 @@ export default new Vuex.Store(
                 }
             },
             async cardDbAddAllAction({commit, state, getters}, payload) {
-                payload.cards.forEach(item=> item.id=null)
+                payload.cards.forEach(item => item.id = null)
                 const inx = getters.getDbDictionaryInx(payload.id)
                 payload.cards.forEach((x) => x.dictionary = state.cards.db.dictionaries[inx])
                 if (payload.cards.length === 1) {
@@ -1178,7 +1204,7 @@ export default new Vuex.Store(
                 }
             },
             async cardDbUpdateAllAction({commit}, payload) {
-                payload.cards.forEach(item=> item.id=null)
+                payload.cards.forEach(item => item.id = null)
                 if (payload.cards.length === 1) {
                     const result = await cardApi.updateUnique(payload.cards[0])
                     const data = await result.data
@@ -1196,7 +1222,7 @@ export default new Vuex.Store(
                 }
             },
             async cardDbAddUpdateAllAction({commit}, payload) {
-                payload.cards.forEach(item=> item.id=null)
+                payload.cards.forEach(item => item.id = null)
                 if (payload.cards.length === 1) {
                     const result = await cardApi.addUpdateUnique(payload.cards[0])
                     const data = await result.data
@@ -1287,6 +1313,71 @@ export default new Vuex.Store(
                     commit('deleteDictionaryDbMutation', payload.id)
                 }
             },
+
+            //dragdrop
+            dragdropStartAction({commit}, payload) {
+                commit('setDragdropStartMutation', payload)
+            },
+            dragdropEndAndExecuteAction({commit, state, dispatch}, payload) {
+                commit('setDragdropEndMutation', payload)
+                // console.info("start: " + state.dragdrop.start.groups)
+                // console.info("end: " + state.dragdrop.end.groups)
+                if (!state.dragdrop.start
+                    || !state.dragdrop.end
+                    || state.dragdrop.start.groups.filter(x => state.dragdrop.end.groups.findIndex(y => y === x) >= 0).length === 0
+                    || (!state.dragdrop.end.options.isMoveInside
+                        && state.dragdrop.start.data.sourceMark === state.dragdrop.end.data.sourceMark
+                        && state.dragdrop.start.data.sourceId === state.dragdrop.end.data.sourceId)
+                ) {
+                    // console.info("dragdropDefaultMutation")
+                    commit('dragdropDefaultMutation')
+                    return
+                }
+                if (state.dragdrop.start.groups.indexOf("card") >= 0) {
+                    dispatch("dragdropExecuteCardAction")
+                }
+            },
+            dragdropExecuteCardAction({commit, state, dispatch}) {
+                const actions = state.dragdropActions
+                let actionsStart = actions[state.dragdrop.start.data.sourceMark];
+                let actionsEnd = actions[state.dragdrop.end.data.sourceMark];
+
+                if (state.dragdrop.end.options.pull === "delete") {
+                    dispatch(actionsStart.removeAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.start.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.push === "delete") {
+                    dispatch(actionsEnd.removeAllAction,
+                        {
+                            cards: state.dragdrop.end.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.operation === "add") {
+                    dispatch(actionsEnd.addAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.operation === "update") {
+                    dispatch(actionsEnd.updateAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+                if (state.dragdrop.end.options.operation === "addUpdate") {
+                    dispatch(actionsEnd.addUpdateAllAction,
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            id: state.dragdrop.end.data.sourceId,
+                        })
+                }
+            }
         },
     }
 )
