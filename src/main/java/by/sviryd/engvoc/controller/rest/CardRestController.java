@@ -37,10 +37,6 @@ public class CardRestController {
     @Autowired
     private DictionaryService dictionaryService;
     @Autowired
-    private ExcelCardShortReaderService excelCardShortReaderService;
-    @Autowired
-    private XmlCardReaderService xmlCardReaderService;
-    @Autowired
     private CardUniqueService cardUniqueService;
 
     @DeleteMapping("{id}")
@@ -71,10 +67,10 @@ public class CardRestController {
 
     @PostMapping("saveUnique")
     public Map<Object, Object> saveUnique(@RequestBody Card card) {
-        Card cardDb = cardService.findDistinctByWordAndTranslation(card.getWord(), card.getTranslation());
+        Card unique = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card.getWord(), card.getTranslation());
         Card saved = null;
         Card notSaved = null;
-        if (cardDb == null) {
+        if (unique == null) {
             saved = cardService.save(card);
         } else {
             notSaved = card;
@@ -87,24 +83,7 @@ public class CardRestController {
 
     @PostMapping("updateUnique")
     public Map<Object, Object> updateUnique(@RequestBody Card card) {
-        Card cardDb = cardService.findDistinctByWordAndTranslation(card.getWord(), card.getTranslation());
-        Card saved = null;
-        Card notSaved = null;
-        if (cardDb != null) {
-            BeanUtils.copyProperties(card, cardDb, "id");
-            saved = cardService.save(cardDb);
-        } else {
-            notSaved = card;
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", notSaved);
-        return data;
-    }
-
-    @PutMapping("addUpdateUnique")
-    public Map<Object, Object> addUpdateUnique(@RequestBody Card card) {
-        Card cardDb = cardService.findDistinctByWordAndTranslation(card.getWord(), card.getTranslation());
+        Card cardDb = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card.getWord(), card.getTranslation());
         Card saved = null;
         Card notSaved = null;
         if (cardDb != null) {
@@ -144,63 +123,6 @@ public class CardRestController {
         return cardService.getCardsByDictionary(dictionary);
     }
 
-
-    @PostMapping("upload/excel/filename")
-    public List<Card> excelFilename(
-            @RequestBody String json
-    ) {
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        String filename = obj.get("filename").getAsString();
-        File file = new File(filename);
-        return excelCardShortReaderService.extract(file);
-    }
-
-    @PostMapping("upload/excel/file")
-    public List<Card> excelFile(
-            @RequestParam("file") MultipartFile file
-    ) {
-        return excelCardShortReaderService.extract(file);
-    }
-
-    @PostMapping("upload/excel/files")
-    public List<Card> excelFiles(
-            @RequestParam("files") MultipartFile[] files
-    ) {
-        return Arrays.stream(files)
-                .map(excelCardShortReaderService::extract)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-    }
-
-    @PostMapping("upload/xml/filename")
-    public List<Card> xml(
-            @RequestBody String json
-    ) throws Exception {
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        String filename = obj.get("filename").getAsString();
-        File file = new File(filename);
-        return xmlCardReaderService.extract(file);
-    }
-
-    @PostMapping("upload/xml/file")
-    public List<Card> xmlFile(
-            @RequestParam("file") MultipartFile file
-    ) {
-        return xmlCardReaderService.extract(file);
-    }
-
-    @PostMapping("upload/xml/files")
-    public List<Card> xmlFiles(
-            @RequestParam("files") MultipartFile[] files
-    ) {
-        return Arrays.stream(files)
-                .map(xmlCardReaderService::extract)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-    }
-
     @GetMapping("findAll")
     @JsonView(Views.CardPage.class)
     public List<Card> findAll() {
@@ -227,11 +149,10 @@ public class CardRestController {
     public Map<Object, Object> saveAllUnique(
             @RequestBody List<Card> cards
     ) {
-        cards.forEach(x -> x.setId(null));
         List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
         cards.removeAll(repeatedInList);
-        List<Card> db = cardService.findDistinctByWordAndTranslation(cards);
-        List<Card> repeatedInDb = cardUniqueService.getRepeatedByWordAndTranslation(cards, db);
+        List<Card> unique = cardService.findDistinctByWordAndTranslationWithUniqueTrue(cards);
+        List<Card> repeatedInDb = cardUniqueService.getRepeatedByWordAndTranslation(cards, unique);
         cards.removeAll(repeatedInDb);
         repeatedInDb.addAll(repeatedInList);
         List<Card> saved = new ArrayList<>();
@@ -248,10 +169,9 @@ public class CardRestController {
     public Map<Object, Object> updateAllUnique(
             @RequestBody List<Card> cards
     ) {
-        cards.forEach(x -> x.setId(null));
         List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
         cards.removeAll(repeatedInList);
-        List<Card> alreadyIn = cardService.findDistinctByWordAndTranslation(cards);
+        List<Card> alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(cards);
         List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
         IntStream.range(0, repeated.size()).forEach((x) -> BeanUtils.copyProperties(repeated.get(x), alreadyIn.get(x), getNullPropertyNames(repeated.get(x))));
         cards.removeAll(repeated);
@@ -266,45 +186,29 @@ public class CardRestController {
         return data;
     }
 
-    @PostMapping("addUpdateAllUnique")
-    public Map<Object, Object> addUpdateAllUnique(
-            @RequestBody List<Card> cards
-    ) {
-        cards.forEach(x -> x.setId(null));
-        List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
-        cards.removeAll(repeatedInList);
-        List<Card> alreadyIn = cardService.findDistinctByWordAndTranslation(cards);
-        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
-        IntStream.range(0, repeated.size()).forEach((x) -> BeanUtils.copyProperties(repeated.get(x), alreadyIn.get(x), getNullPropertyNames(repeated.get(x))));
-        List<Card> saved = new ArrayList<>();
-        if (!cards.isEmpty()) {
-            saved = cardService.saveAll(cards);
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", repeatedInList);
-        return data;
-    }
-
-    @PostMapping("updateDictionary")
-    public Map<Object, Object> updateDictionary(
+    @PostMapping("changeDictionary")
+    public Map<Object, Object> changeDictionary(
             @RequestBody String json
     ) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
         Long cardId = obj.get("cardId").getAsLong();
-        Long dictionaryId = obj.get("dictionaryId").getAsLong();
-        Optional<Card> cardOpt = cardService.findById(cardId);
-        Optional<Dictionary> dictionaryOpt = dictionaryService.findById(dictionaryId);
+        Long destDictionaryId = obj.get("destId").getAsLong();
+        Card card = cardService.findById(cardId).get();
+        Optional<Dictionary> destOpt = dictionaryService.findById(destDictionaryId);
+        boolean isNeedCheckUnique = obj.get("isNeedCheckUnique").getAsBoolean();
+        if (isNeedCheckUnique)
+        {
+            card.setDictionary(destOpt.get());
+            return saveUnique(card);
+        }
         Card saved = null;
-        Card notSaved = null;
-        if (cardOpt.isPresent()) {
-            notSaved = cardOpt.get();
-            if (dictionaryOpt.isPresent()) {
-                notSaved.setDictionary(dictionaryOpt.get());
-                saved = cardService.save(notSaved);
-                notSaved = null;
-            }
+        Card notSaved = card;
+        if (destOpt.isPresent()) {
+            Dictionary dictionary = destOpt.get();
+            notSaved.setDictionary(dictionary);
+            saved = cardService.save(notSaved);
+            notSaved = null;
         }
         HashMap<Object, Object> data = new HashMap<>();
         data.put("saved", saved);
@@ -312,8 +216,8 @@ public class CardRestController {
         return data;
     }
 
-    @PostMapping("updateDictionaryAll")
-    public Map<Object, Object> updateDictionaryAll(
+    @PostMapping("changeDictionaries")
+    public Map<Object, Object> changeDictionaries(
             @RequestBody String json
     ) {
         Gson gson = new Gson();
@@ -323,13 +227,19 @@ public class CardRestController {
         Type arrayOfLongType = new TypeToken<ArrayList<Long>>() {
         }.getType();
         List<Long> cardIds = gson.fromJson(cardIdsJson, arrayOfLongType);
-        Long dictionaryId = obj.get("dictionaryId").getAsLong();
+        Long destDictionaryId = obj.get("destId").getAsLong();
         List<Card> cards = cardService.findAllById(cardIds);
-        Optional<Dictionary> dictionaryOpt = dictionaryService.findById(dictionaryId);
+        Optional<Dictionary> destOpt = dictionaryService.findById(destDictionaryId);
+        boolean isNeedCheckUnique = obj.get("isNeedCheckUnique").getAsBoolean();
+        if (isNeedCheckUnique)
+        {
+            cards.forEach(c -> c.setDictionary(destOpt.get()));
+            return saveAllUnique(cards);
+        }
         List<Card> saved = new ArrayList<>();
         List<Card> notSaved = cards;
-        if (dictionaryOpt.isPresent()) {
-            Dictionary dictionary = dictionaryOpt.get();
+        if (destOpt.isPresent()) {
+            Dictionary dictionary = destOpt.get();
             notSaved.forEach(card -> card.setDictionary(dictionary));
             saved = cardService.saveAll(notSaved);
             notSaved = null;

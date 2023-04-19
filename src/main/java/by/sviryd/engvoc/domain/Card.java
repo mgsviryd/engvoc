@@ -20,7 +20,7 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ToString(of = {"id", "word", "translation", "example", "exampleTranslation", "transcription", "learned"})
+@ToString(of = {"id", "word", "translation"})
 @EqualsAndHashCode(of = {"word", "translation"})
 @NoArgsConstructor
 @AllArgsConstructor
@@ -50,7 +50,7 @@ import java.time.LocalDateTime;
                         })
         }
 )
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"word", "translation"}))
+@Table
 public class Card implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -59,6 +59,7 @@ public class Card implements Serializable {
     @DocumentId
     @JsonView(Views.Id.class)
     private Long id;
+
 
     @Column(length = 100)
     @Length(max = 100)
@@ -136,6 +137,10 @@ public class Card implements Serializable {
     @Column(nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Learned.class)
     private boolean learned;
+
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "user_id")
+//    private User authorCard;
 
     @OneToOne
     @JsonView(Views.Dictionary.class)

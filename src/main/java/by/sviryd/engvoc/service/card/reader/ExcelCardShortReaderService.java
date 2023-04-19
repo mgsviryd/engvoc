@@ -4,7 +4,7 @@ import by.sviryd.engvoc.config.card.io.ExcelCardColumnConfig;
 import by.sviryd.engvoc.config.card.io.ExcelCardRowConfig;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.service.card.DictionaryBindService;
+import by.sviryd.engvoc.util.StringUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -14,6 +14,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -29,8 +30,6 @@ public class ExcelCardShortReaderService {
     private ExcelCardRowConfig rowConfig;
     @Autowired
     private ExcelCardColumnConfig columnConfig;
-    @Autowired
-    private DictionaryBindService bindService;
 
     public List<Card> extract(File file, String sheetName) {
         try (FileInputStream fip = new FileInputStream(file);
@@ -80,7 +79,7 @@ public class ExcelCardShortReaderService {
             return extract(workbook);
         } catch (EmptyFileException e) {
             return Collections.emptyList();
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
         }
     }
@@ -105,22 +104,32 @@ public class ExcelCardShortReaderService {
             if (cell == null) continue;
             Card card;
             try {
-
                 card = getCard(row, dictionary);
             } catch (Exception e) {
                 continue;
             }
+            if (card.getWord() == null
+                    || card.getWord().isEmpty()
+                    || card.getTranslation() == null
+                    || card.getTranslation().isEmpty()) {
+                continue;
+            }
+            if (isCardNecessaryFieldsAbsent(card)) continue;
             cards.add(card);
         }
         return cards;
     }
+    private boolean isCardNecessaryFieldsAbsent(Card card) {
+        return StringUtils.isEmpty(card.getWord()) || StringUtils.isEmpty(card.getTranslation());
+    }
+
 
     private Card getCard(XSSFRow row, Dictionary dictionary) {
         return new Card().builder()
-                .word(getCellOrException(row, columnConfig.getWord()))
-                .translation(getCellOrException(row, columnConfig.getTranslation()))
-                .example(getCellOrEmptyValue(row, columnConfig.getExample()))
-                .exampleTranslation(getCellOrEmptyValue(row, columnConfig.getExampleTranslation()))
+                .word(getCellOrException(row, columnConfig.getWord()).trim())
+                .translation(getCellOrException(row, columnConfig.getTranslation()).trim())
+                .example(getCellOrEmptyValue(row, columnConfig.getExample()).trim())
+                .exampleTranslation(getCellOrEmptyValue(row, columnConfig.getExampleTranslation()).trim())
                 .dictionary(dictionary)
                 .build();
     }

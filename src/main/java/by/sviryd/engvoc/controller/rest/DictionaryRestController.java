@@ -8,6 +8,7 @@ import by.sviryd.engvoc.service.DictionaryService;
 import by.sviryd.engvoc.service.PictureMediaService;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.json.Json;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -15,7 +16,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,7 +46,8 @@ public class DictionaryRestController {
 
     @DeleteMapping("{id}")
     public void delete(
-            @PathVariable("id") Dictionary dictionary) {
+            @PathVariable("id") Dictionary dictionary
+    ) {
         cardService.deleteByDictionary(dictionary);
         dictionaryService.delete(dictionary);
     }
@@ -80,7 +81,7 @@ public class DictionaryRestController {
     public HashMap<Object, Object> saveUnique(
             @RequestBody Dictionary dictionary
     ) {
-        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndParent(dictionary.getName(), dictionary.getParent());
+        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnique(dictionary.getName(), dictionary.isUnique());
         Dictionary saved = null;
         HashMap<Object, Object> errors = new HashMap<>();
         if (!dictionaryDbOpt.isPresent()) {
@@ -100,7 +101,7 @@ public class DictionaryRestController {
             @RequestPart("dictionary") String dictionaryJson
     ) throws IOException {
         Dictionary dictionary = new ObjectMapper().readValue(dictionaryJson, Dictionary.class);
-        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndParent(dictionary.getName(), dictionary.getParent());
+        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnique(dictionary.getName(), dictionary.isUnique());
         Dictionary saved = null;
         HashMap<Object, Object> errors = new HashMap<>();
         if (!dictionaryDbOpt.isPresent()) {
@@ -132,5 +133,14 @@ public class DictionaryRestController {
         if (dictionariesDb.isEmpty()) return;
         cardService.deleteByDictionaryIn(dictionariesDb);
         dictionaryService.deleteByIdIn(dictionariesDb.stream().map(Dictionary::getId).collect(Collectors.toList()));
+    }
+    @DeleteMapping(value = "deleteByUnique", consumes = {"application/json"})
+    public void deleteByUnique(
+            @RequestBody String json
+            ){
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        boolean unique = obj.get("unique").getAsBoolean();
+        dictionaryService.deleteByUnique(unique);
     }
 }

@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapGetters, mapState} from "vuex";
 import string from "../../../util/string";
 import * as _ from 'lodash'
 
@@ -81,7 +81,6 @@ export default {
   },
   props: [
     'instance',
-    'sourceMark',
     'sourceId',
     'rowToScrollId',
   ],
@@ -99,20 +98,12 @@ export default {
       'cards',
       'lang',
     ]),
+    ...mapGetters([
+      'isDictionaryExists',
+      'getCardsByDictionaryId',
+    ]),
     storeDictionaryCards() {
-      if (this.sourceMark === this.cardDbSourceMark) {
-        return this.$store.getters.getCardsByDictionaryDbId(this.sourceId)
-      }
-      if (this.sourceMark === this.cardUploadSourceMark) {
-        return this.$store.getters.getCardsByDictionaryUploadId(this.sourceId)
-      }
-      return []
-    },
-    cardDbSourceMark() {
-      return this.cards.db.sourceMark
-    },
-    cardUploadSourceMark() {
-      return this.cards.upload.sourceMark
+      return this.getCardsByDictionaryId(this.sourceId)
     },
     word() {
       return string.getWithFirstCapital(this.lang.map.word)
@@ -142,7 +133,8 @@ export default {
       selectedCardIds: [],
       blankElementId: this.instance + this.name + "blank",
 
-      groups: ["card"],
+      groups: ["cardsChangeDictionary"],
+      sourceMark: "cards",
       isMouseInClick: false,
       groupsInProcess: [],
       isDragdropInside: false,
@@ -166,9 +158,7 @@ export default {
     getCardElementId(id) {
       return this.instance + this.name + id
     },
-    isSelected(card) {
-      return this.selectedCardIds.indexOf(card.id) >= 0
-    },
+
     selectCard(card) {
       const inx = this.selectedCardIds.findIndex(id => id === card.id)
       if (inx < 0) {
@@ -180,13 +170,7 @@ export default {
       }
     },
     isSourceExists() {
-      if (this.sourceMark === this.cardDbSourceMark) {
-        return this.$store.getters.isDbDictionaryExists(this.sourceId)
-      }
-      if (this.sourceMark === this.cardUploadSourceMark) {
-        return this.$store.getters.isUploadDictionaryExists(this.sourceId)
-      }
-      return false
+      return this.isDictionaryExists(this.sourceId)
     },
 
     mousedown(card, i) {
@@ -194,7 +178,6 @@ export default {
       this.isMouseInClick = true
       setTimeout(() => {
         if (this.isMouseInClick) {
-
           this.groupsInProcess = this.groups
           let items = []
           if (card) {

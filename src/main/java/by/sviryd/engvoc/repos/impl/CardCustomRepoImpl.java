@@ -28,15 +28,17 @@ class CardCustomRepoImpl implements CardCustomRepo {
     }
 
     @Override
-    public List<Card> findDistinctByWordAndTranslation(List<Card> cards) {
+    public List<Card> findDistinctByWordAndTranslationWithUniqueTrue(List<Card> cards) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Card> cq = cb.createQuery(Card.class);
         Root<Card> root = cq.from(Card.class);
+        Join<Card, Dictionary> dictionary = root.join("dictionary");
         List<Predicate> predicatesOR = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
             Predicate word = cb.equal(root.get("word"), cards.get(i).getWord());
             Predicate translation = cb.equal(root.get("translation"), cards.get(i).getTranslation());
-            Predicate and = cb.and(word, translation);
+            Predicate uniqueTrue = cb.equal(dictionary.get("unique"), true);
+            Predicate and = cb.and(word, translation, uniqueTrue);
             predicatesOR.add(and);
         }
         Predicate or = cb.or(predicatesOR.toArray(new Predicate[predicatesOR.size()]));

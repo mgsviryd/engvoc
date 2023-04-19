@@ -47,9 +47,9 @@ export default {
     singlePictureDropZone,
   },
   props: [
-    'storeAction',
     'dictionaries',
-    'id'
+    'id',
+    'unique',
   ],
   computed: {
     ...mapState([
@@ -72,6 +72,7 @@ export default {
         name: "",
         parent: 0,
         picture: null,
+        unique: this.unique,
       },
       formData: null,
       actionLocal: {
@@ -89,7 +90,8 @@ export default {
     },
     confirm() {
       this.actionLocal.id = date.getUTCMilliseconds(new Date())
-      this.$store.dispatch(this.storeAction,
+      this.$store.dispatch(
+          'addDictionaryWithPictureAction',
           {actionId: this.actionLocal.id, formData: this.formData, dictionary: this.dictionary}
       )
     },
@@ -99,8 +101,8 @@ export default {
     },
     setDataToDefault() {
       this.dictionary = {
-        name: "",
-        parent: 0,
+        name: null,
+        parent: null,
         picture: null,
       }
       this.formData = null

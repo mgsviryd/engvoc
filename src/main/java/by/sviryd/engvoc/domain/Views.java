@@ -158,7 +158,7 @@ public final class Views {
     }
 
     public interface Parent{}
-    public interface Source{}
+    public interface Unique {}
 
     public interface Word{}
     public interface Translation{}
@@ -169,7 +169,7 @@ public final class Views {
     public interface LearnedLDT{}
     public interface ForgotLDT{}
     public interface CountForgot{}
-    public interface Dictionary extends Id, Name, Parent, Source, Picture, Priority, Invisible {}
+    public interface Dictionary extends Id, Name, Unique, CreationLDT, Parent, Picture, Priority, Invisible {}
     public interface Learned{}
 
     public interface CardPage extends

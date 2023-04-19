@@ -58,11 +58,11 @@ public class CardService {
         return cardRepo.findAll(pageable);
     }
 
-    public List<Card> findDistinctByWordAndTranslation(List<Card> cards) {
-        return cardRepo.findDistinctByWordAndTranslation(cards);
+    public List<Card> findDistinctByWordAndTranslationWithUniqueTrue(List<Card> cards) {
+        return cardRepo.findDistinctByWordAndTranslationWithUniqueTrue(cards);
     }
 
-    public Card findDistinctByWordAndTranslation(String word, String translation) {
+    public Card findDistinctByWordAndTranslationWithUniqueTrue(String word, String translation) {
         return cardRepo.findDistinctByWordAndTranslation(word, translation);
     }
 

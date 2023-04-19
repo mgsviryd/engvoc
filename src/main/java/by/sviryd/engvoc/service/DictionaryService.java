@@ -61,6 +61,9 @@ public class DictionaryService {
         return parent;
     }
 
+    public Optional<Dictionary> findByNameAndUnique(String name, Boolean unique) {
+        return dictionaryRepo.findByNameAndUnique(name, unique);
+    }
     public Optional<Dictionary> findByNameAndParent(String name, Long parent) {
         return dictionaryRepo.findByNameAndParent(name, parent);
     }
@@ -85,6 +88,9 @@ public class DictionaryService {
 
     public void deleteByIdIn(List<Long> ids) {
         dictionaryRepo.deleteByIdIn(ids);
+    }
+    public void deleteByUnique(boolean unique) {
+        dictionaryRepo.deleteByUnique(unique);
     }
 
     public List<Dictionary> findAllById(List<Long> ids) {

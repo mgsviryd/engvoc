@@ -30,8 +30,8 @@ export default {
     this.$store.dispatch('setFrontendAction', frontend)
     this.$store.dispatch('getLanguageMapAction', this.lang.current)
     this.$store.dispatch('getAuthenticationAction', this.$store.getters.getUsersTokens)
-    this.$store.dispatch('findDictionariesDb')
-    this.$store.dispatch('findCardsDb')
+    this.$store.dispatch('findDictionaries')
+    this.$store.dispatch('findCards')
     this.$cookies.config('365d')
     this.sync()
   },

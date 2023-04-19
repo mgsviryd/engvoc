@@ -14,7 +14,6 @@ import VuexPersistence from "vuex-persist";
 import storeMethods from "store/storeMethods";
 import vlf from "../util/vlf";
 import date from "../util/date";
-import string from "../util/string";
 
 Vue.use(Vuex)
 
@@ -62,6 +61,7 @@ const persist = new VuexPersistence(
                 categoryChoices: state.categoryChoices,
                 product: state.product,
                 cards: state.cards,
+                dictionaries: state.dictionaries,
                 action: state.action,
                 pictures: state.pictures,
             }
@@ -75,41 +75,14 @@ export default new Vuex.Store(
         ],
         state: {
             dragdrop: {},
-            dragdropActions: {
-                db: {
-                    removeAllAction: "cardDbRemoveAllAction",
-                    addAllAction: "cardDbAddAllAction",
-                    updateAllAction: "cardDbUpdateAllAction",
-                    addUpdateAllAction: "cardDbAddUpdateAllAction",
-                    updateDictionaryAllAction: "cardDbUpdateDictionaryAllAction"
-                },
-                upload: {
-                    removeAllAction: "cardUploadRemoveAllAction",
-                    addAllAction: "cardUploadAddAllAction",
-                    updateAllAction: "cardUploadUpdateAllAction",
-                    addUpdateAllAction: "cardUploadAddUpdateAllAction",
-                },
-            },
             pictures: [],
             action: {
                 id: 0,
                 errors: {},
             },
-            cards: {
-                db: {
-                    sourceMark: "db",
-                    dictionaries: [],
-                    cards: [],
-                },
-                upload: {
-                    sourceMark: "upload",
-                    dictionaryId: 0,
-                    cardId: 0,
-                    dictionaries: [],
-                    cards: [],
-                },
-                notSaved: [],
-            },
+            dictionaries: [],
+            cards: [],
+            cardsNotSaved: [],
             messages: [],
 
             authentication: {
@@ -192,48 +165,33 @@ export default new Vuex.Store(
             }],
         },
         getters: {
-            incrementAndGetCardUploadId: state => () => {
-                state.cards.upload.cardId = state.cards.upload.cardId + 1;
-                return state.cards.upload.sourceMark + state.cards.upload.cardId
-            },
-            incrementAndGetDictionaryUploadId: state => () => {
-                state.cards.upload.dictionaryId = state.cards.upload.dictionaryId + 1;
-                return state.cards.upload.sourceMark + state.cards.upload.dictionaryId
-            },
             getActionId: state => () => state.action.id,
-            getCardsDBByDictionaryInx: state => i => {
-                if (state.cards.db.dictionaries.length <= i) return []
-                const dictionaryId = state.cards.db.dictionaries[i].id
-                return state.cards.db.cards.filter((x) => x.dictionary.id === dictionaryId)
+            getCardsByDictionaryInx: state => i => {
+                if (state.dictionaries.length <= i) return []
+                const id = state.dictionaries[i].id
+                return state.cards.filter((x) => x.dictionary.id === id)
             },
-            getCardsByDictionaryDbId: state => id => {
-                return state.cards.db.cards.filter((x) => x.dictionary.id === id)
+            getCardsByDictionaryId: state => id => {
+                return state.cards.filter((x) => x.dictionary.id === id)
             },
-            getCardsByDictionaryUploadId: state => id => {
-                const inx = state.cards.upload.dictionaries.findIndex(item => item.id === id)
-                return state.cards.upload.cards[inx]
+            isDictionaryExists: state => (id) => {
+                return state.dictionaries.findIndex(d => d.id === id) >= 0
             },
-            isDbSource: state => (source) => {
-                return source === state.cards.db.sourceMark
+            getDictionaryInx: state => (id) => {
+                return state.dictionaries.findIndex(d => d.id === id)
             },
-            isUploadSource: state => (source) => {
-                return source === state.cards.upload.sourceMark
+            getDictionaryById: (state, getters) => (id) => {
+                return state.dictionaries[getters.getDictionaryInx(id)]
             },
-            getCardsUploadCreationLDTs: state => [...new Set(state.cards.upload.dictionaries.map(item => item.creationLDT))],
-            isDbDictionaryExists: state => (id) => {
-                return state.cards.db.dictionaries.findIndex(item => item.id === id) >= 0
-            },
-            isUploadDictionaryExists: state => (id) => {
-                return state.cards.upload.dictionaries.findIndex(item => item.id === id) >= 0
-            },
-            getDbDictionaryInx: state => (id) => {
-                return state.cards.db.dictionaries.findIndex(item => item.id === id)
-            },
-            getUploadDictionaryInx: state => (id) => {
-                return state.cards.upload.dictionaries.findIndex(item => item.id === id)
-            },
-            getDbDictionaryById: (state, getters) => (id) => {
-                return state.cards.db.dictionaries[getters.getDbDictionaryInx(id)]
+            getCountCardsInDictionaryById: (state, getters) => (id) => state.cards.filter(c => c.dictionary.id === id).length,
+            getUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === true),
+            getNonUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === false),
+            getUniqueDictionariesUniquePropertyValues: (state, getters) => (property) =>
+                [...new Set(getters.getUniqueDictionaries.map(d => d[property]))],
+            getNonUniqueDictionariesUniquePropertyValues: (state, getters) => (property) =>
+                [...new Set(getters.getNonUniqueDictionaries().map(d => d[property]))],
+            isNeedCheckDictionaryUnique: (state, getters) => (sourceId, destId) => {
+                return !getters.getDictionaryById(sourceId).unique && getters.getDictionaryById(destId).unique
             },
             sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
@@ -320,221 +278,134 @@ export default new Vuex.Store(
                 state.pictures = []
             },
 
-            // card
-            addCardsNotSavedMutation(state, payload) {
-                if (payload.cards === null || payload.cards.length === 0) return
-                state.cards.notSaved.push(...payload.cards)
-            },
+            // cardsNotSaved
             addCardNotSavedMutation(state, payload) {
                 if (payload.card === null) return
-                state.cards.notSaved.push(payload.card)
+                state.cardsNotSaved=[
+                    ...state.cardsNotSaved,
+                    payload.card]
+            },
+            addCardsNotSavedMutation(state, payload) {
+                if (payload.cards === null || payload.cards.length === 0) return
+                state.cardsNotSaved = [
+                    ...state.cardsNotSaved,
+                    ...payload.cards
+                ]
             },
             defaultCardsNotSavedMutation(state) {
-                state.cards.notSaved = []
+                state.cardsNotSaved = []
             },
-            deleteCardsNotSavedMutation(state, payload) {
+            removeCardsNotSavedMutation(state, payload) {
                 if (payload.cards === null || payload.cards.length === 0) return
-                const ids = payload.cards.map(item => item.id)
-                state.cards.notSaved = state.cards.notSaved.filter(item => ids.findIndex(item.id) < 0)
+                const ids = payload.cards.map(c => c.id)
+                state.cardsNotSaved = state.cardsNotSaved.filter(c => ids.findIndex(c.id) < 0)
             },
 
-            addCardDbMutation(state, payload) {
+            // cards
+            addCardMutation(state, payload) {
                 if (payload.card === null) return
-                state.cards.db.cards = [
-                    ...state.cards.db.cards,
+                state.cards = [
+                    ...state.cards,
                     payload.card
                 ]
             },
 
-            updateCardDbMutation(state, card) {
-                if (card === null) return
-                const updateIndex = state.cards.db.cards.findIndex(item => item.id === card.id)
-                state.cards.db.cards = [
-                    ...state.cards.db.cards.slice(0, updateIndex),
-                    card,
-                    ...state.cards.db.cards.slice(updateIndex + 1)
+            updateCardMutation(state, payload) {
+                if (payload.card === null) return
+                const i = state.cards.findIndex(c => c.id === payload.card.id)
+                state.cards = [
+                    ...state.cards.slice(0, i),
+                    payload.card,
+                    ...state.cards.slice(i + 1)
                 ]
             },
-            addUpdateCardDbMutation(state, card) {
-                if (card === null) return
-                const cards = []
-                cards.push(card)
-                const ids = state.cards.db.cards.map((item) => item.id)
-                const newCards = []
-                cards.forEach((item, i) => {
-                    let iIds = ids.indexOf((item.id))
-                    if (iIds >= 0) {
-                        state.cards.db.cards[iIds] = item
-                    } else {
-                        newCards.push(item)
-                    }
-                })
-                state.cards.db.cards.push(...newCards)
-            },
-            removeCardDbMutation(state, card) {
-                const deleteIndex = state.cards.db.cards.findIndex(item => item.id === card.id)
-                if (deleteIndex > -1) {
-                    state.cards.db.cards = [
-                        ...state.cards.db.cards.slice(0, deleteIndex),
-                        ...state.cards.db.cards.slice(deleteIndex + 1)
+
+            removeCardMutation(state, card) {
+                const i = state.cards.findIndex(c => c.id === card.id)
+                if (i > -1) {
+                    state.cards = [
+                        ...state.cards.slice(0, i),
+                        ...state.cards.slice(i + 1)
                     ]
                 }
             },
-            setCardsDbMutation(state, data) {
-                state.cards.db.cards = data
+            setCardsMutation(state, payload) {
+                state.cards = payload.cards
             },
 
-            deleteCardsUploadMutation(state) {
-                state.cards.upload.cardId = 0
-                state.cards.upload.dictionaryId = 0
-                state.cards.upload.cards = []
-                state.cards.upload.dictionaries = []
-            },
-            deleteCardsDbMutation(state) {
-                state.cards.db.cards = []
-                state.cards.db.dictionaries = []
+            defaultCardsMutation(state) {
+                state.cards = []
             },
 
-            getCardsUploadFileMutation(state, payload) {
-                const data = payload.data
-                const d = new Date()
-                let cardId = 0
-                data.forEach((card, i) => {
-                    card.id = cardId++
-                })
-                const dictionaries = []
-                const lookup = {};
-                let dictionaryId = 0
-                for (let i = 0; i < data.length; i++) {
-                    let dictionary = data[i].dictionary
-                    dictionary.creationLDT = d
-                    dictionary.source = payload.name
-                    dictionary.id = dictionaryId++
-                    let name = dictionary.name
-                    if (!(name in lookup)) {
-                        lookup[name] = 1;
-                        dictionaries.push(dictionary)
-                    }
-                }
-                const cards = []
-                for (let i = 0; i < dictionaries.length; i++) {
-                    const dicCards = data.filter(item => string.isEqual(item.dictionary.name, dictionaries[i].name))
-                    cards.push(dicCards)
-                }
-                state.cards.upload.dictionaries.push(...dictionaries)
-                state.cards.upload.cards.push(...cards)
-            },
-
-
-            cardUploadRemoveAllMutation(state, payload) {
-                const ids = payload.cards.map((item) => item.id)
-                state.cards.upload.cards.splice(payload.inx, 1, state.cards.upload.cards[payload.inx].filter((item) => {
-                    return ids.indexOf(item.id) < 0;
-                }))
-            },
-            cardUploadAddAllMutation(state, payload) {
-                payload.cards.forEach((item, i) => item.id = this.getters.incrementAndGetCardUploadId())
-                state.cards.upload.cards[payload.inx].push(...payload.cards)
-            },
-            cardUploadUpdateAllMutation(state, payload) {
-                const ids = payload.cards.map((item) => item.id)
-                state.cards.upload.cards[payload.inx].forEach((item, i) => {
-                    let iIds = ids.indexOf(item.id)
-                    if (iIds > 0) {
-                        state.cards.upload.cards[payload.inx].splice(i, 1, payload.cards[iIds])
-                    }
-                });
-            },
-            cardUploadAddUpdateAllMutation(state, payload) {
-                const ids = state.cards.upload.cards[payload.inx].map((item) => item.id)
-                const newCards = []
-                payload.cards.forEach((item, i) => {
-                    let iIds = ids.indexOf((item.id))
-                    if (iIds >= 0) {
-                        state.cards.upload.cards[iIds] = item
-                    } else {
-                        item.id = this.getters.incrementAndGetCardUploadId()
-                        newCards.push(item)
-                    }
-                })
-                state.cards.upload.cards.push(...newCards)
-            },
-            cardDbRemoveAllMutation(state, payload) {
-                const ids = payload.cards.map((item) => item.id)
-                state.cards.db.cards = state.cards.db.cards.filter((item) => {
-                    return ids.indexOf(item.id) < 0;
+            removeCardsMutation(state, payload) {
+                const ids = payload.cards.map((c) => c.id)
+                state.cards = state.cards.filter((c) => {
+                    return ids.indexOf(c.id) < 0;
                 })
             },
-            cardDbAddAllMutation(state, payload) {
-                state.cards.db.cards.push(...payload.cards)
+            addCardsMutation(state, payload) {
+                state.cards = [
+                    ...state.cards,
+                    ...payload.cards,
+                ]
             },
-            cardDbUpdateAllMutation(state, payload) {
+            updateCardsMutation(state, payload) {
                 if (payload.cards.length > 0) {
-                    const ids = state.cards.db.cards.map((card) => card.id)
-                    payload.cards.forEach((card, i) => {
-                        let iIds = ids.indexOf(card.id)
+                    const ids = state.cards.map((c) => c.id)
+                    payload.cards.forEach((c, i) => {
+                        let iIds = ids.indexOf(c.id)
                         if (iIds >= 0) {
-                            state.cards.db.cards.splice(iIds, 1, card)
+                            state.cards.splice(iIds, 1, c)
                         }
                     })
                 }
             },
-            cardDbAddUpdateAllMutation(state, payload) {
-                const ids = state.cards.db.cards.map((card) => card.id)
-                const newCards = []
-                payload.cards.forEach((card, i) => {
-                    let iIds = ids.indexOf(card.id)
-                    if (iIds >= 0) {
-                        state.cards.db.cards[iIds] = card
-                    } else {
-                        newCards.push(card)
-                    }
-                })
-                state.cards.db.cards.push(...newCards)
+
+            // upload dictionaries and cards
+            uploadNewDictionariesAndCardsMutation(state, payload) {
+                this.commit('addDictionariesMutation', payload)
+                this.commit('addCardsMutation', payload)
             },
 
             // dictionary
-            addDictionaryDbMutation(state, payload) {
-                if (payload.dictionary === null) return
-                state.cards.db.dictionaries = [
-                    ...state.cards.db.dictionaries,
+            addDictionaryMutation(state, payload) {
+                state.dictionaries = [
+                    ...state.dictionaries,
                     payload.dictionary
                 ]
             },
-            updateDictionaryDbMutation(state, dictionary) {
-                const updateIndex = state.cards.db.dictionaries.findIndex(item => item.id === dictionary.id)
-                state.cards.db.dictionaries = [
-                    ...state.cards.db.dictionaries.slice(0, updateIndex),
-                    dictionary,
-                    ...state.cards.db.dictionaries.slice(updateIndex + 1)
+            addDictionariesMutation(state, payload) {
+                state.dictionaries = [
+                    ...state.dictionaries,
+                    ...payload.dictionaries
                 ]
             },
-            deleteDictionaryDbMutation(state, id) {
-                const deleteIndex = state.cards.db.dictionaries.findIndex(item => item.id === id)
-                if (deleteIndex > -1) {
-                    state.cards.db.dictionaries = [
-                        ...state.cards.db.dictionaries.slice(0, deleteIndex),
-                        ...state.cards.db.dictionaries.slice(deleteIndex + 1)
+            updateDictionaryMutation(state, dictionary) {
+                const i = state.dictionaries.findIndex(d => d.id === dictionary.id)
+                state.dictionaries = [
+                    ...state.dictionaries.slice(0, i),
+                    dictionary,
+                    ...state.dictionaries.slice(i + 1)
+                ]
+            },
+            deleteDictionaryByIdMutation(state, payload) {
+                const i = state.dictionaries.findIndex(d => d.id === payload.id)
+                if (i > -1) {
+                    state.dictionaries = [
+                        ...state.dictionaries.slice(0, i),
+                        ...state.dictionaries.slice(i + 1)
                     ]
-                    state.cards.db.cards = state.cards.db.cards.filter(item => item.dictionary.id !== id)
+                    state.cards = state.cards.filter(c => c.dictionary.id !== payload.id)
                 }
             },
-            setDictionariesDbMutation(state, data) {
-                state.cards.db.dictionaries = data
-            },
-
-            addDictionaryUploadMutation(state, payload) {
-                state.cards.upload.dictionaries = [
-                    ...state.cards.upload.dictionaries,
-                    payload.dictionary
-                ]
-                state.cards.upload.cards = [
-                    ...state.cards.upload.cards,
-                    []
-                ]
+            deleteDictionariesByUniqueAndCascadeCardsMutation(state, payload) {
+                state.dictionaries = state.dictionaries.filter(d => d.unique !== payload.unique)
+                state.cards = state.cards.filter(c => c.dictionary.unique !== payload.unique)
 
             },
-
+            setDictionariesMutation(state, payload) {
+                state.dictionaries = payload.dictionaries
+            },
 
             // message
             addMessageMutation(state, message) {
@@ -552,11 +423,11 @@ export default new Vuex.Store(
                 ]
             },
             removeMessageMutation(state, message) {
-                const deleteIndex = state.messages.findIndex(item => item.id === message.id)
-                if (deleteIndex > -1) {
+                const i = state.messages.findIndex(m => m.id === message.id)
+                if (i > -1) {
                     state.messages = [
-                        ...state.messages.slice(0, deleteIndex),
-                        ...state.messages.slice(deleteIndex + 1)
+                        ...state.messages.slice(0, i),
+                        ...state.messages.slice(i + 1)
                     ]
                 }
             },
@@ -1123,171 +994,121 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async getUploadExcelFilesAction({commit}, payload) {
+            async uploadCardsByExcelFilesAction({commit}, payload) {
                 const formData = payload.formData
                 const result = await cardApi.uploadExcelFiles(formData)
                 const data = await result.data
-                lock.acquire('cardUpload', () => {
+                lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
+                        commit('uploadNewDictionariesAndCardsMutation', data)
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
             },
-            async getUploadXmlFilesAction({commit}, payload) {
+            async uploadCardsByXmlFilesAction({commit}, payload) {
                 const formData = payload.formData
                 const result = await cardApi.uploadXmlFiles(formData)
                 const data = await result.data
-                lock.acquire('cardUpload', () => {
+                lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
+                        commit('uploadNewDictionariesAndCardsMutation', data)
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
             },
-            async getUploadExcelFileAction({commit}, payload) {
+            async uploadCardsByExcelFileAction({commit}, payload) {
                 const formData = payload.formData
                 const result = await cardApi.uploadExcelFile(formData)
                 const data = await result.data
-                lock.acquire('cardUpload', () => {
+                lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
+                        commit('uploadNewDictionariesAndCardsMutation', data)
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
             },
-            async getUploadXmlFileAction({commit}, payload) {
+            async uploadCardsByXmlFileAction({commit}, payload) {
                 const formData = payload.formData
                 const result = await cardApi.uploadXmlFile(formData)
                 const data = await result.data
-                lock.acquire('cardUpload', () => {
+                lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('getCardsUploadFileMutation', {data: data, name: payload.name})
+                        commit('uploadNewDictionariesAndCardsMutation', data)
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
             },
-
-            // card
-            async cardUploadRemoveAllAction({commit, getters}, payload) {
-                payload.inx = getters.getUploadDictionaryInx(payload.id)
-                commit('cardUploadRemoveAllMutation', payload)
-            },
-            async cardUploadAddAllAction({commit, getters}, payload) {
-                payload.inx = getters.getUploadDictionaryInx(payload.id)
-                commit('cardUploadAddAllMutation', payload)
-            },
-            async cardUploadUpdateAllAction({commit, getters}, payload) {
-                payload.inx = getters.getUploadDictionaryInx(payload.id)
-                commit('cardUploadUpdateAllMutation', payload)
-            },
-            async cardUploadAddUpdateAllAction({commit, getters}, payload) {
-                payload.inx = getters.getUploadDictionaryInx(payload.id)
-                commit('cardUploadAddUpdateAllMutation', payload)
-            },
-            async cardDbRemoveAllAction({commit}, payload) {
+            async removeCardsAction({commit}, payload) {
                 if (payload.cards.length === 1) {
                     const result = await cardApi.remove(payload.cards[0].id)
                     const data = await result.data
                     if (result.ok) {
-                        commit('removeCardDbMutation', payload.cards[0])
+                        commit('removeCardMutation', payload.cards[0])
                     }
                 } else {
-                    const result = await cardApi.deleteByIdIn({ids: payload.cards.map(x => x.id)})
+                    const result = await cardApi.deleteByIdIn({ids: payload.cards.map(c => c.id)})
                     if (result.ok) {
-                        commit('cardDbRemoveAllMutation', {cards: payload.cards})
+                        commit('removeCardsMutation', {cards: payload.cards})
                     }
                 }
             },
-            async cardDbAddAllAction({commit, state, getters}, payload) {
-                payload.cards.forEach(item => item.id = null)
-                const inx = getters.getDbDictionaryInx(payload.id)
-                payload.cards.forEach((x) => x.dictionary = state.cards.db.dictionaries[inx])
-                if (payload.cards.length === 1) {
-                    const result = await cardApi.saveUnique(payload.cards[0])
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('addCardDbMutation', {card: data.saved})
-                        commit('addCardNotSavedMutation', {card: data.notSaved})
-                    }
-                } else {
-                    const result = await cardApi.saveAllUnique(payload.cards)
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('cardDbAddAllMutation', {cards: data.saved})
-                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
-                    }
-                }
-            },
-            async cardDbUpdateAllAction({commit}, payload) {
-                payload.cards.forEach(item => item.id = null)
+
+            async updateCardsAction({commit}, payload) {
                 if (payload.cards.length === 1) {
                     const result = await cardApi.updateUnique(payload.cards[0])
                     const data = await result.data
                     if (result.ok) {
-                        commit('updateCardDbMutation', data.saved)
+                        commit('updateCardMutation', {card: data.saved})
                         commit('addCardNotSavedMutation', {card: data.notSaved})
                     }
                 } else {
                     const result = await cardApi.updateAllUnique(payload.cards)
                     const data = await result.data
                     if (result.ok) {
-                        commit('cardDbUpdateAllMutation', {cards: data.saved})
+                        commit('updateCardsMutation', {cards: data.saved})
                         commit('addCardsNotSavedMutation', {cards: data.notSaved})
                     }
                 }
             },
-            async cardDbAddUpdateAllAction({commit}, payload) {
-                payload.cards.forEach(item => item.id = null)
-                if (payload.cards.length === 1) {
-                    const result = await cardApi.addUpdateUnique(payload.cards[0])
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('addUpdateCardDbMutation', data.saved)
-                        commit('addCardNotSavedMutation', {card: data.notSaved})
-                    }
-                } else {
-                    const result = await cardApi.addUpdateAllUnique(payload.cards)
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('cardDbAddUpdateAllMutation', {cards: data.saved})
-                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
-                    }
-                }
-            },
-            async cardDbUpdateDictionaryAllAction({commit, state, getters, dispatch}, payload) {
-                if (payload.cards.length === 1) {
-                    const result = await cardApi.updateDictionary(payload.cards[0].id, payload.id)
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('updateCardDbMutation', data.saved)
-                        commit('addCardNotSavedMutation', {cards: data.notSaved})
-                    }
-                } else if (payload.cards.length > 1) {
-                    const result = await cardApi.updateDictionaryAll(payload.cards.map(card => card.id), payload.id)
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('cardDbUpdateAllMutation', {cards: data.saved})
-                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
+            async cardsChangeDictionariesAction({commit, state, getters, dispatch}, payload) {
+                if (payload.cards && payload.cards.length > 0) {
+                    const isNeedCheckUnique = getters.isNeedCheckDictionaryUnique(payload.sourceId, payload.destId)
+                    console.info("start: " + date.getUTCMilliseconds(new Date()))
+                    if(payload.cards.length === 1){
+                        const result = await cardApi.changeDictionary(payload.cards[0].id, payload.destId, isNeedCheckUnique)
+                        const data = await result.data
+                        if (result.ok) {
+                            console.info("end: " + date.getUTCMilliseconds(new Date()))
+                            commit('updateCardMutation', {card: data.saved})
+                            commit('addCardNotSavedMutation', {card: data.notSaved})
+                        }
+                    }else {
+                        const result = await cardApi.changeDictionaries(payload.cards.map(c => c.id), payload.destId, isNeedCheckUnique)
+                        const data = await result.data
+                        if (result.ok) {
+                            console.info("end: " + date.getUTCMilliseconds(new Date()))
+                            commit('updateCardsMutation', {cards: data.saved})
+                            commit('addCardsNotSavedMutation', {cards: data.notSaved})
+                        }
                     }
                 }
             },
-            async findDictionariesDb({commit}) {
+            async findDictionaries({commit}) {
                 const result = await dictionaryApi.findAll()
                 const data = await result.data
                 if (result.ok) {
-                    commit('setDictionariesDbMutation', data)
+                    commit('setDictionariesMutation', {dictionaries: data})
                 }
             },
-            async findCardsDb({commit}) {
+            async findCards({commit}) {
                 const result = await cardApi.findAll()
                 const data = await result.data
                 if (result.ok) {
-                    commit('setCardsDbMutation', data)
+                    commit('setCardsMutation', {cards: data})
                 }
             },
 
@@ -1304,16 +1125,16 @@ export default new Vuex.Store(
                 return null
             },
 
-            // dictionaryAction
-            async addDictionaryDbAction({commit}, payload) {
+            // dictionary
+            async addDictionaryAction({commit}, payload) {
                 const result = await dictionaryApi.saveUnique(payload.dictionary)
                 const data = await result.data
                 if (result.ok) {
-                    commit('addDictionaryDbMutation', {dictionary: data.saved})
+                    commit('addDictionaryMutation', {dictionary: data.saved})
                     commit('setActionMutation', {id: payload.actionId, errors: data.errors})
                 }
             },
-            async addDictionaryDbWithPictureAction({commit}, payload) {
+            async addDictionaryWithPictureAction({commit}, payload) {
                 let result = null
                 if (payload.formData) {
                     payload.formData.append('dictionary',
@@ -1324,38 +1145,32 @@ export default new Vuex.Store(
                 }
                 const data = await result.data
                 if (result.ok) {
-                    commit('addDictionaryDbMutation', {dictionary: data.saved})
+                    commit('addDictionaryMutation', {dictionary: data.saved})
                     commit('setActionMutation', {id: payload.actionId, errors: data.errors})
                 }
             },
-            async addDictionaryUploadAction({commit, getters, dispatch}, payload) {
-                const picture = await dispatch('addPictureAction', payload)
-                payload.dictionary.id = getters.incrementAndGetDictionaryUploadId()
-                payload.dictionary.picture = picture
-                commit('addDictionaryUploadMutation', payload)
-                commit('setActionMutation', {id: payload.actionId, errors: {}})
-            },
-            async deleteCardsUploadAction({commit}) {
-                commit('deleteCardsUploadMutation')
-            },
-            async deleteCardsDbAction({commit, state}) {
-                const result = await dictionaryApi.deleteByIdIn({ids: state.cards.db.dictionaries.map(item => item.id)})
-                if (result.ok) {
-                    commit('deleteCardsDbMutation')
-                }
-            },
-            async deleteDictionaryDbAction({commit, state}, payload) {
+
+            async deleteDictionaryByIdAction({commit, state}, payload) {
                 const result = await dictionaryApi.remove(payload.id)
                 if (result.ok) {
-                    commit('deleteDictionaryDbMutation', payload.id)
+                    commit('deleteDictionaryByIdMutation', {id: payload.id})
                 }
             },
+
+            async deleteDictionariesByUniqueAndCascadeCardsAction({commit}, payload) {
+                const result = await dictionaryApi.deleteByUnique({unique: payload.unique})
+                if (result.ok) {
+                    commit('deleteDictionariesByUniqueAndCascadeCardsMutation', payload)
+                }
+            },
+
 
             //dragdrop
             dragdropStartAction({commit}, payload) {
                 commit('setDragdropStartMutation', payload)
             },
             dragdropEndAndExecuteAction({commit, state, dispatch}, payload) {
+                console.info("dragend: " + date.getUTCMilliseconds(new Date()))
                 commit('setDragdropEndMutation', payload)
                 if (!state.dragdrop.start
                     || !state.dragdrop.end
@@ -1367,62 +1182,15 @@ export default new Vuex.Store(
                     commit('dragdropDefaultMutation')
                     return
                 }
-                if (state.dragdrop.start.groups.indexOf("card") >= 0) {
-                    dispatch("dragdropExecuteCardAction")
+                if (state.dragdrop.start.groups.indexOf("cardsChangeDictionary") >= 0) {
+                    dispatch('cardsChangeDictionariesAction',
+                        {
+                            cards: state.dragdrop.start.data.items,
+                            sourceId: state.dragdrop.start.data.sourceId,
+                            destId: state.dragdrop.end.data.sourceId,
+                        })
                 }
             },
-            dragdropExecuteCardAction({commit, state, dispatch}) {
-                const actions = state.dragdropActions
-                let actionsStart = actions[state.dragdrop.start.data.sourceMark];
-                let actionsEnd = actions[state.dragdrop.end.data.sourceMark];
-
-                if (state.dragdrop.start.data.sourceMark === state.dragdrop.end.data.sourceMark
-                    && state.dragdrop.start.data.sourceMark === state.cards.db.sourceMark
-                ) {
-                    dispatch(actionsStart.updateDictionaryAllAction,
-                        {
-                            cards: state.dragdrop.start.data.items,
-                            id: state.dragdrop.end.data.sourceId,
-                        })
-                    return
-                }
-                // console.info("passReturn")
-                if (state.dragdrop.end.options.pull === "delete") {
-                    dispatch(actionsStart.removeAllAction,
-                        {
-                            cards: state.dragdrop.start.data.items,
-                            id: state.dragdrop.start.data.sourceId,
-                        })
-                }
-                if (state.dragdrop.end.options.push === "delete") {
-                    dispatch(actionsEnd.removeAllAction,
-                        {
-                            cards: state.dragdrop.end.data.items,
-                            id: state.dragdrop.end.data.sourceId,
-                        })
-                }
-                if (state.dragdrop.end.options.operation === "add") {
-                    dispatch(actionsEnd.addAllAction,
-                        {
-                            cards: state.dragdrop.start.data.items,
-                            id: state.dragdrop.end.data.sourceId,
-                        })
-                }
-                if (state.dragdrop.end.options.operation === "update") {
-                    dispatch(actionsEnd.updateAllAction,
-                        {
-                            cards: state.dragdrop.start.data.items,
-                            id: state.dragdrop.end.data.sourceId,
-                        })
-                }
-                if (state.dragdrop.end.options.operation === "addUpdate") {
-                    dispatch(actionsEnd.addUpdateAllAction,
-                        {
-                            cards: state.dragdrop.start.data.items,
-                            id: state.dragdrop.end.data.sourceId,
-                        })
-                }
-            }
         },
     }
 )

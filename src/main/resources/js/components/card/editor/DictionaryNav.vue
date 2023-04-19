@@ -1,66 +1,68 @@
 <template>
-  <div class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block">
+  <div v-if="show" class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block">
     <button class="btn  btn-primary text-left rounded-0  border-1 border-secondary" data-toggle="collapse"
-            :href="'#'+getCollapseForDb()"
+            :href="'#'+getCollapseForUnique()"
             role="button"
             aria-expanded="false"
-            :aria-controls="getCollapseForDb()"
-            @contextmenu.prevent="$refs.deleteDb.open"
+            :aria-controls="getCollapseForUnique()"
+            @contextmenu.prevent="$refs.uniqueDictionaries.open"
     >
-      <context-menu ref="deleteDb">
+      <context-menu ref="uniqueDictionaries">
         <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-danger" @click="deleteDb">DELETE</button>
+          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(true)">DELETE</button>
         </div>
       </context-menu>
       <span class="st-text-shift">{{ lang.map.db }}</span>
-      <span class="st-right badge badge-light bg-white badge-pill">{{ dbDictionaries.length }}</span>
+      <span class="st-right badge badge-light bg-white badge-pill">{{ getUniqueDictionaries().length }}</span>
     </button>
     <button class="btn  btn-outline-success d-flex justify-content-center align-items-center" data-toggle="modal"
-            data-target="#modal-addNewDb">
+            data-target="#modal-addNewUnique">
       <i class="fas fa-plus"></i>
     </button>
     <add-dictionary-modal
-        :id="'modal-addNewDb'"
-        :dictionaries="dbDictionaries"
-        :store-action="dbStoreAction"
+        :id="'modal-addNewUnique'"
+        :dictionaries="getUniqueDictionaries()"
+        :unique="true"
     ></add-dictionary-modal>
-    <div class="collapse" :id="getCollapseForDb()">
+    <div class="collapse" :id="getCollapseForUnique()">
       <div class="btn-group-vertical btn-group-sm d-block">
-        <button v-for="(d,i) in dbDictionaries"
+        <button v-for="(d,i) in getUniqueDictionaries()"
                 :key="`A-${d.id}`"
-                :id="getDictionaryDbElementId(d)"
+                :id="getDictionaryElementId(d.id)"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
-                @mousedown.prevent.stop="mousedown(d, cardDbSourceMark)"
-                @mouseup.prevent.stop="mouseup(d , cardDbSourceMark)"
+                @mousedown.prevent.stop="mousedown(d.id)"
+                @mouseup.prevent.stop="mouseup(d.id)"
                 draggable="true"
-                @click.prevent.stop="parentLoadDictionary(d, cardDbSourceMark)"
-                @contextmenu.prevent="openRefDeleteDb(i)"
+                @click.prevent.stop="parentLoadDictionary(d.id)"
+                @contextmenu.prevent="openDictionaryContextMenu(d.id)"
         >
-          <context-menu ref="deleteDbDictionary">
+          <context-menu :ref="getDictionaryContextMenuRefById(d.id)">
             <div class="btn-group-vertical btn-group-sm d-block">
-              <button class="btn btn-outline-danger" @click="deleteDbById(d.id)">DELETE</button>
+              <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">DELETE</button>
             </div>
           </context-menu>
           <span class="st-text-shift">{{ d.name }}</span>
-          <span class="st-right badge badge-light bg-white border badge-pill"> {{ getCountDbDictionary(d) }} </span>
+          <span class="st-right badge badge-light bg-white border badge-pill"> {{
+              getCountCardsInDictionaryById(d.id)
+            }} </span>
         </button>
       </div>
     </div>
 
     <button class="btn  btn-primary text-left rounded-0 m-0  border-1 border-secondary" data-toggle="collapse"
-            :href="'#'+getCollapseForUpload()"
+            :href="'#'+getCollapseForNonUnique()"
             role="button"
             aria-expanded="false"
-            :aria-controls="getCollapseForUpload()"
-            @contextmenu.prevent="$refs.deleteUpload.open"
+            :aria-controls="getCollapseForNonUnique()"
+            @contextmenu.prevent="$refs.nonUniqueDictionaries.open"
     >
-      <context-menu ref="deleteUpload">
+      <context-menu ref="nonUniqueDictionaries">
         <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-danger" @click="deleteUpload">DELETE</button>
+          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(false)">DELETE</button>
         </div>
       </context-menu>
       <span class="st-text-shift">{{ lang.map.upload }}</span>
-      <span class="st-right badge badge-light badge-pill">{{ uploadDictionaries.length }}</span>
+      <span class="st-right badge badge-light badge-pill">{{ getNonUniqueDictionaries().length }}</span>
     </button>
     <button class="btn  btn-outline-success d-flex justify-content-center align-items-center" data-toggle="modal"
             data-target="#modal-addNewUpload">
@@ -68,34 +70,35 @@
     </button>
     <add-dictionary-modal
         :id="'modal-addNewUpload'"
-        :dictionaries="uploadDictionaries"
-        :store-action="uploadStoreAction"
+        :dictionaries="getNonUniqueDictionaries()"
+        :unique="false"
     ></add-dictionary-modal>
-    <div class="collapse" :id="getCollapseForUpload()">
-      <div v-for="(ldt,i) in uploadLDTs"
+    <div class="collapse" :id="getCollapseForNonUnique()">
+      <div v-for="(ldt,i) in creationLDTs"
            :key="`A-${ldt}`"
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
-                :href="'#'+getCollapseForUploadLDTs(i)" role="button"
+                :href="'#'+getCollapseForNonUniqueCreationLDTs(i)" role="button"
                 aria-expanded="false"
-                :aria-controls="getCollapseForUploadLDTs(i)">
+                :aria-controls="getCollapseForNonUniqueCreationLDTs(i)">
           <span class="st-text-shift">{{ getShortLdt(ldt) }}</span>
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
-        <div class="collapse" :id="getCollapseForUploadLDTs(i)">
+        <div class="collapse" :id="getCollapseForNonUniqueCreationLDTs(i)">
           <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
                     :key="`B-${d.id}`"
-                    :id="getDictionaryUploadElementId(d)"
+                    :id="getDictionaryElementId(d.id)"
                     class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                     draggable="true"
-                    @mousedown.prevent.stop="mousedown(d, cardUploadSourceMark)"
-                    @mouseup.prevent.stop="mouseup(d , cardUploadSourceMark)"
-                    @click.prevent.stop="parentLoadDictionary(d, cardUploadSourceMark)"
+                    @mousedown.prevent.stop="mousedown(d.id)"
+                    @mouseup.prevent.stop="mouseup(d.id)"
+                    @click.prevent.stop="parentLoadDictionary(d.id)"
             >
               <span class="st-text-shift">{{ d.name }}</span>
-              <span class="st-right badge badge-light border bg-white badge-pill">{{getCountUploadDictionary(d)}}</span>
+              <span
+                  class="st-right badge badge-light border bg-white badge-pill">{{ getCountCardsInDictionaryById(d.id) }}</span>
             </button>
           </div>
 
@@ -110,6 +113,7 @@
 import contextMenu from 'vue-context-menu'
 import {mapState, mapGetters} from "vuex";
 import addDictionaryModal from "./AddDictionaryModal.vue";
+import date from "../../../util/date"
 
 export default {
   created() {
@@ -125,147 +129,116 @@ export default {
     addDictionaryModal,
   },
   props: ['instanceMark'],
+  watch: {
+    $route: [
+      'fetchData',
+    ],
+    dictionaries() {
+      this.fetchData()
+    },
+  },
   computed: {
     ...mapState([
-      'cards',
+      'dictionaries',
       'lang',
     ]),
     ...mapGetters([
-      'getCardsByDictionaryDbId',
-      'getCardsByDictionaryUploadId',
-      'isDbSource',
-      'isUploadSource',
-      'getCardsUploadCreationLDTs',
-      'getUploadDictionaryInx',
-      'getDbDictionaryInx',
+      'getUniqueDictionaries',
+      'getNonUniqueDictionaries',
+      'getCardsByDictionaryId',
+      'getNonUniqueDictionariesUniquePropertyValues',
+      'getCountCardsInDictionaryById',
     ]),
-    uploadLDTs() {
-      return this.getCardsUploadCreationLDTs
-    },
-    uploadDictionaries() {
-      return this.cards.upload.dictionaries
-    },
-    dbDictionaries() {
-      return this.cards.db.dictionaries
-    },
-    uploadCards() {
-      return this.cards.upload.cards
-    },
-    dbCards() {
-      return this.cards.db.cards
-    },
-    cardDbSourceMark(){
-      return this.cards.db.sourceMark
-    },
-    cardUploadSourceMark(){
-      return this.cards.upload.sourceMark
-    }
   },
   data() {
     return {
-      name: "dictionary-nav",
+      show: true,
+      creationLDTs: [],
+      name: "dictionary-nav-",
       activeDictionaryElemId: null,
-      uploadStoreAction: 'addDictionaryUploadAction',
-      dbStoreAction: 'addDictionaryDbWithPictureAction',
 
-      groups: ["card"],
+      groups: ["cardsChangeDictionary"],
+      sourceMark: "cards",
       isMouseInClick: false,
       groupsInProcess: [],
-      dragDictionary: null,
-      dragSourceMark: null,
+      dragDictionaryId: null,
     }
   },
   methods: {
     fetchData() {
-
+      this.show = false
+      this.creationLDTs = this.getNonUniqueDictionariesUniquePropertyValues("creationLDT")
+      this.show = true
     },
-    getDictionaryDbElementId(dictionary){
-      return this.instanceMark + this.name + this.cardDbSourceMark + dictionary.id
+    getDictionaryElementId(id) {
+      return this.instanceMark + this.name + id
     },
-    getDictionaryUploadElementId(dictionary){
-      return this.instanceMark + this.name + this.cardUploadSourceMark + dictionary.id
+    getShortLdt(ldt) {
+      return date.parseISOString(ldt).toLocaleString()
     },
-    getShortLdt(ldt){
-      if(ldt){
-        return ldt.toLocaleString()
-      }else{
-        return "custom"
-      }
-    },
-    async updateActiveDictionaryElemId(d, sourceMark) {
+    async updateActiveDictionaryElemId(id) {
       if (this.activeDictionaryElemId) {
         $("#" + this.activeDictionaryElemId).removeClass("active-dictionary")
       }
-      if (sourceMark === this.cardDbSourceMark) this.activeDictionaryElemId = this.getDictionaryDbElementId(d)
-      if (sourceMark === this.cardUploadSourceMark) this.activeDictionaryElemId = this.getDictionaryUploadElementId(d)
+      this.activeDictionaryElemId = this.getDictionaryElementId(id)
       $("#" + this.activeDictionaryElemId).addClass("active-dictionary")
-    },
-    getCountDbDictionary(d) {
-      return this.dbCards.filter(item => item.dictionary.id === d.id).length
-    },
-    getCountUploadDictionary(d) {
-      const inx = this.getUploadDictionaryInx(d.id)
-      return this.uploadCards[inx].length
     },
     getCountUploadDictionaries(ldt) {
       return this.getUploadDictionaries(ldt).length
     },
     getUploadDictionaries(ldt) {
-      return this.uploadDictionaries.filter(item => item.creationLDT === ldt)
+      return this.getNonUniqueDictionaries().filter(d => d.creationLDT === ldt)
     },
-    getCollapseForDb() {
-      return this.instanceMark + "collapseDb"
+    getCollapseForUnique() {
+      return this.instanceMark + "collapseUnique"
     },
-    getCollapseForUpload() {
-      return this.instanceMark + "collapseUpload"
+    getCollapseForNonUnique() {
+      return this.instanceMark + "collapseNonUnique"
     },
-    getCollapseForUploadLDTs(i) {
-      return this.instanceMark + "collapseFilenames" + i
+    getCollapseForNonUniqueCreationLDTs(i) {
+      return this.instanceMark + "collapseCreationLDT" + i
     },
-    parentLoadDictionary(d, sourceMark) {
-      this.updateActiveDictionaryElemId(d, sourceMark)
-      return this.$emit('loadDictionary', d.id, sourceMark, this.instanceMark)
-    },
-
-    deleteUpload() {
-      this.$store.dispatch('deleteCardsUploadAction')
-    },
-    deleteDb() {
-      this.$store.dispatch('deleteCardsDbAction')
-    },
-    deleteDbById(id) {
-      this.$store.dispatch('deleteDictionaryDbAction', {id: id})
-    },
-    openRefDeleteDb(i) {
-      this.$refs.deleteDbDictionary[i].open()
+    parentLoadDictionary(id) {
+      this.updateActiveDictionaryElemId(id)
+      return this.$emit('loadDictionary', id, this.instanceMark)
     },
 
-    mousedown(d, sourceMark) {
+    deleteDictionariesByUnique(unique) {
+      this.$store.dispatch('deleteDictionariesByUniqueAndCascadeCardsAction', {unique: unique})
+    },
+    deleteDictionaryById(id) {
+      this.$store.dispatch('deleteDictionaryByIdAction', {id: id})
+    },
+    getDictionaryContextMenuRefById(id) {
+      return "dictionaryContextMenu-" + id
+    },
+    openDictionaryContextMenu(id) {
+      this.$refs[this.getDictionaryContextMenuRefById(id)].open()
+    },
+
+    mousedown(id) {
       this.isMouseInClick = true
       setTimeout(() => {
         if (this.isMouseInClick) {
           this.groupsInProcess = this.groups
-          let items = []
-          if (sourceMark === this.cardDbSourceMark) items = this.getCardsByDictionaryDbId(d.id)
-          if (sourceMark === this.cardUploadSourceMark) items = this.getCardsByDictionaryUploadId(d.id)
+          let items = this.getCardsByDictionaryId(id)
           if (items.length === 0) return
-          this.dragDictionary = d
-          this.dragSourceMark = sourceMark
-          this.activateDragstartStyle(d, sourceMark)
+          this.dragDictionaryId = id
+          this.activateDragstartStyle(id)
           this.$root.$emit("dragdrop-init", {groups: this.groups})
           const start = {
             groups: this.groups,
             data: {
               items: items,
-              sourceMark: sourceMark,
-              sourceId: d.id,
+              sourceMark: this.sourceMark,
+              sourceId: id,
             },
           }
           this.$store.dispatch("dragdropStartAction", start)
         }
       }, 2)
     },
-    mouseup(d, sourceMark) {
+    mouseup(id) {
       this.isMouseInClick = false
       if (this.groupsInProcess.length > 0) {
         this.$root.$emit("dragdrop-destroy")
@@ -281,59 +254,46 @@ export default {
           },
           data: {
             items: items,
-            sourceMark: sourceMark,
-            sourceId: d.id,
+            sourceMark: this.sourceMark,
+            sourceId: id,
           }
         }
         this.$store.dispatch("dragdropEndAndExecuteAction", end)
       }
     },
-    dragdropInit(payload){
+    dragdropInit(payload) {
       this.setFilteredGroupsInProcess(payload.groups)
-      this.activateDragoverStyle(this.dbDictionaries, this.uploadDictionaries)
+      this.activateDragoverStyle(this.dictionaries)
     },
-    dragdropDestroy(){
-      this.deactivateDragstartStyle(this.dragDictionary, this.dragSourceMark)
-      this.deactivateDragoverStyle(this.dbDictionaries, this.uploadDictionaries)
+    dragdropDestroy() {
+      this.deactivateDragstartStyle(this.dragDictionaryId)
+      this.deactivateDragoverStyle(this.dictionaries)
       this.isMouseInClick = false
       this.groupsInProcess = []
-      this.dragDictionary = null
-      this.dragSourceMark = null
+      this.dragDictionaryId = null
     },
-    mouseupOutside(){
-      if (this.isDragdropInProcess()){
+    mouseupOutside() {
+      if (this.isDragdropInProcess()) {
         this.dragdropDestroy()
       }
     },
-    isDragdropInProcess(){
+    isDragdropInProcess() {
       return this.groupsInProcess.length > 0
     },
     async setFilteredGroupsInProcess(groups) {
       this.groupsInProcess = this.groups.filter(x => groups.indexOf(x) >= 0)
     },
-    async activateDragstartStyle(d, sourceMark) {
-      if (sourceMark === this.cardUploadSourceMark){
-        $("#" + this.getDictionaryUploadElementId(d)).addClass("dragstart")
-      }
-      if (sourceMark === this.cardDbSourceMark){
-        $("#" + this.getDictionaryDbElementId(d)).addClass("dragstart")
-      }
+    async activateDragstartStyle(id) {
+      $("#" + this.getDictionaryElementId(id)).addClass("dragstart")
     },
-    async deactivateDragstartStyle(d, sourceMark) {
-      if (sourceMark === this.cardUploadSourceMark){
-        $("#" + this.getDictionaryUploadElementId(d)).removeClass("dragstart")
-      }
-      if (sourceMark === this.cardDbSourceMark){
-        $("#" + this.getDictionaryDbElementId(d)).removeClass("dragstart")
-      }
+    async deactivateDragstartStyle(id) {
+      $("#" + this.getDictionaryElementId(id)).removeClass("dragstart")
     },
-    async activateDragoverStyle(dictionariesDb, dictionariesUpload) {
-      dictionariesDb.forEach(d => $("#" + this.getDictionaryDbElementId(d)).addClass("dragover"))
-      dictionariesUpload.forEach(d => $("#" + this.getDictionaryUploadElementId(d)).addClass("dragover"))
+    async activateDragoverStyle(dictionaries) {
+      dictionaries.forEach(d => $("#" + this.getDictionaryElementId(d.id)).addClass("dragover"))
     },
-    async deactivateDragoverStyle(dictionariesDb, dictionariesUpload) {
-      dictionariesDb.forEach(d => $("#" + this.getDictionaryDbElementId(d)).removeClass("dragover"))
-      dictionariesUpload.forEach(d => $("#" + this.getDictionaryUploadElementId(d)).removeClass("dragover"))
+    async deactivateDragoverStyle(dictionaries) {
+      dictionaries.forEach(d => $("#" + this.getDictionaryElementId(d.id)).removeClass("dragover"))
     },
   },
 }
@@ -361,6 +321,7 @@ i {
   background-color: gray;
   color: white;
 }
+
 .dragover:hover {
   border-style: solid;
   border-color: green;

@@ -14,6 +14,7 @@ export default {
 
     findAll: () => Vue.http.get(db + "/findAll"),
     deleteByIdIn: (body) => Vue.http.delete(db + "/deleteByIdIn",{body:  body}),
+    deleteByUnique: (body) => Vue.http.delete(db + "/deleteByUnique", {body: body}),
 
     saveUniqueWithPicture: (formData) => Vue.http.post(db+ '/saveUniqueWithPicture', formData, configUndefinedJson),
     saveUnique: (dictionary) => Vue.http.post(db+ '/saveUnique', dictionary),

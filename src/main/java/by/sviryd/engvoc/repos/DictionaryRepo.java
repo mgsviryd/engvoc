@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface DictionaryRepo extends JpaRepository<Dictionary, Long>, DictionaryCustomRepo {
     Optional<Dictionary> findByName(String name);
+    Optional<Dictionary> findByNameAndUnique(String name, Boolean unique);
     Optional<Dictionary> findByNameAndParent(String name, Long parent);
     void deleteByIdIn(List<Long> ids);
+    void deleteByUnique(boolean unique);
 }

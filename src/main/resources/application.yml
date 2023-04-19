@@ -396,5 +396,5 @@ dictionary:
   ids:
     - 1033
     - 1049
-  dbName: 'db'
-  uploadName: 'upload'
+  sourceDb: 'db'
+  sourceUpload: 'upload'

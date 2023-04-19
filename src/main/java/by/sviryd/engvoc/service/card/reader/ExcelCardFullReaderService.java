@@ -85,31 +85,38 @@ public class ExcelCardFullReaderService {
             if (cell == null) continue;
             Card card;
             try {
-
                 card = getCard(row);
             } catch (Exception e) {
                 continue;
             }
+            if (isCardNecessaryFieldsAbsent(card)) continue;
             cards.add(card);
         }
         return cards;
     }
 
+    private boolean isCardNecessaryFieldsAbsent(Card card) {
+        return card.getWord() == null
+                || card.getWord().isEmpty()
+                || card.getTranslation() == null
+                || card.getTranslation().isEmpty();
+    }
+
     public Card getCard(XSSFRow row) {
         return new Card().builder()
-                .word(getCellOrException(row, columnConfig.getWord()))
-                .translation(getCellOrException(row, columnConfig.getTranslation()))
-                .example(getCellOrEmptyValue(row, columnConfig.getExample()))
-                .exampleTranslation(getCellOrEmptyValue(row, columnConfig.getExampleTranslation()))
+                .word(getCellOrException(row, columnConfig.getWord()).trim())
+                .translation(getCellOrException(row, columnConfig.getTranslation()).trim())
+                .example(getCellOrEmptyValue(row, columnConfig.getExample()).trim())
+                .exampleTranslation(getCellOrEmptyValue(row, columnConfig.getExampleTranslation()).trim())
                 .dictionary(new Dictionary(Long.parseLong(getCellOrEmptyValue(row, columnConfig.getDictionary()))))
-                .transcription(getCellOrEmptyValue(row, columnConfig.getTranscription()))
+                .transcription(getCellOrEmptyValue(row, columnConfig.getTranscription()).trim())
                 .learned(StringConverterUtil.getBoolean(getCellOrEmptyValue(row, columnConfig.getLearned())))
-                .sound(getCellOrEmptyValue(row, columnConfig.getSound()))
+                .sound(getCellOrEmptyValue(row, columnConfig.getSound()).trim())
                 .creationLDT(StringConverterUtil.getLDTOrNull(getCellOrEmptyValue(row, columnConfig.getCreationLDT())))
                 .learnedLDT(StringConverterUtil.getLDTOrNull(getCellOrEmptyValue(row, columnConfig.getLearnedLDT())))
                 .forgotLDT(StringConverterUtil.getLDTOrNull(getCellOrEmptyValue(row, columnConfig.getForgotLDT())))
                 .countForgot(StringConverterUtil.getIntegerOrNull(getCellOrEmptyValue(row, columnConfig.getCountForgot())))
-                .picture(getCellOrEmptyValue(row, columnConfig.getPicture()))
+                .picture(getCellOrEmptyValue(row, columnConfig.getPicture()).trim())
                 .invisible(StringConverterUtil.getBoolean(getCellOrEmptyValue(row, columnConfig.getInvisible())))
                 .build();
     }
