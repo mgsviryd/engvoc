@@ -32,6 +32,6 @@ export default {
     saveAllUnique: (cards) => Vue.http.post(db + "/saveAllUnique", cards),
     updateAllUnique: (cards) => Vue.http.post(db + "/updateAllUnique", cards),
 
-    changeDictionary: (cardId, destId, isNeedCheckUnique) => Vue.http.post(db + "/changeDictionary", {cardId: cardId, destId: destId, isNeedCheckUnique: isNeedCheckUnique}),
-    changeDictionaries: (cardIds, destId, isNeedCheckUnique) => Vue.http.post(db + "/changeDictionaries", {cardIds: cardIds, destId: destId, isNeedCheckUnique: isNeedCheckUnique}),
+    changeDictionary: (card, id) => Vue.http.post(db + "/changeDictionary",  card, {params: {id}}),
+    changeDictionaries: (cards, id) => Vue.http.post(db + "/changeDictionaries", cards, {params: {id}}),
 }

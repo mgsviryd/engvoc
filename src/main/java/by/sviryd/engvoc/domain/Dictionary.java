@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@ToString(of = {"id", "name", "unique"})
+@ToString(of = {"id", "name", "unique", "creationLDT"})
 @EqualsAndHashCode(of = {"name", "unique", "creationLDT"})
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,6 +34,10 @@ public class Dictionary implements IIdParent, Serializable {
     @JsonView(Views.Id.class)
     private Long id;
 
+    @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
+    @JsonView(Views.Unique.class)
+    private boolean unique;
+
     @Column(length = 100)
     @Length(max = 100)
     @NotBlank
@@ -43,10 +47,6 @@ public class Dictionary implements IIdParent, Serializable {
 
     @Min(0)
     private Long parent = 0L;
-
-    @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
-    @JsonView(Views.Unique.class)
-    private boolean unique;
 
     @Column(length = 50)
     @Length(max = 50)

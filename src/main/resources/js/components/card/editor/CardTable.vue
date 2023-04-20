@@ -148,7 +148,9 @@ export default {
       if (this.isSourceExists()) {
         this.show = true
         this.showEmpty = typeof this.storeDictionaryCards === 'undefined' || this.storeDictionaryCards.length === 0
+
         this.dictionaryCards = this.storeDictionaryCards
+
         this.updateSelected()
       }
     },

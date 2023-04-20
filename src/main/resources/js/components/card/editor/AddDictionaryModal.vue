@@ -104,6 +104,7 @@ export default {
         name: null,
         parent: null,
         picture: null,
+        unique: this.unique,
       }
       this.formData = null
       this.actionLocal.errors = {}

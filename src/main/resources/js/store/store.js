@@ -14,6 +14,7 @@ import VuexPersistence from "vuex-persist";
 import storeMethods from "store/storeMethods";
 import vlf from "../util/vlf";
 import date from "../util/date";
+import compare from "../util/compare";
 
 Vue.use(Vuex)
 
@@ -186,13 +187,22 @@ export default new Vuex.Store(
             getCountCardsInDictionaryById: (state, getters) => (id) => state.cards.filter(c => c.dictionary.id === id).length,
             getUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === true),
             getNonUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === false),
-            getUniqueDictionariesUniquePropertyValues: (state, getters) => (property) =>
-                [...new Set(getters.getUniqueDictionaries.map(d => d[property]))],
-            getNonUniqueDictionariesUniquePropertyValues: (state, getters) => (property) =>
-                [...new Set(getters.getNonUniqueDictionaries().map(d => d[property]))],
+            getUniqueDictionariesUniquePropertyValues: (state, getters) => (property) => {
+                return [...new Set(getters.getUniqueDictionaries.map(d => d[property]))]
+            },
+            getUniqueDictionariesPropertyValues: (state, getters) => (property) => {
+                return getters.getUniqueDictionaries.map(d => d[property])
+            },
+            getNonUniqueDictionariesUniquePropertyValues: (state, getters) => (property) => {
+                return [...new Set(getters.getNonUniqueDictionaries().map(d => d[property]))]
+            },
+            getNonUniqueDictionariesPropertyValues: (state, getters) => (property) => {
+                return getters.getNonUniqueDictionaries().map(d => d[property])
+            },
             isNeedCheckDictionaryUnique: (state, getters) => (sourceId, destId) => {
                 return !getters.getDictionaryById(sourceId).unique && getters.getDictionaryById(destId).unique
             },
+            sortArrayByStringProperty: (state) => (dictionaries, property) => dictionaries.sort((a, b) => compare.compareStringNaturalByProperty(a, b, property)),
             sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
             getLangId: state => () => state.lang.id,
@@ -281,7 +291,7 @@ export default new Vuex.Store(
             // cardsNotSaved
             addCardNotSavedMutation(state, payload) {
                 if (payload.card === null) return
-                state.cardsNotSaved=[
+                state.cardsNotSaved = [
                     ...state.cardsNotSaved,
                     payload.card]
             },
@@ -1076,18 +1086,17 @@ export default new Vuex.Store(
             },
             async cardsChangeDictionariesAction({commit, state, getters, dispatch}, payload) {
                 if (payload.cards && payload.cards.length > 0) {
-                    const isNeedCheckUnique = getters.isNeedCheckDictionaryUnique(payload.sourceId, payload.destId)
                     console.info("start: " + date.getUTCMilliseconds(new Date()))
-                    if(payload.cards.length === 1){
-                        const result = await cardApi.changeDictionary(payload.cards[0].id, payload.destId, isNeedCheckUnique)
+                    if (payload.cards.length === 1) {
+                        const result = await cardApi.changeDictionary(payload.cards[0], payload.destId)
                         const data = await result.data
                         if (result.ok) {
                             console.info("end: " + date.getUTCMilliseconds(new Date()))
                             commit('updateCardMutation', {card: data.saved})
                             commit('addCardNotSavedMutation', {card: data.notSaved})
                         }
-                    }else {
-                        const result = await cardApi.changeDictionaries(payload.cards.map(c => c.id), payload.destId, isNeedCheckUnique)
+                    } else {
+                        const result = await cardApi.changeDictionaries(payload.cards, payload.destId)
                         const data = await result.data
                         if (result.ok) {
                             console.info("end: " + date.getUTCMilliseconds(new Date()))

@@ -11,8 +11,14 @@ public class CardUniqueService {
     public List<Card> getRepeatedByWordAndTranslation(List<Card> cards, List<Card> source){
         return cards.stream().filter(x -> source.stream().anyMatch(y -> y.getWord().equals(x.getWord()) && y.getTranslation().equals(x.getTranslation()))).collect(Collectors.toList());
     }
+    public List<Card> getNotRepeatedByWordAndTranslation(List<Card> cards, List<Card> source){
+        return cards.stream().filter(x -> source.stream().noneMatch(y -> y.getWord().equals(x.getWord()) && y.getTranslation().equals(x.getTranslation()))).collect(Collectors.toList());
+    }
 
     public List<Card> getRepeatedByWordAndTranslation(List<Card> cards){
         return cards.stream().filter(x -> cards.stream().anyMatch(y -> y!=x && y.getWord().equals(x.getWord()) && y.getTranslation().equals(x.getTranslation()))).collect(Collectors.toList());
+    }
+    public List<Card> getNotRepeatedByWordAndTranslation(List<Card> cards){
+        return cards.stream().filter(x -> cards.stream().noneMatch(y -> y!=x && y.getWord().equals(x.getWord()) && y.getTranslation().equals(x.getTranslation()))).collect(Collectors.toList());
     }
 }

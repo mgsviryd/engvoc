@@ -21,12 +21,12 @@
     </button>
     <add-dictionary-modal
         :id="'modal-addNewUnique'"
-        :dictionaries="getUniqueDictionaries()"
+        :dictionaries="uniqueDictionaries"
         :unique="true"
     ></add-dictionary-modal>
     <div class="collapse" :id="getCollapseForUnique()">
       <div class="btn-group-vertical btn-group-sm d-block">
-        <button v-for="(d,i) in getUniqueDictionaries()"
+        <button v-for="(d,i) in uniqueDictionaries"
                 :key="`A-${d.id}`"
                 :id="getDictionaryElementId(d.id)"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
@@ -62,7 +62,7 @@
         </div>
       </context-menu>
       <span class="st-text-shift">{{ lang.map.upload }}</span>
-      <span class="st-right badge badge-light badge-pill">{{ getNonUniqueDictionaries().length }}</span>
+      <span class="st-right badge badge-light badge-pill">{{ nonUniqueDictionaries.length }}</span>
     </button>
     <button class="btn  btn-outline-success d-flex justify-content-center align-items-center" data-toggle="modal"
             data-target="#modal-addNewUpload">
@@ -70,22 +70,22 @@
     </button>
     <add-dictionary-modal
         :id="'modal-addNewUpload'"
-        :dictionaries="getNonUniqueDictionaries()"
+        :dictionaries="nonUniqueDictionaries"
         :unique="false"
     ></add-dictionary-modal>
     <div class="collapse" :id="getCollapseForNonUnique()">
-      <div v-for="(ldt,i) in creationLDTs"
+      <div v-for="(ldt,i) in nonUniqueShortLDTs"
            :key="`A-${ldt}`"
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
-                :href="'#'+getCollapseForNonUniqueCreationLDTs(i)" role="button"
+                :href="'#'+getCollapseForNonUniqueCreationShortLDTs(i)" role="button"
                 aria-expanded="false"
-                :aria-controls="getCollapseForNonUniqueCreationLDTs(i)">
-          <span class="st-text-shift">{{ getShortLdt(ldt) }}</span>
+                :aria-controls="getCollapseForNonUniqueCreationShortLDTs(i)">
+          <span class="st-text-shift">{{ ldt }}</span>
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
-        <div class="collapse" :id="getCollapseForNonUniqueCreationLDTs(i)">
+        <div class="collapse" :id="getCollapseForNonUniqueCreationShortLDTs(i)">
           <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
                     :key="`B-${d.id}`"
@@ -146,14 +146,17 @@ export default {
       'getUniqueDictionaries',
       'getNonUniqueDictionaries',
       'getCardsByDictionaryId',
-      'getNonUniqueDictionariesUniquePropertyValues',
+      'getNonUniqueDictionariesPropertyValues',
       'getCountCardsInDictionaryById',
+      'sortArrayByStringProperty',
     ]),
   },
   data() {
     return {
       show: true,
-      creationLDTs: [],
+      uniqueDictionaries: [],
+      nonUniqueDictionaries: [],
+      nonUniqueShortLDTs: [],
       name: "dictionary-nav-",
       activeDictionaryElemId: null,
 
@@ -167,13 +170,22 @@ export default {
   methods: {
     fetchData() {
       this.show = false
-      this.creationLDTs = this.getNonUniqueDictionariesUniquePropertyValues("creationLDT")
+      const uniqueDictionaries = this.getUniqueDictionaries()
+      this.sortArrayByStringProperty(uniqueDictionaries, "name")
+      this.uniqueDictionaries = uniqueDictionaries
+      const nonUniqueDictionaries = this.getNonUniqueDictionaries()
+      this.sortArrayByStringProperty(nonUniqueDictionaries, "name")
+      this.nonUniqueDictionaries = nonUniqueDictionaries
+      this.nonUniqueShortLDTs = this.getNonUniqueShortLDTs()
       this.show = true
+    },
+    getNonUniqueShortLDTs(){
+      return [...new Set(this.getNonUniqueDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]
     },
     getDictionaryElementId(id) {
       return this.instanceMark + this.name + id
     },
-    getShortLdt(ldt) {
+    getShortLDT(ldt) {
       return date.parseISOString(ldt).toLocaleString()
     },
     async updateActiveDictionaryElemId(id) {
@@ -183,11 +195,11 @@ export default {
       this.activeDictionaryElemId = this.getDictionaryElementId(id)
       $("#" + this.activeDictionaryElemId).addClass("active-dictionary")
     },
-    getCountUploadDictionaries(ldt) {
-      return this.getUploadDictionaries(ldt).length
+    getCountUploadDictionaries(shortLDT) {
+      return this.getUploadDictionaries(shortLDT).length
     },
-    getUploadDictionaries(ldt) {
-      return this.getNonUniqueDictionaries().filter(d => d.creationLDT === ldt)
+    getUploadDictionaries(shortLDT) {
+      return this.nonUniqueDictionaries.filter(d => this.getShortLDT(d.creationLDT) === shortLDT)
     },
     getCollapseForUnique() {
       return this.instanceMark + "collapseUnique"
@@ -195,7 +207,7 @@ export default {
     getCollapseForNonUnique() {
       return this.instanceMark + "collapseNonUnique"
     },
-    getCollapseForNonUniqueCreationLDTs(i) {
+    getCollapseForNonUniqueCreationShortLDTs(i) {
       return this.instanceMark + "collapseCreationLDT" + i
     },
     parentLoadDictionary(id) {

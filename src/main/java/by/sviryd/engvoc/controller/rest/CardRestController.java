@@ -3,11 +3,10 @@ package by.sviryd.engvoc.controller.rest;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.domain.Views;
+import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
 import by.sviryd.engvoc.service.CardService;
 import by.sviryd.engvoc.service.CardUniqueService;
 import by.sviryd.engvoc.service.DictionaryService;
-import by.sviryd.engvoc.service.card.reader.ExcelCardShortReaderService;
-import by.sviryd.engvoc.service.card.reader.XmlCardReaderService;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -19,10 +18,8 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.beans.FeatureDescriptor;
-import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,7 +64,7 @@ public class CardRestController {
 
     @PostMapping("saveUnique")
     public Map<Object, Object> saveUnique(@RequestBody Card card) {
-        Card unique = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card.getWord(), card.getTranslation());
+        Card unique = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card);
         Card saved = null;
         Card notSaved = null;
         if (unique == null) {
@@ -83,7 +80,7 @@ public class CardRestController {
 
     @PostMapping("updateUnique")
     public Map<Object, Object> updateUnique(@RequestBody Card card) {
-        Card cardDb = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card.getWord(), card.getTranslation());
+        Card cardDb = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card);
         Card saved = null;
         Card notSaved = null;
         if (cardDb != null) {
@@ -186,68 +183,54 @@ public class CardRestController {
         return data;
     }
 
-    @PostMapping("changeDictionary")
-    public Map<Object, Object> changeDictionary(
-            @RequestBody String json
-    ) {
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        Long cardId = obj.get("cardId").getAsLong();
-        Long destDictionaryId = obj.get("destId").getAsLong();
-        Card card = cardService.findById(cardId).get();
-        Optional<Dictionary> destOpt = dictionaryService.findById(destDictionaryId);
-        boolean isNeedCheckUnique = obj.get("isNeedCheckUnique").getAsBoolean();
-        if (isNeedCheckUnique)
-        {
-            card.setDictionary(destOpt.get());
-            return saveUnique(card);
-        }
-        Card saved = null;
-        Card notSaved = card;
-        if (destOpt.isPresent()) {
-            Dictionary dictionary = destOpt.get();
-            notSaved.setDictionary(dictionary);
-            saved = cardService.save(notSaved);
-            notSaved = null;
-        }
+    private HashMap<Object, Object> convertToMap(Object saved, Object notSaved) {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("saved", saved);
         data.put("notSaved", notSaved);
         return data;
     }
 
+    private boolean isNeedCheckUnique(Card card, Dictionary dictionary) {
+        return !card.isUnique() && dictionary.isUnique();
+    }
+
+    @PostMapping("changeDictionary")
+    public Map<Object, Object> changeDictionary(
+            @RequestBody Card card,
+            @RequestParam("id") Dictionary dictionary
+    ) {
+        if (isNeedCheckUnique(card, dictionary)) {
+            Card alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card);
+            if (alreadyIn != null) return convertToMap(null, card);
+        }
+        try {
+            cardService.updateDictionaryAndUniqueById(card.getId(), dictionary, dictionary.isUnique());
+            card.setDictionary(dictionary);
+            card.setUnique(dictionary.isUnique());
+            return convertToMap(card, null);
+        } catch (UpdateAllOrNothingException e) {
+            return convertToMap(null, card);
+        }
+
+    }
+
     @PostMapping("changeDictionaries")
     public Map<Object, Object> changeDictionaries(
-            @RequestBody String json
+            @RequestBody List<Card> cards,
+            @RequestParam("id") Dictionary dictionary
     ) {
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        JsonArray cardIdsJson = obj.get("cardIds").getAsJsonArray();
-        Type arrayOfLongType = new TypeToken<ArrayList<Long>>() {
-        }.getType();
-        List<Long> cardIds = gson.fromJson(cardIdsJson, arrayOfLongType);
-        Long destDictionaryId = obj.get("destId").getAsLong();
-        List<Card> cards = cardService.findAllById(cardIds);
-        Optional<Dictionary> destOpt = dictionaryService.findById(destDictionaryId);
-        boolean isNeedCheckUnique = obj.get("isNeedCheckUnique").getAsBoolean();
-        if (isNeedCheckUnique)
-        {
-            cards.forEach(c -> c.setDictionary(destOpt.get()));
-            return saveAllUnique(cards);
+        List<Card> checkCards = cards.stream().filter(c -> isNeedCheckUnique(c, dictionary)).collect(Collectors.toList());
+        List<Card> alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(checkCards);
+        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
+        List<Card> forUpdate = cardUniqueService.getNotRepeatedByWordAndTranslation(cards, repeated);
+        List<Long> forUpdateIds = forUpdate.stream().map(Card::getId).collect(Collectors.toList());
+        try {
+            cardService.updateDictionaryAndUniqueByIdIn(forUpdateIds, dictionary, dictionary.isUnique());
+            forUpdate.forEach(c -> {c.setDictionary(dictionary); c.setUnique(dictionary.isUnique());});
+            return convertToMap(forUpdate, repeated);
+        } catch (UpdateAllOrNothingException e) {
+            return convertToMap(Collections.emptyList(), cards);
         }
-        List<Card> saved = new ArrayList<>();
-        List<Card> notSaved = cards;
-        if (destOpt.isPresent()) {
-            Dictionary dictionary = destOpt.get();
-            notSaved.forEach(card -> card.setDictionary(dictionary));
-            saved = cardService.saveAll(notSaved);
-            notSaved = null;
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", notSaved);
-        return data;
     }
 
     private String[] getNullPropertyNames(Object source) {

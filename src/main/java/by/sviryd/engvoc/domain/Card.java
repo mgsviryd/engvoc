@@ -20,8 +20,8 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ToString(of = {"id", "word", "translation"})
-@EqualsAndHashCode(of = {"word", "translation"})
+@ToString(of = {"id", "word", "translation", "unique", "creationLDT"})
+@EqualsAndHashCode(of = {"word", "translation", "unique", "creationLDT"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -59,6 +59,10 @@ public class Card implements Serializable {
     @DocumentId
     @JsonView(Views.Id.class)
     private Long id;
+
+    @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
+    @JsonView(Views.Unique.class)
+    private boolean unique;
 
 
     @Column(length = 100)

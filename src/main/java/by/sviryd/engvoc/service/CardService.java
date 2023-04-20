@@ -3,6 +3,7 @@ package by.sviryd.engvoc.service;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.repos.CardRepo;
+import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -62,8 +63,8 @@ public class CardService {
         return cardRepo.findDistinctByWordAndTranslationWithUniqueTrue(cards);
     }
 
-    public Card findDistinctByWordAndTranslationWithUniqueTrue(String word, String translation) {
-        return cardRepo.findDistinctByWordAndTranslation(word, translation);
+    public Card findDistinctByWordAndTranslationWithUniqueTrue(Card card) {
+        return cardRepo.findDistinctByWordAndTranslationWithUniqueTrue(card);
     }
 
     public void deleteByDictionary(Dictionary dictionary) {
@@ -83,5 +84,17 @@ public class CardService {
     }
     public Optional<Card> findById(Long id) {
         return cardRepo.findById(id);
+    }
+    @Transactional(rollbackFor = {UpdateAllOrNothingException.class})
+    public int updateDictionaryAndUniqueById(Long id, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
+        int count = cardRepo.updateDictionaryAndUniqueById(id, dictionary, unique);
+        if (count != 1) throw new UpdateAllOrNothingException();
+        return count;
+    }
+    @Transactional(rollbackFor = {UpdateAllOrNothingException.class})
+    public int updateDictionaryAndUniqueByIdIn(List<Long> ids, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
+        int count = cardRepo.updateDictionaryAndUniqueByIdIn(ids, dictionary, unique);
+        if (count != ids.size()) throw new UpdateAllOrNothingException();
+        return count;
     }
 }
