@@ -1,5 +1,5 @@
 <template>
-  <div  class="navbar-navbar"
+  <div class="navbar-navbar"
   >
     <div v-if="showComponent" class="parts-navbar-navbar"
     >
@@ -7,13 +7,11 @@
           class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-2 mb-0 shadow border-bottom border-secondary"
           style=" width:100%;"
       >
-
         <div class="btn-group btn-group-md btn-group-justified">
-
           <button class="btn btn-light mr-sm-1 text-capitalize disabled">
             <small>
               <b>
-                {{ lang.map.logo}}
+                {{ lang.map.logo }}
               </b>
             </small>
           </button>
@@ -82,19 +80,22 @@
         </div>
       </nav>
       <div class="tab-content" id="tab-content-0 d-inline-block" style="width: 100%">
-        <div class="tab-pane fade bg-light border-1 border-secondary" style="width: 100%" v-bind:class="{ active: isButtonActive1, show: isButtonActive1}"
+        <div class="tab-pane fade bg-light border-1 border-secondary" style="width: 100%"
+             v-bind:class="{ active: isButtonActive1, show: isButtonActive1}"
              id="tab1"
              role="tabpanel" aria-labelledby="...">
-            <card></card>
+          <card></card>
         </div>
 
-        <div class="tab-pane fade bg-light" style="width: 100%" v-bind:class="{ active: isButtonActive4, show: isButtonActive4}"
+        <div class="tab-pane fade bg-light" style="width: 100%"
+             v-bind:class="{ active: isButtonActive4, show: isButtonActive4}"
              id="tab4"
              role="tabpanel" aria-labelledby="...">
           <dictionary></dictionary>
         </div>
 
-        <div class="tab-pane fade bg-light" style="width: 100%" v-bind:class="{ active: isButtonActive5, show: isButtonActive5}"
+        <div class="tab-pane fade bg-light" style="width: 100%"
+             v-bind:class="{ active: isButtonActive5, show: isButtonActive5}"
              id="tab5"
              role="tabpanel" aria-labelledby="...">
           <editor></editor>
@@ -103,12 +104,13 @@
         <div class="tab-pane fade bg-light" style="width: 100%"
              id="tab2" v-bind:class="{ active: isButtonActive2, show: isButtonActive2}"
              role="tabpanel" aria-labelledby="...">
-            <origin></origin>
+          <origin></origin>
         </div>
-        <div class="tab-pane fade bg-light" style="width: 100%" v-bind:class="{ active: isButtonActive3, show: isButtonActive3}"
+        <div class="tab-pane fade bg-light" style="width: 100%"
+             v-bind:class="{ active: isButtonActive3, show: isButtonActive3}"
              id="tab3"
              role="tabpanel" aria-labelledby="...">
-            <settings></settings>
+          <settings></settings>
         </div>
       </div>
     </div>
@@ -182,14 +184,6 @@ export default {
       this.isButtonActive4 = false
       this.isButtonActive5 = false
     },
-    dragover: _.throttle(() => {
-      console.info("dragover: nowhere")
-      let payload = {
-        type: "noWhere",
-        ldt: new Date(),
-      }
-      this.$emit('dragover', payload)
-    }, 30),
   }
 }
 </script>

@@ -21,11 +21,43 @@
         </th>
       </tr>
       <tr class="border-0">
-        <th class="st-squeeze border-0 border-left-0">N</th>
-        <th class="border-0">{{ word }}</th>
-        <th class="border-0">{{ translation }}</th>
-        <th class="border-0">{{ example }}</th>
-        <th class="st-squeeze border-0 border-right-0"></th>
+        <th class="st-squeeze border-0 border-left-0 py-0">
+          N
+        </th>
+        <th class="border-0 py-0">
+          <div class="d-flex align-items-center">
+            <div class="d-flex flex-column">
+              <i class="fa fa-caret-up fa-2xs st-cursor-pointer" :class="[jsonSorts[0].order === 'natural'? 'text-warning': 'text-white']" @click="applySortForCards('word', 'natural')"></i>
+              <i class="fa fa-caret-down fa-2xs st-cursor-pointer" :class="[jsonSorts[0].order === 'reverse'? 'text-warning': 'text-white']" @click="applySortForCards('word', 'reverse')"></i>
+            </div>
+            <div class="d-flex align-items-center pl-2">
+              {{ word }}
+            </div>
+          </div>
+        </th>
+        <th class="border-0 py-0">
+          <div class="d-flex align-items-center">
+            <div class="d-flex flex-column">
+              <i class="fa fa-caret-up fa-2xs st-cursor-pointer" :class="[jsonSorts[1].order === 'natural'? 'text-warning': 'text-white']" @click="applySortForCards('translation', 'natural')"></i>
+              <i class="fa fa-caret-down fa-2xs st-cursor-pointer" :class="[jsonSorts[1].order === 'reverse'? 'text-warning': 'text-white']" @click="applySortForCards('translation', 'reverse')"></i>
+            </div>
+            <div class="d-flex align-items-center pl-2">
+              {{ translation }}
+            </div>
+          </div>
+        </th>
+        <th class="border-0 py-0">
+          <div class="d-flex align-items-center">
+            <div class="d-flex flex-column">
+              <i class="fa fa-caret-up fa-2xs st-cursor-pointer" :class="[jsonSorts[2].order === 'natural'? 'text-warning': 'text-white']" @click="applySortForCards('example', 'natural')"></i>
+              <i class="fa fa-caret-down fa-2xs st-cursor-pointer" :class="[jsonSorts[2].order === 'reverse'? 'text-warning': 'text-white']" @click="applySortForCards('example', 'reverse')"></i>
+            </div>
+            <div class="d-flex align-items-center pl-2">
+              {{ example }}
+            </div>
+          </div>
+        </th>
+        <th class="st-squeeze border-0 border-right-0 py-0"></th>
       </tr>
       </thead>
       <tbody class="mt-4">
@@ -65,7 +97,8 @@
 <script>
 import {mapGetters, mapState} from "vuex";
 import string from "../../../util/string";
-import * as _ from 'lodash'
+import sort from "../../../util/sort"
+import date from "../../../util/date";
 
 export default {
   created() {
@@ -140,6 +173,26 @@ export default {
       isDragdropInside: false,
       isDragdropSplice: false,
       dragCards: [],
+      jsonSorts: [
+        {
+          property: "word",
+          propertyType: "string",
+          order: null,
+          priority: 0,
+        },
+        {
+          property: "translation",
+          propertyType: "string",
+          order: null,
+          priority: 0,
+        },
+        {
+          property: "example",
+          propertyType: "string",
+          order: null,
+          priority: 0,
+        },
+      ],
     }
   },
   methods: {
@@ -148,11 +201,29 @@ export default {
       if (this.isSourceExists()) {
         this.show = true
         this.showEmpty = typeof this.storeDictionaryCards === 'undefined' || this.storeDictionaryCards.length === 0
-
         this.dictionaryCards = this.storeDictionaryCards
-
+        this.sortCards(this.dictionaryCards, this.jsonSorts)
         this.updateSelected()
       }
+    },
+    applySortForCards(property, order){
+      for (let i = 0; i < this.jsonSorts.length; i++) {
+        const jsonSort = this.jsonSorts[i]
+        if (jsonSort.property === property){
+          if (jsonSort.order === order){
+            jsonSort.order = null
+            jsonSort.priority = 0
+          }else {
+            jsonSort.order = order
+            jsonSort.priority = date.getUTCMilliseconds(new Date())
+          }
+          break
+        }
+      }
+      this.sortCards(this.dictionaryCards, this.jsonSorts)
+    },
+    sortCards(cards, jsonSorts){
+        sort.sortUsingJsonSorts(cards, jsonSorts)
     },
     updateSelected() {
       this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)
@@ -341,6 +412,12 @@ th, td:not(.st-squeeze, .st-text-shift) {
   border-style: solid;
   border-color: red;
   background-color: pink;
+}
+.st-cursor-pointer{
+  cursor: pointer;
+}
+.st-icon-active{
+
 }
 
 </style>
