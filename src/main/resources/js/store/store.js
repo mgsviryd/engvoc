@@ -169,11 +169,10 @@ export default new Vuex.Store(
             getActionId: state => () => state.action.id,
             getCardsByDictionaryInx: state => i => {
                 if (state.dictionaries.length <= i) return []
-                const id = state.dictionaries[i].id
-                return state.cards.filter((x) => x.dictionary.id === id)
+                return state.cards[i]
             },
-            getCardsByDictionaryId: state => id => {
-                return state.cards.filter((x) => x.dictionary.id === id)
+            getCardsByDictionaryId: (state, getters) => id => {
+                return state.cards[getters.getDictionaryInx(id)]
             },
             isDictionaryExists: state => (id) => {
                 return state.dictionaries.findIndex(d => d.id === id) >= 0
@@ -184,9 +183,23 @@ export default new Vuex.Store(
             getDictionaryById: (state, getters) => (id) => {
                 return state.dictionaries[getters.getDictionaryInx(id)]
             },
-            getCountCardsInDictionaryById: (state, getters) => (id) => state.cards.filter(c => c.dictionary.id === id).length,
+            getCountCardsInDictionaryById: (state, getters) => (id) => state.cards[getters.getDictionaryInx(id)].length,
             getUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === true),
             getNonUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === false),
+            getDictionariesInxsByUnique: (state) => (unique) => {
+                const inxs = []
+                state.dictionaries.forEach((d,i)=> {
+                    if (d.unique === unique) inxs.push(i)
+                })
+                return inxs;
+            },
+            getNonUniqueDictionariesInxs: (state) => () => {
+                const inxs = []
+                state.dictionaries.forEach((d,i)=> {
+                    if (d.unique === false) inxs.push(i)
+                })
+                return inxs;
+            },
             getUniqueDictionariesUniquePropertyValues: (state, getters) => (property) => {
                 return [...new Set(getters.getUniqueDictionaries.map(d => d[property]))]
             },
@@ -313,34 +326,48 @@ export default new Vuex.Store(
 
             // cards
             addCardMutation(state, payload) {
-                if (payload.card === null) return
-                state.cards = [
-                    ...state.cards,
+                const card = payload.card
+                if (card === null) return
+                const inx = this.getters.getDictionaryInx(card.dictionary.id)
+                state.cards[inx] = [
+                    ...state.cards[inx],
                     payload.card
                 ]
             },
 
-            updateCardMutation(state, payload) {
-                if (payload.card === null) return
-                const i = state.cards.findIndex(c => c.id === payload.card.id)
-                state.cards = [
-                    ...state.cards.slice(0, i),
-                    payload.card,
-                    ...state.cards.slice(i + 1)
+            cardChangeDictionaryMutation(state, payload) {
+                const card = payload.card
+                const destId = payload.destId
+                const sourceId = payload.sourceId
+                if (card === null) return
+                const newInx = this.getters.getDictionaryInx(destId)
+                const oldInx = this.getters.getDictionaryInx(sourceId)
+                const oldI = state.cards[oldInx].findIndex(c => c.id === card.id)
+                state.cards[oldInx] = [
+                    ...state.cards[oldInx].slice(0, oldI),
+                    ...state.cards[oldInx].slice(oldI + 1)
+                ]
+                state.cards[newInx] = [
+                    ...state.cards[newInx],
+                    card
                 ]
             },
 
-            removeCardMutation(state, card) {
-                const i = state.cards.findIndex(c => c.id === card.id)
-                if (i > -1) {
-                    state.cards = [
-                        ...state.cards.slice(0, i),
-                        ...state.cards.slice(i + 1)
+            removeCardMutation(state, payload) {
+                const card = payload.card
+                const inx = this.getters.getDictionaryInx(card.dictionary.id)
+                const i = state.cards[inx].findIndex(c => c.id === card.id)
+                if (i >= 0) {
+                    state.cards[inx] = [
+                        ...state.cards[inx].slice(0, i),
+                        ...state.cards[inx].slice(i + 1)
                     ]
                 }
             },
             setCardsMutation(state, payload) {
-                state.cards = payload.cards
+                state.dictionaries.forEach((d, i) => {
+                    state.cards[i] = payload.cards.filter(c => c.dictionary.id === d.id)
+                })
             },
 
             defaultCardsMutation(state) {
@@ -348,71 +375,96 @@ export default new Vuex.Store(
             },
 
             removeCardsMutation(state, payload) {
-                const ids = payload.cards.map((c) => c.id)
-                state.cards = state.cards.filter((c) => {
+                const inx = this.getters.getDictionaryInx(payload.dictionaryId)
+                const ids = payload.cards[inx].map((c) => c.id)
+                state.cards[inx] = state.cards[inx].filter((c) => {
                     return ids.indexOf(c.id) < 0;
                 })
             },
-            addCardsMutation(state, payload) {
-                state.cards = [
-                    ...state.cards,
-                    ...payload.cards,
-                ]
-            },
-            updateCardsMutation(state, payload) {
-                if (payload.cards.length > 0) {
-                    const ids = state.cards.map((c) => c.id)
-                    payload.cards.forEach((c, i) => {
-                        let iIds = ids.indexOf(c.id)
-                        if (iIds >= 0) {
-                            state.cards.splice(iIds, 1, c)
-                        }
-                    })
+
+            cardsChangeDictionaryMutation(state, payload) {
+                const cards = payload.cards
+                const destId = payload.destId
+                const sourceId = payload.sourceId
+                if (cards.length === 0) return
+                const newInx = this.getters.getDictionaryInx(destId)
+                const oldInx = this.getters.getDictionaryInx(sourceId)
+
+                const oldIs = []
+                const cardsIds = cards.map(c => c.id)
+                state.cards[oldInx].map(c=>c.id).forEach((id,i)=>{
+                 if(cardsIds.indexOf(id)>=0){
+                     oldIs.push(i)
+                 }
+                })
+                for (let i = oldIs.length-1; i >= 0; i--) {
+                    const inx = oldIs[i]
+                    state.cards[oldInx].splice(inx,1)
                 }
+                state.cards[newInx] = [
+                    ...state.cards[newInx],
+                    ...cards,
+                ]
             },
 
             // upload dictionaries and cards
             uploadNewDictionariesAndCardsMutation(state, payload) {
-                this.commit('addDictionariesMutation', payload)
-                this.commit('addCardsMutation', payload)
+                state.dictionaries = [
+                    ...state.dictionaries,
+                    ...payload.dictionaries,
+                ]
+                for (let i = state.cards.length; i <state.dictionaries.length; i++) {
+                    state.cards = [
+                        ...state.cards,
+                        [],
+                    ]
+                }
+                state.dictionaries.forEach((d, i) => {
+                    state.cards[i] = [
+                        ...state.cards[i],
+                        ...payload.cards.filter(c => c.dictionary.id === d.id),
+                    ]
+                })
             },
 
             // dictionary
             addDictionaryMutation(state, payload) {
                 state.dictionaries = [
                     ...state.dictionaries,
-                    payload.dictionary
+                    payload.dictionary,
+                ]
+                state.cards = [
+                    ...state.cards,
+                    [],
                 ]
             },
-            addDictionariesMutation(state, payload) {
-                state.dictionaries = [
-                    ...state.dictionaries,
-                    ...payload.dictionaries
-                ]
-            },
-            updateDictionaryMutation(state, dictionary) {
-                const i = state.dictionaries.findIndex(d => d.id === dictionary.id)
+
+            updateDictionaryMutation(state, payload) {
+                const i = state.dictionaries.findIndex(d => d.id === payload.dictionary.id)
                 state.dictionaries = [
                     ...state.dictionaries.slice(0, i),
-                    dictionary,
+                    payload.dictionary,
                     ...state.dictionaries.slice(i + 1)
                 ]
             },
             deleteDictionaryByIdMutation(state, payload) {
-                const i = state.dictionaries.findIndex(d => d.id === payload.id)
-                if (i > -1) {
+                const inx = this.getters.getDictionaryInx(payload.id)
+                if (inx >= 0) {
                     state.dictionaries = [
-                        ...state.dictionaries.slice(0, i),
-                        ...state.dictionaries.slice(i + 1)
+                        ...state.dictionaries.slice(0, inx),
+                        ...state.dictionaries.slice(inx + 1)
                     ]
-                    state.cards = state.cards.filter(c => c.dictionary.id !== payload.id)
+                    state.cards[inx] = []
                 }
             },
             deleteDictionariesByUniqueAndCascadeCardsMutation(state, payload) {
+                const inxs = this.getters.getDictionariesInxsByUnique(payload.unique)
+                for (let i = state.dictionaries.length-1; i >=0 ; i--) {
+                    if(inxs.indexOf(i) >=0) state.cards.splice(i,1)
+                }
                 state.dictionaries = state.dictionaries.filter(d => d.unique !== payload.unique)
-                state.cards = state.cards.filter(c => c.dictionary.unique !== payload.unique)
-
             },
+
             setDictionariesMutation(state, payload) {
                 state.dictionaries = payload.dictionaries
             },
@@ -1004,6 +1056,8 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
+
+            // cards
             async uploadCardsByExcelFilesAction({commit}, payload) {
                 const formData = payload.formData
                 const result = await cardApi.uploadExcelFiles(formData)
@@ -1057,33 +1111,16 @@ export default new Vuex.Store(
                     const result = await cardApi.remove(payload.cards[0].id)
                     const data = await result.data
                     if (result.ok) {
-                        commit('removeCardMutation', payload.cards[0])
+                        commit('removeCardMutation', {card: payload.cards[0]})
                     }
                 } else {
                     const result = await cardApi.deleteByIdIn({ids: payload.cards.map(c => c.id)})
                     if (result.ok) {
-                        commit('removeCardsMutation', {cards: payload.cards})
+                        commit('removeCardsMutation', {cards: payload.cards, dictionaryId: payload.dictionaryId})
                     }
                 }
             },
 
-            async updateCardsAction({commit}, payload) {
-                if (payload.cards.length === 1) {
-                    const result = await cardApi.updateUnique(payload.cards[0])
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('updateCardMutation', {card: data.saved})
-                        commit('addCardNotSavedMutation', {card: data.notSaved})
-                    }
-                } else {
-                    const result = await cardApi.updateAllUnique(payload.cards)
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('updateCardsMutation', {cards: data.saved})
-                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
-                    }
-                }
-            },
             async cardsChangeDictionariesAction({commit, state, getters, dispatch}, payload) {
                 if (payload.cards && payload.cards.length > 0) {
                     console.info("start: " + date.getUTCMilliseconds(new Date()))
@@ -1092,16 +1129,18 @@ export default new Vuex.Store(
                         const data = await result.data
                         if (result.ok) {
                             console.info("end: " + date.getUTCMilliseconds(new Date()))
-                            commit('updateCardMutation', {card: data.saved})
+                            commit('cardChangeDictionaryMutation', {card: data.saved, sourceId: payload.sourceId, destId: payload.destId})
                             commit('addCardNotSavedMutation', {card: data.notSaved})
+                            commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
                         }
                     } else {
                         const result = await cardApi.changeDictionaries(payload.cards, payload.destId)
                         const data = await result.data
                         if (result.ok) {
                             console.info("end: " + date.getUTCMilliseconds(new Date()))
-                            commit('updateCardsMutation', {cards: data.saved})
+                            commit('cardsChangeDictionaryMutation', {cards: data.saved, sourceId: payload.sourceId, destId: payload.destId})
                             commit('addCardsNotSavedMutation', {cards: data.notSaved})
+                            commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
                         }
                     }
                 }

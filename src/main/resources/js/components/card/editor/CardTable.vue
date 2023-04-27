@@ -108,7 +108,9 @@ export default {
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
     })
-
+    this.$store.watch(this.$store.getters.getActionId, actionId => {
+      this.fetchData()
+    })
     this.fetchData()
     this.showEmpty = typeof this.dictionaryCards === 'undefined' || this.dictionaryCards.length === 0;
   },
@@ -122,7 +124,7 @@ export default {
     $route: [
       'fetchData',
     ],
-    storeDictionaryCards() {
+    sourceId(){
       this.fetchData()
     },
   },
@@ -134,10 +136,9 @@ export default {
     ...mapGetters([
       'isDictionaryExists',
       'getCardsByDictionaryId',
+        'getDictionaryInx',
+        'getCardsByDictionaryInx',
     ]),
-    storeDictionaryCards() {
-      return this.getCardsByDictionaryId(this.sourceId)
-    },
     word() {
       return string.getWithFirstCapital(this.lang.map.word)
     },
@@ -200,8 +201,9 @@ export default {
       this.show = false
       if (this.isSourceExists()) {
         this.show = true
-        this.showEmpty = typeof this.storeDictionaryCards === 'undefined' || this.storeDictionaryCards.length === 0
-        this.dictionaryCards = this.storeDictionaryCards
+        const cards = [...this.getCardsByDictionaryId(this.sourceId)]
+        this.showEmpty = typeof cards === 'undefined' || cards.length === 0
+        this.dictionaryCards = cards
         this.sortCards(this.dictionaryCards, this.jsonSorts)
         this.updateSelected()
       }
@@ -220,10 +222,14 @@ export default {
           break
         }
       }
-      this.sortCards(this.dictionaryCards, this.jsonSorts)
+      if(this.jsonSorts.map(s => s.order).every(s => s === null)){
+        this.fetchData()
+      }else{
+        this.sortCards(this.dictionaryCards, this.jsonSorts)
+      }
     },
     sortCards(cards, jsonSorts){
-        sort.sortUsingJsonSorts(cards, jsonSorts)
+      if(cards && cards.length !== 0) sort.sortUsingJsonSorts(cards, jsonSorts)
     },
     updateSelected() {
       this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)

@@ -123,6 +123,9 @@ export default {
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
     })
+    this.$store.watch(this.$store.getters.getActionId, actionId => {
+      this.fetchData()
+    })
   },
   components: {
     contextMenu,
