@@ -27,16 +27,16 @@
     <div class="collapse" :id="getCollapseForUnique()">
       <div class="btn-group-vertical btn-group-sm d-block">
         <button v-for="(d,i) in uniqueDictionaries"
-                :key="`A-${d.id}`"
+                :key="d.id"
                 :id="getDictionaryElementId(d.id)"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                 @mousedown.prevent.stop="mousedown(d.id)"
                 @mouseup.prevent.stop="mouseup(d.id)"
                 draggable="true"
                 @click.prevent.stop="parentLoadDictionary(d.id)"
-                @contextmenu.prevent="openDictionaryContextMenu(d.id)"
+                @contextmenu.prevent="openUniqueDictionaryContextMenu(i)"
         >
-          <context-menu :ref="getDictionaryContextMenuRefById(d.id)">
+          <context-menu ref="uniqueDictionaryContextMenu">
             <div class="btn-group-vertical btn-group-sm d-block">
               <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">DELETE</button>
             </div>
@@ -75,7 +75,7 @@
     ></add-dictionary-modal>
     <div class="collapse" :id="getCollapseForNonUnique()">
       <div v-for="(ldt,i) in nonUniqueShortLDTs"
-           :key="`A-${ldt}`"
+           :key="ldt"
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
@@ -88,14 +88,20 @@
         <div class="collapse" :id="getCollapseForNonUniqueCreationShortLDTs(i)">
           <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
-                    :key="`B-${d.id}`"
+                    :key="d.id"
                     :id="getDictionaryElementId(d.id)"
                     class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                     draggable="true"
                     @mousedown.prevent.stop="mousedown(d.id)"
                     @mouseup.prevent.stop="mouseup(d.id)"
                     @click.prevent.stop="parentLoadDictionary(d.id)"
+                    @contextmenu.prevent="openNonUniqueDictionaryContextMenu(i)"
             >
+              <context-menu ref="nonUniqueDictionaryContextMenu">
+                <div class="btn-group-vertical btn-group-sm d-block">
+                  <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">DELETE</button>
+                </div>
+              </context-menu>
               <span class="st-text-shift">{{ d.name }}</span>
               <span
                   class="st-right badge badge-light border bg-white badge-pill">{{ getCountCardsInDictionaryById(d.id) }}</span>
@@ -122,6 +128,9 @@ export default {
     })
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
+    })
+    this.$store.watch(this.$store.getters.getActionId, actionId => {
+      this.fetchData()
     })
   },
   components: {
@@ -221,11 +230,11 @@ export default {
     deleteDictionaryById(id) {
       this.$store.dispatch('deleteDictionaryByIdAction', {id: id})
     },
-    getDictionaryContextMenuRefById(id) {
-      return "dictionaryContextMenu-" + id
+    openUniqueDictionaryContextMenu(i) {
+      this.$refs.uniqueDictionaryContextMenu[i].open()
     },
-    openDictionaryContextMenu(id) {
-      this.$refs[this.getDictionaryContextMenuRefById(id)].open()
+    openNonUniqueDictionaryContextMenu(i) {
+      this.$refs.nonUniqueDictionaryContextMenu[i].open()
     },
 
     mousedown(id) {

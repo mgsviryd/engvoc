@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="modal fade" :id="idModal">
+  <div v-if="show" class="modal fade" :id="id">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -56,9 +56,6 @@ export default {
       'action',
       'lang',
     ]),
-    idModal() {
-      return this.id
-    },
   },
   watch: {
     $route: [
