@@ -64,18 +64,19 @@ public class DictionaryService {
     public Optional<Dictionary> findByNameAndUnique(String name, Boolean unique) {
         return dictionaryRepo.findByNameAndUnique(name, unique);
     }
+
     public Optional<Dictionary> findByNameAndParent(String name, Long parent) {
         return dictionaryRepo.findByNameAndParent(name, parent);
     }
 
 
-    public Page<Dictionary> getCategories(int page, int size) {
+    public Page<Dictionary> getDictionaries(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
         return dictionaryRepo.findAll(pageable);
     }
 
-    public List<Dictionary> saveAll(List<Dictionary> categories) {
-        return dictionaryRepo.saveAll(categories);
+    public List<Dictionary> saveAll(List<Dictionary> dictionaries) {
+        return dictionaryRepo.saveAll(dictionaries);
     }
 
     public List<Dictionary> findAll() {
@@ -89,6 +90,7 @@ public class DictionaryService {
     public void deleteByIdIn(List<Long> ids) {
         dictionaryRepo.deleteByIdIn(ids);
     }
+
     public void deleteByUnique(boolean unique) {
         dictionaryRepo.deleteByUnique(unique);
     }
@@ -96,6 +98,7 @@ public class DictionaryService {
     public List<Dictionary> findAllById(List<Long> ids) {
         return dictionaryRepo.findAllById(ids);
     }
+
     public Optional<Dictionary> findById(Long id) {
         return dictionaryRepo.findById(id);
     }

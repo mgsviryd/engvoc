@@ -12,7 +12,8 @@
     <!-- Recaptcha-->
     <script th:src="@{https://www.google.com/recaptcha/api.js}"></script>
     <!-- Font Awesome -->
-    <link rel="stylesheet" th:href="@{https://use.fontawesome.com/releases/v5.8.2/css/all.css}">
+<!--    <link rel="stylesheet" th:href="@{https://use.fontawesome.com/releases/v5.8.2/css/all.css}">-->
+    <link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css}">
 
     <!-- версия для разработки, отображает полезные предупреждения в консоли -->
     <script th:if="${serverInfo?.get('isDevMode')}" th:src="@{https://cdn.jsdelivr.net/npm/vue/dist/vue.js}"></script>
@@ -35,6 +36,7 @@
     <script th:src="@{https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js}"
             integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
             crossorigin="anonymous"></script>
+
 </th:block>
 <script th:if="${serverInfo?.get('isDevMode')}"
         th:src="@{${serverInfo.get('webpackDevPort')} + '/main.js'}"></script>

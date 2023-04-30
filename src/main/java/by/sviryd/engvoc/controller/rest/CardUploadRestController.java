@@ -26,7 +26,7 @@ public class CardUploadRestController {
     @Autowired
     private CardUploadService cardUploadService;
 
-    @PostMapping("upload/excel/filename")
+    @PostMapping("/upload/excel/filename")
     public HashMap<Object, Object> excelFilename(
             @RequestBody String json
     ) {
@@ -38,7 +38,7 @@ public class CardUploadRestController {
         return cardUploadService.saveNewDictionariesAndCardsBatch(extract);
     }
 
-    @PostMapping("upload/excel/file")
+    @PostMapping("/upload/excel/file")
     public HashMap<Object, Object> excelFile(
             @RequestParam("file") MultipartFile file
     ) {
@@ -46,7 +46,7 @@ public class CardUploadRestController {
         return cardUploadService.saveNewDictionariesAndCardsBatch(extract);
     }
 
-    @PostMapping("upload/excel/files")
+    @PostMapping("/upload/excel/files")
     public HashMap<Object, Object> excelFiles(
             @RequestParam("files") MultipartFile[] files
     ) {
@@ -57,7 +57,7 @@ public class CardUploadRestController {
         return cardUploadService.saveNewDictionariesAndCardsBatch(extract);
     }
 
-    @PostMapping("upload/xml/filename")
+    @PostMapping("/upload/xml/filename")
     public HashMap<Object, Object> xml(
             @RequestBody String json
     ) throws Exception {
@@ -77,7 +77,7 @@ public class CardUploadRestController {
         return cardUploadService.saveNewDictionariesAndCardsBatch(extract);
     }
 
-    @PostMapping("upload/xml/files")
+    @PostMapping("/upload/xml/files")
     public HashMap<Object, Object> xmlFiles(
             @RequestParam("files") MultipartFile[] files
     ) {

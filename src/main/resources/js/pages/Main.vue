@@ -1,20 +1,18 @@
 <template>
   <div>
     <router-view></router-view>
-    <drag-drop-controller></drag-drop-controller>
   </div>
 </template>
 <script>
 import {mapState} from 'vuex'
 import vlf from "../util/vlf"
-import DragDropController from "../components/controller/DragDropController.vue"
 
 export default {
   components: {
-    DragDropController,
+
   },
   async created() {
-    let frontend = await this.$store.dispatch('getFrontendAction')
+    let frontend = await this.$store.dispatch('getFrontendAction', this.lang.lang.name)
     let version = frontend.version
     let keys = Object.keys(version)
     for (let k in keys) {
@@ -28,27 +26,15 @@ export default {
       }
     }
     this.$store.dispatch('setFrontendAction', frontend)
-    this.$store.dispatch('getLanguageMapAction', this.lang.current)
     this.$store.dispatch('getAuthenticationAction', this.$store.getters.getUsersTokens)
-    this.$store.dispatch('findDictionaries')
-    this.$store.dispatch('findCards')
+    this.$store.dispatch('findDictionariesAndCards')
     this.$cookies.config('365d')
     this.sync()
   },
   computed: {
     ...mapState([
-      'frontend',
       'lang',
-      'basket',
-      'favorite',
     ]),
-    basketId() {
-      return this.basket.id
-    },
-    favoriteId() {
-      return this.favorite.id
-    },
-
   },
   methods: {
     async sync() {
@@ -65,21 +51,7 @@ export default {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
     async syncAll() {
-      await this.syncBasket()
-      await this.syncFavorite()
-      await this.syncRecent()
       await this.syncAuthentication()
-    },
-    async syncBasket() {
-      await this.$store.dispatch('syncBasketStateWithLocalAction')
-    },
-
-    async syncFavorite() {
-      await this.$store.dispatch('syncFavoriteStateWithLocalAction')
-    },
-
-    async syncRecent() {
-      await this.$store.dispatch('syncRecentStateWithLocalAction')
     },
 
     async syncAuthentication() {
@@ -88,10 +60,10 @@ export default {
 
     needLoad(key, version) {
       return !this.objectPresent(this.frontend.version[key])
-          || this.frontend.version[key] != version[key]
+          || this.frontend.version[key] !== version[key]
     },
     objectPresent(object) {
-      return typeof object != "undefined" && object != null
+      return typeof object !== "undefined" && object !== null
     },
   },
 }

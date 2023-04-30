@@ -3,22 +3,26 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">{{lang.map.addNewDictionary}}</h5>
-          <button type="button" class="close" aria-label="Close" @click.prevent.stop="reject">
+          <h5 class="modal-title">
+            {{getCapitalizeLang("addDictionary")}}
+          </h5>
+          <button type="button" class="close" aria-label="Close" @click.prevent.stop="reject()">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <b-input v-model="dictionary.name"></b-input>
+          <b-input v-model="dictionary.name" :placeholder="getCapitalizeLang('enterName')"></b-input>
           <div v-if="actionLocal.errors.notUniqueDictionaryError" class="alert alert-danger">
             {{ lang.map.notUniqueDictionaryError }}
           </div>
           <single-picture-drop-zone></single-picture-drop-zone>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click.prevent.stop="reject">{{ lang.map.no }}
+          <button type="button" class="btn btn-secondary" @click.prevent.stop="reject()">
+            {{ getCapitalizeLang("no") }}
           </button>
-          <button type="button" class="btn btn-primary" @click.prevent.stop="confirm">{{ lang.map.yes }}
+          <button type="button" class="btn btn-primary" @click.prevent.stop="confirm()">
+            {{ getCapitalizeLang("yes") }}
           </button>
         </div>
       </div>
@@ -29,25 +33,24 @@
 <script>
 import {mapState} from 'vuex'
 import singlePictureDropZone from "./SinglePictureDropZone.vue"
-import date from "../../../util/date";
+import * as _ from "lodash"
 
 export default {
   created() {
-    this.$root.$on('getPictureFormData', payload => {
-      this.formData = payload.formData
-    })
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       if(actionId === this.actionLocal.id){
         this.updateAction()
         this.closeIfNoErrors()
       }
     })
+    this.$root.$on('getPictureFormData', payload => {
+      this.formData = payload.formData
+    })
   },
   components: {
     singlePictureDropZone,
   },
   props: [
-    'dictionaries',
     'id',
     'unique',
   ],
@@ -86,7 +89,7 @@ export default {
       this.actionLocal.errors = this.action.errors
     },
     confirm() {
-      this.actionLocal.id = date.getUTCMilliseconds(new Date())
+      this.actionLocal.id = _.now()
       this.$store.dispatch(
           'addDictionaryWithPictureAction',
           {actionId: this.actionLocal.id, formData: this.formData, dictionary: this.dictionary}
@@ -97,6 +100,7 @@ export default {
       this.close()
     },
     setDataToDefault() {
+      this.actionLocal.errors = {}
       this.dictionary = {
         name: null,
         parent: null,
@@ -104,7 +108,6 @@ export default {
         unique: this.unique,
       }
       this.formData = null
-      this.actionLocal.errors = {}
       this.$root.$emit('setDefaultDropZone')
     },
     close(){
@@ -114,6 +117,12 @@ export default {
       if (Object.keys(this.actionLocal.errors).length === 0) {
         this.reject()
       }
+    },
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    getLang(key) {
+      return this.lang.map[key]
     },
   }
 }

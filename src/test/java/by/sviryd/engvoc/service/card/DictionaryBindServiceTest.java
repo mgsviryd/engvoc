@@ -26,7 +26,7 @@ public class DictionaryBindServiceTest {
         Assert.assertNull(service.getSourceAbbr("dictionary"));
         Assert.assertNull(service.getSourceAbbr("dictionary.xml"));
         Assert.assertNull(service.getSourceAbbr("dictionaryEn.xml"));
-        Assert.assertEquals(service.getSourceAbbr("EnRu"), "En");
+        Assert.assertEquals(service.getSourceAbbr("EnRu"), "en");
     }
 
     @Test
@@ -34,7 +34,7 @@ public class DictionaryBindServiceTest {
         Assert.assertNull(service.getDestinationAbbr("dictionary"));
         Assert.assertNull(service.getDestinationAbbr("dictionary.xml"));
         Assert.assertNull(service.getDestinationAbbr("dictionaryEn.xml"));
-        Assert.assertEquals(service.getDestinationAbbr("EnRu"), "Ru");
+        Assert.assertEquals(service.getDestinationAbbr("EnRu"), "ru");
     }
 
     @Test

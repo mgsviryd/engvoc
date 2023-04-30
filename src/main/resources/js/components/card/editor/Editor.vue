@@ -1,39 +1,42 @@
 <template>
-    <div class="row m-0 p-0 justify-content-between" style="width: 100%">
-      <div class="col-1 m-0 p-0">
-        <dictionary-nav
-            :instance-mark="instance1.instanceMark"
-            @loadDictionary="loadDictionary"
-        ></dictionary-nav>
-      </div>
+  <div class="row m-0 p-0 justify-content-between" style="width: 100%">
+    <div class="col-1 m-0 p-0">
+      <dictionary-nav
+          :instance-mark="instance1.instanceMark"
+          @loadDictionary="loadDictionary"
+      ></dictionary-nav>
+    </div>
 
-      <div class="col-10 m-0 p-0">
-        <div class="row m-0 p-0 justify-content-center" style="width: 100%">
-      <div class="=col m-0 p-0">
-        <card-table v-if="instance1.sourceId"
-                    :sourceId="instance1.sourceId"
-                    :rowToScrollId="instance1.rowToScrollId"
-                    :instance="instance1.instance"
-        ></card-table>
-      </div>
+    <div class="col-10 m-0 p-0">
+      <div class="row m-0 p-0 justify-content-center" style="width: 100%">
 
-      <div class="col m-0 p-0">
-        <card-table v-if="instance2.sourceId"
-                    :sourceId="instance2.sourceId"
-                    :rowToScrollId="instance2.rowToScrollId"
-                    :instance="instance2.instance"
-        ></card-table>
-      </div>
-      </div>
-      </div>
+        <div v-if="instance1.dictionary"
+            class="col m-0 p-0"
+             :class="isTwoSourcePresent()?'st-two-source':'st-one-source'">
+          <card-table
+                      :dictionary="instance1.dictionary"
+                      :instanceMark="instance1.instanceMark"
+          ></card-table>
+        </div>
 
-      <div class="col-1 m-0 p-0">
-        <dictionary-nav
-            :instance-mark="instance2.instanceMark"
-            @loadDictionary="loadDictionary"
-        ></dictionary-nav>
+        <div v-if="instance2.dictionary"
+             class="col m-0 p-0"
+             :class="isTwoSourcePresent()?'st-two-source':'st-one-source'">
+          <card-table
+                      :dictionary="instance2.dictionary"
+                      :instanceMark="instance2.instanceMark"
+          ></card-table>
+        </div>
       </div>
     </div>
+
+    <div class="col-1 m-0 p-0">
+      <dictionary-nav
+          :instance-mark="instance2.instanceMark"
+          @loadDictionary="loadDictionary"
+      ></dictionary-nav>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -49,14 +52,12 @@ export default {
   data() {
     return {
       instance1: {
-        instanceMark: "l-",
-        sourceId: null,
-        rowToScrollId: null,
+        instanceMark: "table1",
+        dictionary: null,
       },
       instance2: {
-        instanceMark: "r-",
-        sourceId: null,
-        rowToScrollId: null,
+        instanceMark: "table2",
+        dictionary: null,
       },
     }
   },
@@ -69,15 +70,18 @@ export default {
   methods: {
     fetchData() {
     },
-    loadDictionary(sourceId, instanceMark){
-        if(instanceMark === this.instance1.instanceMark){
-          this.instance1.sourceId = sourceId
-        }
-        if (instanceMark === this.instance2.instanceMark){
-          this.instance2.sourceId = sourceId
-        }
+    loadDictionary(d, instanceMark) {
+      if (instanceMark === this.instance1.instanceMark) {
+        this.instance1.dictionary = d
+      }
+      if (instanceMark === this.instance2.instanceMark) {
+        this.instance2.dictionary = d
+      }
       return []
-    }
+    },
+    isTwoSourcePresent(){
+      return this.instance1.dictionary !== null && this.instance2.dictionary !== null
+    },
   },
 
 }

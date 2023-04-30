@@ -8,7 +8,10 @@ import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Type;
 import java.security.Principal;
@@ -34,21 +37,22 @@ public class AuthenticationRestController {
         List<String> tokens = gson.fromJson(tokensArray, stringType);
         Map<String, Object> frontendData = new HashMap<>();
         Iterable<User> users;
-        if(tokens.isEmpty()){
+        if (tokens.isEmpty()) {
             users = Collections.emptyList();
-        }else{
+        } else {
             users = userService.getUsersByTokens(tokens);
         }
         frontendData.put("users", users);
-        if (user != null){
+        if (user != null) {
             frontendData.put("user", user);
-        }else{
-            try{
+        } else {
+            try {
                 OAuth2Authentication auth2 = (OAuth2Authentication) principal;
                 String sub = ((HashMap<String, String>) (auth2.getUserAuthentication().getDetails())).get("sub");
                 user = userService.findBySub(sub);
                 frontendData.put("user", user);
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
         }
         gson = new GsonBuilder().addSerializationExclusionStrategy(gsonExcludeStrategies.getUserOnlyInfo()).create();
         return gson.toJson(frontendData);

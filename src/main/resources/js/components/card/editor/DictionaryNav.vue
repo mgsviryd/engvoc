@@ -1,10 +1,10 @@
 <template>
   <div v-if="show" class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block">
     <button class="btn  btn-primary text-left rounded-0  border-1 border-secondary" data-toggle="collapse"
-            :href="'#'+getCollapseForUnique()"
+            :href="'#'+getUniqueDictionariesElemId()"
             role="button"
             aria-expanded="false"
-            :aria-controls="getCollapseForUnique()"
+            :aria-controls="getUniqueDictionariesElemId()"
             @contextmenu.prevent="$refs.uniqueDictionaries.open"
     >
       <context-menu ref="uniqueDictionaries">
@@ -15,25 +15,22 @@
       <span class="st-text-shift">{{ lang.map.db }}</span>
       <span class="st-right badge badge-light bg-white badge-pill">{{ getUniqueDictionaries().length }}</span>
     </button>
-    <button class="btn  btn-outline-success d-flex justify-content-center align-items-center" data-toggle="modal"
-            data-target="#modal-addNewUnique">
+    <button class="btn  btn-outline-success d-flex justify-content-center align-items-center"
+            data-toggle="modal"
+            :data-target="'#' + this.prefixId + 'add-dictionary-unique-modal'"
+    >
       <i class="fas fa-plus"></i>
     </button>
-    <add-dictionary-modal
-        :id="'modal-addNewUnique'"
-        :dictionaries="uniqueDictionaries"
-        :unique="true"
-    ></add-dictionary-modal>
-    <div class="collapse" :id="getCollapseForUnique()">
+    <div class="collapse" :id="getUniqueDictionariesElemId()">
       <div class="btn-group-vertical btn-group-sm d-block">
         <button v-for="(d,i) in uniqueDictionaries"
                 :key="d.id"
-                :id="getDictionaryElementId(d.id)"
+                :id="getDictionaryElemId(d.id)"
                 class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                 @mousedown.prevent.stop="mousedown(d.id)"
                 @mouseup.prevent.stop="mouseup(d.id)"
                 draggable="true"
-                @click.prevent.stop="parentLoadDictionary(d.id)"
+                @click.prevent.stop="parentLoadDictionary(d)"
                 @contextmenu.prevent="openUniqueDictionaryContextMenu(i)"
         >
           <context-menu ref="uniqueDictionaryContextMenu">
@@ -50,10 +47,10 @@
     </div>
 
     <button class="btn  btn-primary text-left rounded-0 m-0  border-1 border-secondary" data-toggle="collapse"
-            :href="'#'+getCollapseForNonUnique()"
+            :href="'#'+getNonUniqueDictionariesElemId()"
             role="button"
             aria-expanded="false"
-            :aria-controls="getCollapseForNonUnique()"
+            :aria-controls="getNonUniqueDictionariesElemId()"
             @contextmenu.prevent="$refs.nonUniqueDictionaries.open"
     >
       <context-menu ref="nonUniqueDictionaries">
@@ -64,37 +61,33 @@
       <span class="st-text-shift">{{ lang.map.upload }}</span>
       <span class="st-right badge badge-light badge-pill">{{ nonUniqueDictionaries.length }}</span>
     </button>
-    <button class="btn  btn-outline-success d-flex justify-content-center align-items-center" data-toggle="modal"
-            data-target="#modal-addNewUpload">
+    <button class="btn  btn-outline-success d-flex justify-content-center align-items-center"
+            data-toggle="modal"
+            :data-target="'#' + this.prefixId + 'add-dictionary-nonunique-modal'">
       <i class="fas fa-plus"></i>
     </button>
-    <add-dictionary-modal
-        :id="'modal-addNewUpload'"
-        :dictionaries="nonUniqueDictionaries"
-        :unique="false"
-    ></add-dictionary-modal>
-    <div class="collapse" :id="getCollapseForNonUnique()">
+    <div class="collapse" :id="getNonUniqueDictionariesElemId()">
       <div v-for="(ldt,i) in nonUniqueShortLDTs"
            :key="ldt"
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
-                :href="'#'+getCollapseForNonUniqueCreationShortLDTs(i)" role="button"
+                :href="'#'+getNonUniqueDictionariesCreationShortLDTElemId(i)" role="button"
                 aria-expanded="false"
-                :aria-controls="getCollapseForNonUniqueCreationShortLDTs(i)">
+                :aria-controls="getNonUniqueDictionariesCreationShortLDTElemId(i)">
           <span class="st-text-shift">{{ ldt }}</span>
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
-        <div class="collapse" :id="getCollapseForNonUniqueCreationShortLDTs(i)">
+        <div class="collapse" :id="getNonUniqueDictionariesCreationShortLDTElemId(i)">
           <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
                     :key="d.id"
-                    :id="getDictionaryElementId(d.id)"
+                    :id="getDictionaryElemId(d.id)"
                     class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
                     draggable="true"
                     @mousedown.prevent.stop="mousedown(d.id)"
                     @mouseup.prevent.stop="mouseup(d.id)"
-                    @click.prevent.stop="parentLoadDictionary(d.id)"
+                    @click.prevent.stop="parentLoadDictionary(d)"
                     @contextmenu.prevent="openNonUniqueDictionaryContextMenu(i)"
             >
               <context-menu ref="nonUniqueDictionaryContextMenu">
@@ -104,13 +97,23 @@
               </context-menu>
               <span class="st-text-shift">{{ d.name }}</span>
               <span
-                  class="st-right badge badge-light border bg-white badge-pill">{{ getCountCardsInDictionaryById(d.id) }}</span>
+                  class="st-right badge badge-light border bg-white badge-pill">
+                {{getCountCardsInDictionaryById(d.id) }}
+              </span>
             </button>
           </div>
 
         </div>
       </div>
     </div>
+    <add-dictionary-modal
+        :id="this.prefixId + 'add-dictionary-unique-modal'"
+        :unique="true"
+    ></add-dictionary-modal>
+    <add-dictionary-modal
+        :id="this.prefixId + 'add-dictionary-nonunique-modal'"
+        :unique="false"
+    ></add-dictionary-modal>
     <GlobalEvents @mouseup="mouseupOutside()"/>
   </div>
 </template>
@@ -120,6 +123,7 @@ import contextMenu from 'vue-context-menu'
 import {mapState, mapGetters} from "vuex";
 import addDictionaryModal from "./AddDictionaryModal.vue";
 import date from "../../../util/date"
+import * as _ from "lodash";
 
 export default {
   created() {
@@ -137,7 +141,9 @@ export default {
     contextMenu,
     addDictionaryModal,
   },
-  props: ['instanceMark'],
+  props: [
+    'instanceMark',
+  ],
   watch: {
     $route: [
       'fetchData',
@@ -159,14 +165,17 @@ export default {
       'getCountCardsInDictionaryById',
       'sortArrayByStringProperty',
     ]),
+    prefixId() {
+      return this.name + "-" + this.instanceMark + "-"
+    },
   },
   data() {
     return {
+      name: "dictionaryNav",
       show: true,
       uniqueDictionaries: [],
       nonUniqueDictionaries: [],
       nonUniqueShortLDTs: [],
-      name: "dictionary-nav-",
       activeDictionaryElemId: null,
 
       groups: ["cardsChangeDictionary"],
@@ -188,11 +197,17 @@ export default {
       this.nonUniqueShortLDTs = this.getNonUniqueShortLDTs()
       this.show = true
     },
-    getNonUniqueShortLDTs(){
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    getLang(key) {
+      return this.lang.map[key]
+    },
+    getNonUniqueShortLDTs() {
       return [...new Set(this.getNonUniqueDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]
     },
-    getDictionaryElementId(id) {
-      return this.instanceMark + this.name + id
+    getDictionaryElemId(id) {
+      return this.prefixId + "dictionary" + id
     },
     getShortLDT(ldt) {
       return date.parseISOString(ldt).toLocaleString()
@@ -201,7 +216,7 @@ export default {
       if (this.activeDictionaryElemId) {
         $("#" + this.activeDictionaryElemId).removeClass("active-dictionary")
       }
-      this.activeDictionaryElemId = this.getDictionaryElementId(id)
+      this.activeDictionaryElemId = this.getDictionaryElemId(id)
       $("#" + this.activeDictionaryElemId).addClass("active-dictionary")
     },
     getCountUploadDictionaries(shortLDT) {
@@ -210,18 +225,18 @@ export default {
     getUploadDictionaries(shortLDT) {
       return this.nonUniqueDictionaries.filter(d => this.getShortLDT(d.creationLDT) === shortLDT)
     },
-    getCollapseForUnique() {
-      return this.instanceMark + "collapseUnique"
+    getUniqueDictionariesElemId() {
+      return this.prefixId + "uniqueDictionaries"
     },
-    getCollapseForNonUnique() {
-      return this.instanceMark + "collapseNonUnique"
+    getNonUniqueDictionariesElemId() {
+      return this.prefixId + "nonUniqueDictionaries"
     },
-    getCollapseForNonUniqueCreationShortLDTs(i) {
-      return this.instanceMark + "collapseCreationLDT" + i
+    getNonUniqueDictionariesCreationShortLDTElemId(i) {
+      return this.prefixId + "nonUniqueDictionariesCreationLDT" + i
     },
-    parentLoadDictionary(id) {
-      this.updateActiveDictionaryElemId(id)
-      return this.$emit('loadDictionary', id, this.instanceMark)
+    parentLoadDictionary(d) {
+      this.updateActiveDictionaryElemId(d.id)
+      return this.$emit('loadDictionary', d, this.instanceMark)
     },
 
     deleteDictionariesByUnique(unique) {
@@ -271,7 +286,7 @@ export default {
             push: "preserve", // preserve / delete
             operation: "add", // add / update / add-update
             isDragdropInside: false,
-            isDragdropSplice: false,
+            isDragdropPosition: false,
           },
           data: {
             items: items,
@@ -305,16 +320,16 @@ export default {
       this.groupsInProcess = this.groups.filter(x => groups.indexOf(x) >= 0)
     },
     async activateDragstartStyle(id) {
-      $("#" + this.getDictionaryElementId(id)).addClass("dragstart")
+      $("#" + this.getDictionaryElemId(id)).addClass("dragstart")
     },
     async deactivateDragstartStyle(id) {
-      $("#" + this.getDictionaryElementId(id)).removeClass("dragstart")
+      $("#" + this.getDictionaryElemId(id)).removeClass("dragstart")
     },
     async activateDragoverStyle(dictionaries) {
-      dictionaries.forEach(d => $("#" + this.getDictionaryElementId(d.id)).addClass("dragover"))
+      dictionaries.forEach(d => $("#" + this.getDictionaryElemId(d.id)).addClass("dragover"))
     },
     async deactivateDragoverStyle(dictionaries) {
-      dictionaries.forEach(d => $("#" + this.getDictionaryElementId(d.id)).removeClass("dragover"))
+      dictionaries.forEach(d => $("#" + this.getDictionaryElemId(d.id)).removeClass("dragover"))
     },
   },
 }

@@ -1,6 +1,7 @@
 package by.sviryd.engvoc.service.card;
 
 import by.sviryd.engvoc.config.DictionaryConfig;
+import by.sviryd.engvoc.type.Lang;
 import by.sviryd.engvoc.util.Pair;
 import by.sviryd.engvoc.util.StringConverterUtil;
 import by.sviryd.engvoc.util.StringUtil;
@@ -13,7 +14,9 @@ public class DictionaryBindService {
     private DictionaryConfig config;
 
     public boolean isSupportedAbbr(String abbr) {
-        return config.getSupported().contains(abbr);
+        String first = abbr.substring(0, 2).toLowerCase();
+        String second = abbr.substring(2).toLowerCase();
+        return config.isPresent(Lang.getLang(first)) && config.isPresent(Lang.getLang(second));
     }
 
     public String getSourceAbbr(String abbr) {
@@ -33,13 +36,17 @@ public class DictionaryBindService {
     public Integer getSourceAbbrId(String abbr) {
         String sourceAbbr = getSourceAbbr(abbr);
         if (sourceAbbr == null) return null;
-        return config.getIds().get((config.getAbbr().indexOf(sourceAbbr)));
+        Lang l = Lang.getLang(sourceAbbr);
+        if (l == null) return null;
+        return l.getId();
     }
 
     public Integer getDestinationAbbrId(String abbr) {
         String destinAbbr = getDestinationAbbr(abbr);
         if (destinAbbr == null) return null;
-        return config.getIds().get(config.getAbbr().indexOf(destinAbbr));
+        Lang l = Lang.getLang(destinAbbr);
+        if (l == null) return null;
+        return l.getId();
     }
 
     public boolean isDictionary(String filename) {
@@ -49,23 +56,21 @@ public class DictionaryBindService {
     public String getDictionaryNameWithoutAbbr(String filename) {
         filename = StringUtil.getFilenameWithoutExtension(filename);
         if (filename == null) return null;
-        for (String s : config.getSupported()) {
-            if (filename.endsWith(s)) {
-                int last = filename.lastIndexOf(s);
-                return filename.substring(0, last);
-            }
+        if (filename.length() < 4) return null;
+        int i = filename.length() - 4;
+        if (isSupportedAbbr(filename.substring(i))) {
+            return filename.substring(0, i);
         }
         return null;
     }
 
     public String getDictionaryAbbr(String filename) {
         filename = StringUtil.getFilenameWithoutExtension(filename);
-        if(filename == null) return null;
-        for (String s : config.getSupported()) {
-            if (filename.endsWith(s)) {
-                int last = filename.lastIndexOf(s);
-                return filename.substring(last);
-            }
+        if (filename == null) return null;
+        if (filename.length() < 4) return null;
+        int i = filename.length() - 4;
+        if (isSupportedAbbr(filename.substring(i))) {
+            return filename.substring(i);
         }
         return null;
     }

@@ -1,7 +1,12 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
+import by.sviryd.engvoc.type.Lang;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
 import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
@@ -64,6 +69,14 @@ public class Card implements Serializable {
     @JsonView(Views.Unique.class)
     private boolean unique;
 
+    @Enumerated(EnumType.STRING)
+    @JsonView(Views.Lang.class)
+    private Lang sourceLang;
+
+    @Enumerated(EnumType.STRING)
+    @JsonView(Views.Lang.class)
+    private Lang destinLang;
+
 
     @Column(length = 100)
     @Length(max = 100)
@@ -116,14 +129,23 @@ public class Card implements Serializable {
     @CreationTimestamp
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.CreationLDT.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-ddThh:mm:ss")
     private LocalDateTime creationLDT;
 
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.LearnedLDT.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-ddThh:mm:ss")
     private LocalDateTime learnedLDT;
 
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.ForgotLDT.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-ddThh:mm:ss")
     private LocalDateTime forgotLDT;
 
     @JsonView(Views.CountForgot.class)

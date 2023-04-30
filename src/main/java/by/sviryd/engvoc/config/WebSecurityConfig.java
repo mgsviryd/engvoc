@@ -60,15 +60,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/login**",
                         "/logout",
                         "/search**",
-                        "/category/hierarchy**",
                         "/registration",
                         "/static/**",
                         "/activate/*",
                         "/pre-login",
-                        "/product",
-                        "/json**",
-                        "/test",
-                        "/app"
+                        "/json**"
                 )
                 .permitAll()
                 .anyRequest().permitAll()
@@ -98,9 +94,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .ignoringAntMatchers("/login/**")
                 .ignoringAntMatchers("/logout/**")
-                .ignoringAntMatchers("/message/**")
                 .ignoringAntMatchers("/json/**")
-                .ignoringAntMatchers("/category/hierarchy/**")
                 .ignoringAntMatchers("/card/**")
         ;
         http

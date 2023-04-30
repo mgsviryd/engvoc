@@ -1,55 +1,92 @@
-    create table category (id bigint not null auto_increment, invisible BIT not null, name varchar(100), parent bigint, path varchar(255), picture varchar(150), priority integer, primary key (id)) engine=MyISAM;
-    create table company (full_name varchar(100), f_home_apartment varchar(20), f_home_city varchar(100), f_home_street varchar(20), f_home_zipcode varchar(6), restricted_name varchar(40), tax_id varchar(8), customer_id bigint not null, primary key (customer_id)) engine=MyISAM;
-    create table book (id bigint not null auto_increment, name varchar(255) not null, primary key (id)) engine=MyISAM;
-    create table customer (apartment varchar(20), city varchar(100), street varchar(20), zip_code varchar(6), contact_name varchar(40) default '', contact_phone varchar(12), contact_title varchar(40) default '', user_id bigint not null, primary key (user_id)) engine=MyISAM;
-    create table customer_order (id bigint not null auto_increment, createldt datetime, order_status varchar(40), requiredldt datetime, apartment varchar(20), city varchar(100), street varchar(20), zip_code varchar(6), ship_via varchar(40), shippedldt datetime, employee_id bigint, freight_id bigint, order_detail_id bigint, user_id bigint, primary key (id)) engine=MyISAM;
-    create table employee (birthld datetime, expire_contractld datetime not null, hireld datetime, photo longblob, salary integer not null, title varchar(20), person_id bigint not null, primary key (person_id)) engine=MyISAM;
-    create table extractor_error (id bigint not null auto_increment, createdldt datetime, primary key (id)) engine=MyISAM;
-    create table extractor_error_url (id bigint not null auto_increment, message varchar(500), url varchar(500), extractor_error_id bigint, primary key (id)) engine=MyISAM;
-    create table freight (id bigint not null auto_increment, primary key (id)) engine=MyISAM;
-    create table message (id bigint not null auto_increment, creationldt datetime, filename varchar(255), tag varchar(255), text varchar(2048), user_id bigint, primary key (id)) engine=MyISAM;
-    create table order_detail (id bigint not null auto_increment, primary key (id)) engine=MyISAM;
-    create table person (createdldt datetime, father_name varchar(40), first_name varchar(40), last_name varchar(40), customer_id bigint not null, primary key (customer_id)) engine=MyISAM;
-    create table picture (id bigint not null auto_increment, path varchar(255), priority integer not null, source_url varchar(500), product_description_picture_id bigint, product_picture_id bigint, primary key (id)) engine=MyISAM;
-    create table product (id bigint not null auto_increment, barcode varchar(13), code varchar(60), count integer, count_carry integer, count_pack integer, creationldt datetime, delivery_country varchar(20), description varchar(5000), discount double precision, fresh bit not null, height double precision, height_carry double precision, height_pack double precision, invisible bit not null, length double precision, length_carry double precision, length_pack double precision, made_country varchar(20), name varchar(300), path varchar(500), picture varchar(50), popular bit not null, price double precision, quantity_future integer, quantity_in_stock integer, quantity_reserved integer, quantity_supplier integer, service_center varchar(255), unit varchar(255), unit_carry varchar(255), unit_pack varchar(255), url varchar(500), vat double precision, vendor_code varchar(255), vendor_full varchar(255), vendor_picture varchar(50), vendor_short varchar(60), visitors bigint, weight double precision, weight_carry double precision, weight_pack double precision, width double precision, width_carry double precision, width_pack double precision, category_id bigint, supplier_id bigint, primary key (id)) engine=MyISAM;
-    create table product_property (product_id bigint not null, property_id bigint not null, invisible bit not null, priority integer, boolean_data bit not null, double_data double precision, integer_data integer, name varchar(500), path varchar(600), primary key (product_id, property_id)) engine=MyISAM;
-    create table product_detail (id bigint not null auto_increment, count integer not null, discount decimal(19,2), order_status varchar(255), price decimal(19,2), order_detail_id bigint, product_id bigint, primary key (id)) engine=MyISAM;
-    create table property (id bigint not null auto_increment, description varchar(255), invisible bit not null, name varchar(100), path varchar(100), priority integer, supplement bit not null, type varchar(255), unit varchar(255), category_id bigint, primary key (id)) engine=MyISAM;
-    create table shop (id bigint not null auto_increment, name varchar(20) not null, primary key (id)) engine=MyISAM;
-    create table shop_book (shop_id bigint not null, book_id bigint not null, primary key (shop_id, book_id)) engine=MyISAM;
-    create table supplier (id bigint not null auto_increment, primary key (id)) engine=MyISAM;
-    create table user_role (user_id bigint not null, roles varchar(255)) engine=MyISAM;
-    create table user_subscribtions (subscriber_id bigint not null, channel_id bigint not null, primary key (channel_id, subscriber_id)) engine=MyISAM;
-    create table usr (id bigint not null auto_increment, active bit not null, email varchar(100), last_modifiedldt datetime, password varchar(255), sub varchar(255), token varchar(255), username varchar(100), primary key (id)) engine=MyISAM;
-    create table verification_token (token varchar(16) not null, expiry_date datetime, user_id bigint not null, primary key (token)) engine=MyISAM;
-    alter table category add constraint UKbn682bbbggixvs9lgin2316co unique (name, parent);
-    alter table product add constraint UKs70rvijxqtn7kffwdlmkhv82l unique (code, barcode);
-    alter table property add constraint UKha7adbm1e8lil3l7bc3hqqq2w unique (category_id, name);
-    alter table usr add constraint UK_g9l96r670qkidthshajdtxrqf unique (email);
-    alter table usr add constraint UK_1kgqn0yq8kgvc9relbd9xoinp unique (sub);
-    alter table usr add constraint UK_kb24scwmea9l7cdjxh1p8he22 unique (token);
-    alter table company add constraint FK2wwo1k62uauhsigdlf4hgfnky foreign key (customer_id) references customer (user_id);
-    alter table customer add constraint FKptv929uyoreysdjm9aqaofnx5 foreign key (user_id) references usr (id);
-    alter table customer_order add constraint FKf52e0mwmej2lj9vs20iapb5gm foreign key (employee_id) references employee (person_id);
-    alter table customer_order add constraint FK6bvpmmrc4uaptcp8d8un6s3ps foreign key (freight_id) references freight (id);
-    alter table customer_order add constraint FKhohqy7yh5iav8t8qowme8s26o foreign key (order_detail_id) references order_detail (id);
-    alter table customer_order add constraint FKpvp6c5m100a76e54bf673txyu foreign key (user_id) references usr (id);
-    alter table employee add constraint FKfm68kmqett1iydj8xgfb6two8 foreign key (person_id) references person (customer_id);
-    alter table extractor_error_url add constraint FKe212ggtmchm5b4hhpscmw8guf foreign key (extractor_error_id) references extractor_error (id);
-    alter table message add constraint FK70bv6o4exfe3fbrho7nuotopf foreign key (user_id) references usr (id);
-    alter table person add constraint FK6peuv9pl9e7ofaddti6louuh1 foreign key (customer_id) references customer (user_id);
-    alter table picture add constraint FKpm5iantc0do4xpcyfg3dc4elr foreign key (product_description_picture_id) references product (id);
-    alter table picture add constraint FKghh5aetwit8mtutkoiyfk0upx foreign key (product_picture_id) references product (id);
-    alter table product add constraint FK1mtsbur82frn64de7balymq9s foreign key (category_id) references category (id);
-    alter table product add constraint FK2kxvbr72tmtscjvyp9yqb12by foreign key (supplier_id) references supplier (id);
-    alter table product_property add constraint FKcv0vb20d624kn1oe2h25rrxry foreign key (product_id) references product (id);
-    alter table product_property add constraint FK8b88vuy2hix25dpwe7a7yl3rc foreign key (property_id) references property (id);
-    alter table product_detail add constraint FKfjgw5bh36m7lx7t8nowtxmnfj foreign key (order_detail_id) references order_detail (id);
-    alter table product_detail add constraint FKilxoi77ctyin6jn9robktb16c foreign key (product_id) references product (id);
-    alter table property add constraint FK92ivt1osqigmkw9wnyho3yw9e foreign key (category_id) references category (id);
-    alter table shop_book add constraint FK3x2u9q7mfrr8o070adwc8iwqf foreign key (book_id) references book (id);
-    alter table shop_book add constraint FKrusc33jfhfehqffhd5alms4nm foreign key (shop_id) references shop (id);
-    alter table user_role add constraint FKfpm8swft53ulq2hl11yplpr5 foreign key (user_id) references usr (id);
-    alter table user_subscribtions add constraint FKok87ml2wy5svxyptbp1dpthwb foreign key (channel_id) references usr (id);
-    alter table user_subscribtions add constraint FK6ykm0axci5eekkax1cl081lkj foreign key (subscriber_id) references usr (id);
-    alter table verification_token add constraint FK5fi7mv5p74mow94h0xxw50rui foreign key (user_id) references usr (id);
+create table card
+(
+    id                  bigint not null auto_increment,
+    count_forgot        integer,
+    creationldt         datetime,
+    destin_lang         varchar(255),
+    example             varchar(500),
+    example_translation varchar(500),
+    forgotldt           datetime,
+    invisible           BIT    not null,
+    learned             BIT    not null,
+    learnedldt          datetime,
+    picture             varchar(50),
+    sound               varchar(500),
+    source_lang         varchar(255),
+    transcription       varchar(100),
+    translation         varchar(100),
+    unrepeated          BIT    not null,
+    word                varchar(100),
+    dictionary_id       bigint,
+    primary key (id)
+);
+create table dictionary
+(
+    id          bigint not null auto_increment,
+    creationldt datetime,
+    destin_lang varchar(255),
+    invisible   BIT    not null,
+    name        varchar(100),
+    parent      bigint,
+    picture     varchar(50),
+    priority    integer,
+    source_lang varchar(255),
+    unrepeated  BIT    not null,
+    primary key (id)
+);
+create table picture
+(
+    id         bigint  not null auto_increment,
+    path       varchar(255),
+    priority   integer not null,
+    source_url varchar(500),
+    primary key (id)
+);
+create table user_role
+(
+    user_id bigint not null,
+    roles   varchar(255)
+);
+create table user_subscribtions
+(
+    subscriber_id bigint not null,
+    channel_id    bigint not null,
+    primary key (channel_id, subscriber_id)
+);
+create table usr
+(
+    id               bigint not null auto_increment,
+    active           bit    not null,
+    email            varchar(100),
+    last_modifiedldt datetime,
+    password         varchar(255),
+    sub              varchar(255),
+    token            varchar(255),
+    username         varchar(100),
+    primary key (id)
+);
+create table verification_token
+(
+    token       varchar(16) not null,
+    expiry_date datetime,
+    user_id     bigint      not null,
+    primary key (token)
+);
+alter table dictionary
+    add constraint UKqo3d9m51el21jto9bkmbe0sn7 unique (name, unrepeated, creationldt);
+alter table usr
+    add constraint UK_g9l96r670qkidthshajdtxrqf unique (email);
+alter table usr
+    add constraint UK_1kgqn0yq8kgvc9relbd9xoinp unique (sub);
+alter table usr
+    add constraint UK_kb24scwmea9l7cdjxh1p8he22 unique (token);
+alter table card
+    add constraint FK2eiqnm3vylp7260lqpwmjw5n foreign key (dictionary_id) references dictionary (id);
+alter table user_role
+    add constraint FKfpm8swft53ulq2hl11yplpr5 foreign key (user_id) references usr (id);
+alter table user_subscribtions
+    add constraint FKok87ml2wy5svxyptbp1dpthwb foreign key (channel_id) references usr (id);
+alter table user_subscribtions
+    add constraint FK6ykm0axci5eekkax1cl081lkj foreign key (subscriber_id) references usr (id);
+alter table verification_token
+    add constraint FK5fi7mv5p74mow94h0xxw50rui foreign key (user_id) references usr (id);

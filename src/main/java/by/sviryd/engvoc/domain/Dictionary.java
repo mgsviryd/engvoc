@@ -1,8 +1,13 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
+import by.sviryd.engvoc.type.Lang;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
@@ -26,7 +31,7 @@ import java.util.List;
 @Entity
 @JsonIgnoreProperties(value = {"cards"})
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name", "unrepeated", "creationLDT"}))
-public class Dictionary implements IIdParent, Serializable {
+public class Dictionary implements Serializable {
     public static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +42,14 @@ public class Dictionary implements IIdParent, Serializable {
     @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Unique.class)
     private boolean unique;
+
+    @Enumerated(EnumType.STRING)
+    @JsonView(Views.Lang.class)
+    private Lang sourceLang;
+
+    @Enumerated(EnumType.STRING)
+    @JsonView(Views.Lang.class)
+    private Lang destinLang;
 
     @Column(length = 100)
     @Length(max = 100)
@@ -66,9 +79,11 @@ public class Dictionary implements IIdParent, Serializable {
     @CreationTimestamp
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.CreationLDT.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime creationLDT;
 
-    @JsonView(Views.ProductCount.class)
+    @JsonView(Views.CountCard.class)
     @Formula("(select count(*) from Card p where p.dictionary_id = id)")
     private Long countCard;
 

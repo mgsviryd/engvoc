@@ -13,7 +13,7 @@
           </small>
         </button>
 
-        <button class="btn btn-light mr-sm-1" v-bind:class="{ active: isButtonActive1}"
+        <button class="btn btn-light mr-sm-1" :class="{ active: isButtonActive1}"
                 href="#card-origin-tab1" data-toggle="tab" role="tab" aria-controls="card-origin-tab1"
                 id="card-origin-button1"
                 aria-selected="false"
@@ -25,7 +25,7 @@
           </small>
         </button>
 
-        <button class="btn btn-light mr-sm-1 text-capitalize" v-bind:class="{ active: isButtonActive2}"
+        <button class="btn btn-light mr-sm-1 text-capitalize" :class="{ active: isButtonActive2}"
                 href="#card-origin-tab2" data-toggle="tab" role="tab" aria-controls="card-origin-tab2"
                 id="card-origin-button2"
                 aria-selected="false"
@@ -37,7 +37,7 @@
           </small>
         </button>
 
-        <button class="btn btn-light mr-sm-1 text-capitalize" v-bind:class="{ active: isButtonActive3}"
+        <button class="btn btn-light mr-sm-1 text-capitalize" :class="{ active: isButtonActive3}"
                 href="#card-origin-tab3" data-toggle="tab" role="tab" aria-controls="card-origin-tab3"
                 id="card-origin-button3"
                 aria-selected="false"
@@ -53,7 +53,7 @@
 
 
     <div class="tab-content" id="card-origin-tab-content-0">
-      <div class="tab-pane fade " v-bind:class="{ active: isButtonActive1, show: isButtonActive1}"
+      <div class="tab-pane fade " :class="{ active: isButtonActive1, show: isButtonActive1}"
            id="card-origin-tab1"
            role="tabpanel" aria-labelledby="...">
         <div class="container-fluid">
@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="tab-pane fade"
-           id="card-origin-tab2" v-bind:class="{ active: isButtonActive2, show: isButtonActive2}"
+           id="card-origin-tab2" :class="{ active: isButtonActive2, show: isButtonActive2}"
            role="tabpanel" aria-labelledby="...">
         <div class="container-fluid">
           <div class="row">
@@ -75,7 +75,7 @@
           </div>
         </div>
       </div>
-      <div class="tab-pane fade" v-bind:class="{ active: isButtonActive3, show: isButtonActive3}"
+      <div class="tab-pane fade" :class="{ active: isButtonActive3, show: isButtonActive3}"
            id="card-origin-tab3"
            role="tabpanel" aria-labelledby="...">
         <div class="container-fluid">

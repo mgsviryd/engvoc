@@ -11,7 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @ToString(of = {"id", "username", "password", "email", "active"})
 @EqualsAndHashCode(of = {"id"})
@@ -62,9 +64,6 @@ public class User implements UserDetails, Serializable {
     @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
-
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<Message> messages;
 
 //    @OneToMany(mappedBy = "authorCard", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 //    private List<Card> cards = new ArrayList<>();

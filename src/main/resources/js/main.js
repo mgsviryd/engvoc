@@ -10,7 +10,8 @@ import vueHeadful from 'vue-headful';
 import Multiselect from 'vue-multiselect'
 import VueCookies from 'vue-cookies'
 import VueWait from 'vue-wait'
-var VueScrollTo = require('vue-scrollto');
+const LanguageDetect = require('languagedetect');
+const VueScrollTo = require('vue-scrollto');
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
 import BootstrapVue from 'bootstrap-vue'
@@ -31,6 +32,7 @@ Vue.component('GlobalEvents', GlobalEvents)
 
 Vue.use(VueCookies)
 Vue.use(VueWait)
+Vue.use(LanguageDetect)
 Vue.use(VueScrollTo, {
     container: "body",
     duration: 500,

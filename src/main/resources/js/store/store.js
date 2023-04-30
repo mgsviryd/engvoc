@@ -1,12 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import frontendApi from "api/frontend";
-import messagesApi from "../api/messages";
 import pictureMediaApi from "../api/pictureMedia";
 import languageApi from "api/language";
-import categoryHierarchyApi from "api/categoryHierarchy";
-import categoryApi from "api/category";
-import productApi from "api/product";
 import authenticationApi from "api/authentication";
 import cardApi from "../api/card";
 import dictionaryApi from "../api/dictionary";
@@ -21,46 +17,15 @@ Vue.use(Vuex)
 var AsyncLock = require('async-lock');
 var lock = new AsyncLock();
 
-let defaultBasket = {
-    id: 0,
-    products: [],
-    amount: 0,
-    sort: null,
-    groupByCategory: false,
-}
-let defaultFavorite = {
-    id: 0,
-    products: [],
-    sort: null,
-    groupByCategory: false,
-}
-let defaultRecent = {
-    maxCount: 100,
-    id: 0,
-    products: [],
-    sort: null,
-    groupByCategory: false,
-}
-
 const persist = new VuexPersistence(
     {
         storage: window.localStorage,
         reducer: (state) => (
             {
-                messages: state.messages,
                 authentication: state.authentication,
                 frontend: state.frontend,
                 pictureMedia: state.pictureMedia,
                 lang: state.lang,
-                categoryChildMapIds: state.categoryChildMapIds,
-                categoryParentMapIds: state.categoryParentMapIds,
-                categoryRootIds: state.categoryRootIds,
-                categoryMap: state.categoryMap,
-                propertyChoices: state.propertyChoices,
-                page: state.page,
-                category: state.category,
-                categoryChoices: state.categoryChoices,
-                product: state.product,
                 cards: state.cards,
                 dictionaries: state.dictionaries,
                 action: state.action,
@@ -84,7 +49,6 @@ export default new Vuex.Store(
             dictionaries: [],
             cards: [],
             cardsNotSaved: [],
-            messages: [],
 
             authentication: {
                 id: 0,
@@ -94,76 +58,12 @@ export default new Vuex.Store(
             frontend: {},
             pictureMedia: {},
 
-            categoryChildMapIds: [],
-            categoryParentMapIds: [],
-            categoryRootIds: [],
-            categoryMap: [],
-
-            propertyChoices: [],
-
-            page: null,
-            category: null,
-            categoryChoices: [],
-
-            basketChange: {id: 0, sum: 0, count: 0},
-            favoriteChange: {id: 0, mark: null},
-
-            basket: defaultBasket,
-            favorite: defaultFavorite,
-            recent: defaultRecent,
-
-            product: null,
-            sortOrder: [
-                {id: 0, property: "UTCMillis", direction: "desc", name: "selectedRecently", typeMark: "number"},
-                {id: 1, property: "UTCMillis", direction: "asc", name: "selectedAgo", typeMark: "number"},
-                {id: 2, property: "popular", direction: "desc", name: "popular", typeMark: "number"},
-                {id: 3, property: "price", direction: "asc", name: "cheap", typeMark: "number"},
-                {id: 4, property: "price", direction: "desc", name: "expensive", typeMark: "number"},
-                {id: 5, property: "creationLDT", direction: "desc", name: "new", typeMark: "ldt"},
-                {
-                    id: 6,
-                    property: "vat",
-                    direction: "desc",
-                    name: "withDiscount",
-                    typeMark: "number",
-                    htmlBefore: '<i class="fas fa-fire text-danger"></i>&nbsp;'
-                }
-            ],
-
-            scrollDuration: 500,
-            scrollOptions: {
-                container: 'body',
-                easing: 'ease-in',
-                offset: -100,
-                force: true,
-                cancelable: true,
-                onStart: function (element) {
-                    // scrolling started
-                },
-                onDone: function (element) {
-                    // scrolling is done
-                },
-                onCancel: function () {
-                    // scrolling has been interrupted
-                },
-                x: false,
-                y: true
-            },
-
             lang: {
                 id: 0,
-                current: {abbr: "RU", name: "Русский"},
-                list: {},
+                lang: {name: "en"},
+                langs: [],
                 map: {}
             },
-
-            notifications: [{
-                "mark": "registrationActivation",
-                "creationLDT": "2020.12.12:10.10",
-                "description": "registrationActivationDescription",
-                "path": "/",
-                "canRemove": "false"
-            }],
         },
         getters: {
             getActionId: state => () => state.action.id,
@@ -188,14 +88,14 @@ export default new Vuex.Store(
             getNonUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === false),
             getDictionariesInxsByUnique: (state) => (unique) => {
                 const inxs = []
-                state.dictionaries.forEach((d,i)=> {
+                state.dictionaries.forEach((d, i) => {
                     if (d.unique === unique) inxs.push(i)
                 })
                 return inxs;
             },
             getNonUniqueDictionariesInxs: (state) => () => {
                 const inxs = []
-                state.dictionaries.forEach((d,i)=> {
+                state.dictionaries.forEach((d, i) => {
                     if (d.unique === false) inxs.push(i)
                 })
                 return inxs;
@@ -216,51 +116,8 @@ export default new Vuex.Store(
                 return !getters.getDictionaryById(sourceId).unique && getters.getDictionaryById(destId).unique
             },
             sortArrayByStringProperty: (state) => (dictionaries, property) => dictionaries.sort((a, b) => compare.compareStringNaturalByProperty(a, b, property)),
-            sortedMessages: state => state.messages.sort((a, b) => -(a.id - b.id)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
             getLangId: state => () => state.lang.id,
-            getBasketChangeId: state => () => state.basketChange.id,
-            getBasketId: state => () => state.basket.id,
-            getFavoriteId: state => () => state.favorite.id,
-            getRecentId: state => () => state.recent.id,
-            getFavoriteChangeId: state => () => state.favoriteChange.id,
-            getCategoryChildsById: state => categoryId => {
-                let childs = state.categoryParentMapIds[categoryId].map((x) => {
-                    return state.categoryMap[x]
-                })
-                return JSON.parse(JSON.stringify(childs))
-            },
-            getCategoryFullPathById: (state, getters) => categoryId => {
-                let childs = getters.getCategoryChildsById(categoryId)
-                let path = ''
-                for (let i = 0; i < childs.length; i++) {
-                    path = path + '/' + childs[i].path
-                }
-                return path
-            },
-            isFavoriteProduct: state => id => {
-                let ids = state.favorite.products.map((x) => {
-                    return x.id
-                })
-                return ids.indexOf(id) !== -1
-            },
-            getSortOrderByIndex: state => index => {
-                return JSON.parse(JSON.stringify(state.sortOrder[index]))
-            },
-            getMessage: state => key => {
-                return state.lang.map[key]
-            },
-            getMessages: (state, getters) => keys => {
-                let messages = {}
-                for (let i = 0; i < keys.length; i++) {
-                    let key = keys[i]
-                    messages[key] = getters.getMessage(key)
-                }
-                return messages;
-            },
-            getLangByAbbr: state => abbr => {
-                return state.lang.list[abbr]
-            },
             isAuthenticated: (state) => {
                 return typeof state.authentication.user !== 'undefined' && state.authentication.user !== null
             },
@@ -353,10 +210,10 @@ export default new Vuex.Store(
                 ]
             },
 
-            removeCardMutation(state, payload) {
+            deleteCardMutation(state, payload) {
                 const card = payload.card
                 const inx = this.getters.getDictionaryInx(card.dictionary.id)
-                const i = state.cards[inx].findIndex(c => c.id === card.id)
+                const i = state.cards[inx].indexOf(card)
                 if (i >= 0) {
                     state.cards[inx] = [
                         ...state.cards[inx].slice(0, i),
@@ -365,6 +222,7 @@ export default new Vuex.Store(
                 }
             },
             setCardsMutation(state, payload) {
+                state.cards = []
                 state.dictionaries.forEach((d, i) => {
                     state.cards[i] = payload.cards.filter(c => c.dictionary.id === d.id)
                 })
@@ -374,12 +232,16 @@ export default new Vuex.Store(
                 state.cards = []
             },
 
-            removeCardsMutation(state, payload) {
+            deleteCardsInDictionaryMutation(state, payload) {
                 const inx = this.getters.getDictionaryInx(payload.dictionaryId)
-                const ids = payload.cards[inx].map((c) => c.id)
+                const ids = payload.cards.map((c) => c.id)
                 state.cards[inx] = state.cards[inx].filter((c) => {
                     return ids.indexOf(c.id) < 0;
                 })
+            },
+            deleteCardsByDictionaryMutation(state, payload) {
+                const inx = this.getters.getDictionaryInx(payload.dictionaryId)
+                state.cards[inx] = []
             },
 
             cardsChangeDictionaryMutation(state, payload) {
@@ -392,14 +254,14 @@ export default new Vuex.Store(
 
                 const oldIs = []
                 const cardsIds = cards.map(c => c.id)
-                state.cards[oldInx].map(c=>c.id).forEach((id,i)=>{
-                 if(cardsIds.indexOf(id)>=0){
-                     oldIs.push(i)
-                 }
+                state.cards[oldInx].map(c => c.id).forEach((id, i) => {
+                    if (cardsIds.indexOf(id) >= 0) {
+                        oldIs.push(i)
+                    }
                 })
-                for (let i = oldIs.length-1; i >= 0; i--) {
+                for (let i = oldIs.length - 1; i >= 0; i--) {
                     const inx = oldIs[i]
-                    state.cards[oldInx].splice(inx,1)
+                    state.cards[oldInx].splice(inx, 1)
                 }
                 state.cards[newInx] = [
                     ...state.cards[newInx],
@@ -413,7 +275,7 @@ export default new Vuex.Store(
                     ...state.dictionaries,
                     ...payload.dictionaries,
                 ]
-                for (let i = state.cards.length; i <state.dictionaries.length; i++) {
+                for (let i = state.cards.length; i < state.dictionaries.length; i++) {
                     state.cards = [
                         ...state.cards,
                         [],
@@ -459,8 +321,8 @@ export default new Vuex.Store(
             },
             deleteDictionariesByUniqueAndCascadeCardsMutation(state, payload) {
                 const inxs = this.getters.getDictionariesInxsByUnique(payload.unique)
-                for (let i = state.dictionaries.length-1; i >=0 ; i--) {
-                    if(inxs.indexOf(i) >=0) state.cards.splice(i,1)
+                for (let i = state.dictionaries.length - 1; i >= 0; i--) {
+                    if (inxs.indexOf(i) >= 0) state.cards.splice(i, 1)
                 }
                 state.dictionaries = state.dictionaries.filter(d => d.unique !== payload.unique)
             },
@@ -469,268 +331,15 @@ export default new Vuex.Store(
                 state.dictionaries = payload.dictionaries
             },
 
-            // message
-            addMessageMutation(state, message) {
-                state.messages = [
-                    ...state.messages,
-                    message
-                ]
-            },
-            updateMessageMutation(state, message) {
-                const updateIndex = state.messages.findIndex(item => item.id === message.id)
-                state.messages = [
-                    ...state.messages.slice(0, updateIndex),
-                    message,
-                    ...state.messages.slice(updateIndex + 1)
-                ]
-            },
-            removeMessageMutation(state, message) {
-                const i = state.messages.findIndex(m => m.id === message.id)
-                if (i > -1) {
-                    state.messages = [
-                        ...state.messages.slice(0, i),
-                        ...state.messages.slice(i + 1)
-                    ]
-                }
-            },
-            getMessagesMutation(state, data) {
-                state.messages = data
-            },
             updateFrontendMutation(state, data) {
                 state.frontend = data
+                state.lang.langs = data.langLangs
+                state.lang.map = data.langMap
             },
             getPictureMediaMutation(state, data) {
                 state.pictureMedia = data
             },
-            getCategoryHierarchyMutation(state, data) {
-                state.categoryChildMapIds = data.childMapIds
-                state.categoryParentMapIds = data.parentMapIds
-                state.categoryRootIds = data.rootIds
-                state.categoryMap = data.map
-                state.categoryVersion = data.version
-            },
 
-            getCategoryPageMutation(state, data) {
-                state.page = data['page']
-                state.category = data['category']
-                if (data['isNeedPropertyChoices']) {
-                    state.propertyChoices = data['propertyChoices']
-                }
-            },
-            getProductPageMutation(state, data) {
-                state.category = data.category
-                state.product = data
-            },
-
-            addBasketProductMutation(state, data) {
-                let millis = date.getUTCMilliseconds(new Date())
-                let priceWithDiscount = data.product.priceWithDiscount
-                let count = data.count
-                state.basketChange.sum = storeMethods.multiply(priceWithDiscount, count, 2)
-                state.basketChange.count = count
-                let amount = state.basket.amount + state.basketChange.sum
-                state.basket.amount = storeMethods.round(amount, 2)
-                state.basketChange.id = millis
-                data.product["basketUTCMillis"] = millis
-                let ids = state.basket.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(data.product.id)
-                if (index === -1) {
-                    data.product["count"] = count
-                    state.basket.products.push(data.product)
-                } else {
-                    state.basket.products[index]["count"] += count
-                }
-            },
-
-            updateBasketCountOfProductMutation(state, data) {
-                let ids = state.basket.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(data.product.id)
-                if (index === -1) return
-                let deltaCount = data.count - state.basket.products[index].count
-                let priceWithDiscount = state.basket.products[index].priceWithDiscount
-                let deltaSum = storeMethods.multiply(priceWithDiscount, deltaCount, 2)
-                state.basket.amount = storeMethods.round(state.basket.amount + deltaSum, 2)
-                state.basket.products[index].count = data.count
-            },
-
-            removeBasketMutation(state) {
-                state.basket = defaultBasket
-            },
-
-            removeBasketProductByIdMutation(state, deleteIndex) {
-                let ids = state.basket.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(deleteIndex)
-                if (index === -1) return
-                let price = state.basket.products[index].priceWithDiscount
-                let count = state.basket.products[index].count
-                let sum = storeMethods.multiply(price, count, 2)
-                state.basket.products = [
-                    ...state.basket.products.slice(0, index),
-                    ...state.basket.products.slice(index + 1)
-                ]
-                let amount = state.basket.amount - sum
-                amount = storeMethods.round(amount, 2)
-                state.basket.amount = amount
-            },
-
-            updateBasketAmountMutation(state) {
-                let amount = 0
-                for (let i = 0; i < state.basket.products.length; i++) {
-                    let price = state.basket.products[i].priceWithDiscount
-                    let count = state.basket.products[i].count
-                    amount += storeMethods.multiply(price, count, 2)
-                }
-                amount = storeMethods.round(amount, 2)
-                state.basket.amount = amount
-            },
-
-
-            addFavoriteProductMutation(state, product) {
-                let millis = date.getUTCMilliseconds(new Date())
-                state.favoriteChange.id = millis
-                state.favoriteChange.mark = '+1'
-                product["favoriteUTCMillis"] = millis
-                let ids = state.favorite.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(product.id)
-                if (index === -1) {
-                    state.favorite.products.push(product)
-                }
-            },
-
-            addRecentProductMutation(state, product) {
-                let millis = date.getUTCMilliseconds(new Date())
-                let ids = state.recent.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(product.id)
-                if (index !== -1) {
-                    this.commit('removeProductFromRecentMutation', product)
-                }
-                if (state.recent.products.length >= state.recent.maxCount) {
-                    this.commit('removeOlderProductFromRecentMutation', product)
-                }
-                product["recentUTCMillis"] = millis
-                state.recent.products.push(product)
-            },
-
-            removeProductFromRecentMutation(state, product) {
-                let ids = state.recent.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(product.id)
-                if (index === -1) return
-                state.recent.products = [
-                    ...state.recent.products.slice(0, index),
-                    ...state.recent.products.slice(index + 1)
-                ]
-            },
-            removeOlderProductFromRecentMutation(state, product) {
-                let ldts = state.recent.products.map((x) => {
-                    return parseInt(x["recentUTCMillis"], 10)
-                })
-                let min = Math.min(ldts);
-                let index = ldts.indexOf(min)
-                if (index === -1) return
-                state.recent.products = [
-                    ...state.recent.products.slice(0, index),
-                    ...state.recent.products.slice(index + 1)
-                ]
-            },
-
-            removeProductFromFavoritesMutation(state, product) {
-                let ids = state.favorite.products.map((x) => {
-                    return x.id
-                })
-                let index = ids.indexOf(product.id)
-                if (index === -1) return
-                state.favoriteChange.mark = '-1'
-                state.favoriteChange.id = date.getUTCMilliseconds(new Date())
-                state.favorite.products = [
-                    ...state.favorite.products.slice(0, index),
-                    ...state.favorite.products.slice(index + 1)
-                ]
-            },
-
-            removeFavoriteProductsMutation(state) {
-                state.favorite = defaultFavorite
-            },
-            removeRecentProductsMutation(state) {
-                state.recent = defaultRecent
-            },
-            favoriteSetSortMutation(state, sort) {
-                state.favorite.sort = sort
-            },
-            recentSetSortMutation(state, sort) {
-                state.recent.sort = sort
-            },
-            basketSetSortMutation(state, sort) {
-                state.basket.sort = sort
-            },
-            favoriteUpdateMutation(state, products) {
-                state.favorite.products = products
-            },
-            basketUpdateMutation(state, products) {
-                state.basket.products = products
-            },
-            recentUpdateMutation(state, products) {
-                state.recent.products = products
-            },
-
-            syncBasketStateWithLocalMutation(state, basketLocal) {
-                lock.acquire('basket', () => {
-                    if (typeof basketLocal === 'undefined' || basketLocal === null) {
-                        //
-                    } else {
-                        if (basketLocal.id > state.basket.id) {
-                            state.basket = basketLocal
-                        }
-                    }
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            basketSyncLocalWithStateMutation(state) {
-                let id = date.getUTCMilliseconds(new Date())
-                let basketCopy = Object.assign({}, state.basket)
-                basketCopy.id = id
-                vlf.setItem('basket', basketCopy).then(() => {
-                    state.basket.id = id
-                })
-            },
-            syncFavoriteStateWithLocalMutation(state, favoriteLocal) {
-                lock.acquire('favorite', () => {
-                    if (typeof favoriteLocal === 'undefined' || favoriteLocal === null) {
-                        //
-                    } else {
-                        if (favoriteLocal.id > state.favorite.id) {
-                            state.favorite = favoriteLocal
-                        }
-                    }
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            syncRecentStateWithLocalMutation(state, recentLocal) {
-                lock.acquire('recent', () => {
-                    if (typeof recentLocal === 'undefined' || recentLocal === null) {
-                        //
-                    } else {
-                        if (recentLocal.id > state.recent.id) {
-                            state.recent = recentLocal
-                        }
-                    }
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
             syncAuthenticationStateWithLocalMutation(state, authenticationLocal) {
                 lock.acquire('authentication', () => {
                     if (typeof authenticationLocal === 'undefined' || authenticationLocal === null) {
@@ -744,23 +353,6 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-
-            favoriteSyncLocalWithStateMutation(state) {
-                let id = date.getUTCMilliseconds(new Date())
-                let favoriteCopy = Object.assign({}, state.favorite)
-                favoriteCopy.id = id
-                vlf.setItem('favorite', favoriteCopy).then(() => {
-                    state.favorite.id = id
-                })
-            },
-            recentSyncLocalWithStateMutation(state) {
-                let id = date.getUTCMilliseconds(new Date())
-                let recentCopy = Object.assign({}, state.recent)
-                recentCopy.id = id
-                vlf.setItem('recent', recentCopy).then(() => {
-                    state.recent.id = id
-                })
-            },
             authenticationSyncLocalWithStateMutation(state) {
                 let id = date.getUTCMilliseconds(new Date())
                 let authenticationCopy = Object.assign({}, state.authentication)
@@ -769,10 +361,11 @@ export default new Vuex.Store(
                     state.authentication.id = id
                 })
             },
-            getLanguageMapMutation(state, props) {
+
+            getLanguageMapMutation(state, payload) {
                 let id = date.getUTCMilliseconds(new Date())
-                state.lang.map = props.data
-                state.lang.current = props.lang
+                state.lang.map = payload.data
+                state.lang.lang = payload.lang
                 state.lang.id = id
             },
             getLanguageListMutation(state, data) {
@@ -786,45 +379,10 @@ export default new Vuex.Store(
                     state.authentication.user.active = true
                 }
             },
-            removeNotificationMutation(state, index) {
-                state.notifications = [
-                    ...state.notifications.slice(0, index),
-                    ...state.notifications.slice(index + 1)
-                ]
-            }
         },
         actions: {
-            async addMessageAction({commit, state}, message) {
-                const result = await messagesApi.add(message)
-                const data = await result.json()
-                const index = state.messages.findIndex(item => item.id === data.id)
-                if (index > -1) {
-                    commit('updateMessageMutation', data)
-                } else {
-                    commit('addMessageMutation', data)
-                }
-            },
-            async updateMessageAction({commit}, message) {
-                const result = await messagesApi.update(message)
-                const data = await result.json()
-                commit('updateMessageMutation', data)
-            },
-            async removeMessageAction({commit}, message) {
-                const result = await messagesApi.remove(message.id)
-                if (result.ok) {
-                    commit('removeMessageMutation', message)
-                }
-            },
-            async getMessagesAction({commit}) {
-                const result = await messagesApi.get()
-                const data = await result.data
-                if (result.ok) {
-                    commit('getMessagesMutation', data)
-                }
-            },
-
-            async updateFrontendAction({commit}) {
-                const result = await frontendApi.getFrontend()
+            async updateFrontendAction({commit}, payload) {
+                const result = await frontendApi.getFrontend(payload.lang)
                 const data = await result.data
                 if (result.ok) {
                     commit('updateFrontendMutation', data)
@@ -835,8 +393,8 @@ export default new Vuex.Store(
                 commit('updateFrontendMutation', data)
             },
 
-            async getFrontendAction({commit}) {
-                const result = await frontendApi.getFrontend()
+            async getFrontendAction({commit}, lang) {
+                const result = await frontendApi.getFrontend(lang)
                 const data = await result.data
                 if (result.ok) {
                     return data
@@ -853,141 +411,9 @@ export default new Vuex.Store(
                 }
             },
 
-            async getCategoryHierarchyAction({commit}) {
-                const result = await categoryHierarchyApi.getHierarchy()
-                const data = await result.data
-                if (result.ok) {
-                    commit('getCategoryHierarchyMutation', data)
-                }
-            },
-
-            async getCategoryPageAction({commit}, categoryChainUrl) {
-                const result = await categoryApi.getCategoryPage(categoryChainUrl)
-                const data = await result.data
-                if (result.ok) {
-                    commit('getCategoryPageMutation', data)
-                }
-            },
-            async getProductPageAction({commit}, id) {
-                const result = await productApi.findById(id)
-                const data = await result.data
-                if (result.ok) {
-                    commit('getProductPageMutation', data)
-                }
-            },
-            async addBasketProductAction({commit}, data) {
-                lock.acquire('basket', () => {
-                    commit('addBasketProductMutation', data)
-                    commit('basketSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-
-            async removeBasketAction({commit}) {
-                lock.acquire('basket', () => {
-                    commit('removeBasketMutation')
-                    commit('basketSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-
-            async removeBasketProductByIdAction({commit}, removeIndex) {
-                lock.acquire('basket', () => {
-                    commit('removeBasketProductByIdMutation', removeIndex)
-                    commit('basketSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-
-            async updateBasketCountOfProductAction({commit}, data) {
-                lock.acquire('basket', () => {
-                    commit('updateBasketCountOfProductMutation', data)
-                    commit('basketSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-
-            async addFavoriteProductAction({commit}, product) {
-                lock.acquire('favorite', () => {
-                    commit('addFavoriteProductMutation', product)
-                    commit('favoriteSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            async removeFavoriteProductAction({commit}, product) {
-                lock.acquire('favorite', () => {
-                    commit('removeProductFromFavoritesMutation', product)
-                    commit('favoriteSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-
-            async removeFavoriteAction({commit}) {
-                lock.acquire('favorite', () => {
-                    commit('removeFavoriteProductsMutation')
-                    commit('favoriteSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            async favoriteSetSortAction({commit}, sort) {
-                commit('favoriteSetSortMutation', sort)
-            },
-            async recentSetSortAction({commit}, sort) {
-                commit('recentSetSortMutation', sort)
-            },
-            async basketSetSortAction({commit}, sort) {
-                commit('basketSetSortMutation', sort)
-            },
-            async favoriteUpdateAction({commit}, products) {
-                lock.acquire('favorite', () => {
-                    commit('favoriteUpdateMutation', products)
-                    commit('favoriteSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            async basketUpdateAction({commit}, products) {
-                lock.acquire('basket', () => {
-                    commit('basketUpdateMutation', products)
-                    commit('basketSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            async recentUpdateAction({commit}, products) {
-                lock.acquire('recent', () => {
-                    commit('recentUpdateMutation', products)
-                    commit('recentSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-
             async removeCookiesAndStateAction({commit, dispatch}) {
                 await dispatch('removeBasketAction')
                 await dispatch('removeFavoriteAction')
-            },
-
-            async syncBasketStateWithLocalAction({commit}) {
-                let basketLocal = await vlf.getItem('basket')
-                commit('syncBasketStateWithLocalMutation', basketLocal)
-            },
-
-            async syncFavoriteStateWithLocalAction({commit}) {
-                let favoriteLocal = await vlf.getItem('favorite')
-                commit('syncFavoriteStateWithLocalMutation', favoriteLocal)
-            },
-
-            async syncRecentStateWithLocalAction({commit}) {
-                let recentLocal = await vlf.getItem('recent')
-                commit('syncRecentStateWithLocalMutation', recentLocal)
             },
 
             async syncAuthenticationStateWithLocalAction({commit}) {
@@ -995,28 +421,15 @@ export default new Vuex.Store(
                 commit('syncAuthenticationStateWithLocalMutation', authenticationLocal)
             },
 
-            async removeRecentAction({commit}) {
-                lock.acquire('recent', () => {
-                    commit('removeRecentProductsMutation')
-                    commit('recentSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
+            async changeLangAction({commit}, lang) {
+                const result = await languageApi.changeLang(lang.name)
             },
-            async addRecentProductAction({commit}, product) {
-                lock.acquire('recent', () => {
-                    commit('addRecentProductMutation', product)
-                    commit('recentSyncLocalWithStateMutation')
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
+
             async getLanguageMapAction({commit}, lang) {
-                const result = await languageApi.getMap(lang.abbr)
+                const result = await languageApi.getMap(lang.name)
                 const data = await result.data
                 if (result.ok) {
-                    let props = {lang: lang, data: data}
-                    commit('getLanguageMapMutation', props)
+                    commit('getLanguageMapMutation', {lang: lang, data: data})
                 }
             },
             async getLanguageListAction({commit}) {
@@ -1037,9 +450,6 @@ export default new Vuex.Store(
                 }).catch((err) => {
                     console.log(err) // output: error
                 })
-            },
-            async removeNotificationAction({commit}, index) {
-                commit('removeNotificationMutation', index)
             },
             async getActivationAction({commit}, id) {
                 const result = await authenticationApi.getActivation(id)
@@ -1106,30 +516,43 @@ export default new Vuex.Store(
                     console.log(err) // output: error
                 })
             },
-            async removeCardsAction({commit}, payload) {
-                if (payload.cards.length === 1) {
-                    const result = await cardApi.remove(payload.cards[0].id)
-                    const data = await result.data
-                    if (result.ok) {
-                        commit('removeCardMutation', {card: payload.cards[0]})
-                    }
-                } else {
-                    const result = await cardApi.deleteByIdIn({ids: payload.cards.map(c => c.id)})
-                    if (result.ok) {
-                        commit('removeCardsMutation', {cards: payload.cards, dictionaryId: payload.dictionaryId})
-                    }
+            async deleteCardAction({commit}, payload) {
+                const result = await cardApi.remove(payload.card.id)
+                const data = await result.data
+                if (result.ok) {
+                    commit('deleteCardMutation', payload)
+                    commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
+                }
+            },
+            async deleteCardsInDictionaryAction({commit}, payload) {
+                const result = await cardApi.deleteByIdIn({ids: payload.cards.map(c => c.id)})
+                if (result.ok) {
+                    commit('deleteCardsInDictionaryMutation', {
+                        cards: payload.cards,
+                        dictionaryId: payload.dictionaryId
+                    })
+                    commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
+                }
+            },
+            async deleteCardsByDictionaryAction({commit}, payload) {
+                const result = await cardApi.deleteByDictionary({id: payload.dictionaryId})
+                if (result.ok) {
+                    commit('deleteCardsByDictionaryMutation', {dictionaryId: payload.dictionaryId})
+                    commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
                 }
             },
 
             async cardsChangeDictionariesAction({commit, state, getters, dispatch}, payload) {
                 if (payload.cards && payload.cards.length > 0) {
-                    console.info("start: " + date.getUTCMilliseconds(new Date()))
                     if (payload.cards.length === 1) {
                         const result = await cardApi.changeDictionary(payload.cards[0], payload.destId)
                         const data = await result.data
                         if (result.ok) {
-                            console.info("end: " + date.getUTCMilliseconds(new Date()))
-                            commit('cardChangeDictionaryMutation', {card: data.saved, sourceId: payload.sourceId, destId: payload.destId})
+                            commit('cardChangeDictionaryMutation', {
+                                card: data.saved,
+                                sourceId: payload.sourceId,
+                                destId: payload.destId
+                            })
                             commit('addCardNotSavedMutation', {card: data.notSaved})
                             commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
                         }
@@ -1137,12 +560,23 @@ export default new Vuex.Store(
                         const result = await cardApi.changeDictionaries(payload.cards, payload.destId)
                         const data = await result.data
                         if (result.ok) {
-                            console.info("end: " + date.getUTCMilliseconds(new Date()))
-                            commit('cardsChangeDictionaryMutation', {cards: data.saved, sourceId: payload.sourceId, destId: payload.destId})
+                            commit('cardsChangeDictionaryMutation', {
+                                cards: data.saved,
+                                sourceId: payload.sourceId,
+                                destId: payload.destId
+                            })
                             commit('addCardsNotSavedMutation', {cards: data.notSaved})
                             commit('setActionMutation', {id: date.getUTCMilliseconds(new Date()), errors: []})
                         }
                     }
+                }
+            },
+            async findDictionariesAndCards({commit}) {
+                const result = await dictionaryApi.findDictionariesAndCards()
+                const data = await result.data
+                if (result.ok) {
+                    commit('setDictionariesMutation', {dictionaries: data.dictionaries})
+                    commit('setCardsMutation', {cards: data.cards})
                 }
             },
             async findDictionaries({commit}) {
@@ -1197,11 +631,26 @@ export default new Vuex.Store(
                     commit('setActionMutation', {id: payload.actionId, errors: data.errors})
                 }
             },
+            async addCardWithPictureAction({commit}, payload) {
+                let result = null
+                if (payload.formData) {
+                    payload.formData.append('card', new Blob([JSON.stringify(payload.card)], {type: "application/json"}),)
+                    result = await cardApi.saveWithPicture(payload.formData)
+                } else {
+                    result = await cardApi.saveWithoutPicture( payload.card)
+                }
+                const data = await result.data
+                if (result.ok) {
+                    commit('addCardMutation', {card: data.saved})
+                    commit('setActionMutation', {id: payload.actionId, errors: data.errors})
+                }
+            },
 
             async deleteDictionaryByIdAction({commit, state}, payload) {
                 const result = await dictionaryApi.remove(payload.id)
                 if (result.ok) {
                     commit('deleteDictionaryByIdMutation', {id: payload.id})
+                    commit('setActionMutation', {id: payload.actionId, errors: []})
                 }
             },
 
@@ -1209,6 +658,7 @@ export default new Vuex.Store(
                 const result = await dictionaryApi.deleteByUnique({unique: payload.unique})
                 if (result.ok) {
                     commit('deleteDictionariesByUniqueAndCascadeCardsMutation', payload)
+                    commit('setActionMutation', {id: payload.actionId, errors: []})
                 }
             },
 
@@ -1239,6 +689,8 @@ export default new Vuex.Store(
                         })
                 }
             },
+
+
         },
     }
 )

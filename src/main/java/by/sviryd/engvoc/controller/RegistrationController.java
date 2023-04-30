@@ -10,7 +10,6 @@ import by.sviryd.engvoc.util.LocaleException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -25,10 +24,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-
 @Controller
 @Slf4j
-@RequestMapping("registration")
+@RequestMapping("/registration")
 public class RegistrationController {
     private final UserService userService;
     private final RecaptchaService recaptchaService;
@@ -85,12 +83,13 @@ public class RegistrationController {
 
         List<LocaleException> localeExceptions = userService.register(user);
         localeExceptionAttributeWrapperService.wrapAsAttributes(localeExceptions, model, locale);
-        if (!localeExceptions.isEmpty()){
+        if (!localeExceptions.isEmpty()) {
             return "registration";
         }
 
         sendVerificationToken(user, locale);
-        return "redirect:/registration/activation" + "?email=" + user.getEmail();
+        model.addAttribute("status", "success");
+        return "registration";
     }
 
     private void sendVerificationToken(User user, Locale locale) {
@@ -112,11 +111,6 @@ public class RegistrationController {
         }
     }
 
-    @GetMapping("/activation")
-    public String activation() {
-        return "activation";
-    }
-
     @GetMapping("/activate/{token}")
     public String activate(Model model, @PathVariable VerificationToken token) {
         if (token != null) {
@@ -129,15 +123,5 @@ public class RegistrationController {
         }
         model.addAttribute("activationError", "Введен неверный код!");
         return "activation";
-    }
-
-    @GetMapping("/activationAgain")
-    public String activationAgain(@AuthenticationPrincipal User user, Locale locale) {
-        if (user != null) {
-            sendVerificationToken(user, locale);
-            return "activation";
-        } else {
-            return "login";
-        }
     }
 }

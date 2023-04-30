@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("json/pictureMedia")
+@RequestMapping("/json/pictureMedia")
 public class PictureMediaRestController {
     @Autowired
     private PictureMediaConfig pictureMediaConfig;
@@ -25,7 +25,7 @@ public class PictureMediaRestController {
         return frontend;
     }
 
-    @PostMapping("savePicture")
+    @PostMapping("/savePicture")
     public String savePicture(
             @RequestParam("file") MultipartFile file
     ) {

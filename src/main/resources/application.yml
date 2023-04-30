@@ -78,22 +78,6 @@ logging:
     root: ON
 
 
-
-#TODO
-product:
-  search:
-    sortFieldsNames:
-                - visitors
-    sortFieldsTypes:
-                - int
-    sortReverse:
-                - true
-    minGramSize: 3
-    onFields:
-                - name
-                - code
-                - category.name
-
 #https://developers.facebook.com/apps/542929309886002/fb-login/settings/
 #https://theonetechnologies.com/blog/post/how-to-get-facebook-application-id-and-secret-key
 facebook:
@@ -203,13 +187,6 @@ picture:
     compressionWidths:
       - 250
 
-scheduled:
-  CategoryHierarchyService:
-    build:
-      fixedDelayInMilliseconds: 60000
-      initialDelayInMilliseconds: 60000
-
-
 hibernate:
   search:
     init: false
@@ -220,106 +197,6 @@ hibernate:
     regexAnyChar: '**'
     minGramSize: 3
 
-property:
-  by-product-fields:
-    names:
-      - 'Цена'
-      - 'Скидка'
-      - 'В наличии'
-      - 'На складе'
-      - 'Страна производства'
-      - 'Страна поставщика'
-      - 'Сервисный центр'
-      - 'Производитель'
-      - 'Количество'
-      - 'Количество в индивидуальной упаковке'
-      - 'Количество в транспортной упаковке'
-      - 'Высота'
-      - 'Высота индивидуальной упаковки'
-      - 'Высота транспортной упаковки'
-      - 'Длина'
-      - 'Длина индивидуальной упаковки'
-      - 'Длина транспортной упаковки'
-      - 'Ширина'
-      - 'Ширина индивидуальной упаковки'
-      - 'Ширина транспортной упаковки'
-      - 'Вес'
-      - 'Вес индивидуальной упаковки'
-      - 'Вес транспортной упаковки'
-    paths:
-      - 'price'
-      - 'discount'
-      - 'quantity-in-stock'
-      - 'quantity-supplier'
-      - 'made-country'
-      - 'delivery-country'
-      - 'service-center'
-      - 'vendor-short'
-      - 'count'
-      - 'count-pack'
-      - 'count-carry'
-      - 'height'
-      - 'height-pack'
-      - 'height-carry'
-      - 'length'
-      - 'length-pack'
-      - 'length-carry'
-      - 'width'
-      - 'width-pack'
-      - 'width-carry'
-      - 'weight'
-      - 'weight-pack'
-      - 'weight-carry'
-
-    types:
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'INTEGER'
-      - 'INTEGER'
-      - 'STRING'
-      - 'STRING'
-      - 'STRING'
-      - 'STRING'
-      - 'INTEGER'
-      - 'INTEGER'
-      - 'INTEGER'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-      - 'DOUBLE'
-
-    units:
-      - 'CURRENCY'
-      - 'PERCENT'
-      - 'ITEM'
-      - 'ITEM'
-      - 'UNDEFINED'
-      - 'UNDEFINED'
-      - 'UNDEFINED'
-      - 'UNDEFINED'
-      - 'ITEM'
-      - 'ITEM'
-      - 'ITEM'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
-      - 'MILLIMETER'
 
 url:
   reservedWords:
@@ -329,27 +206,24 @@ url:
     - 'property'
     - 'is-need-property-choices'
 
-language:
-  abbrs:
+lang:
+  default: 'EN'
+  langAbbrs:
     - 'RU'
     - 'EN'
-  names:
-    - 'Русский'
-    - 'English'
 
 frontend:
   config:
     uploadResource: https://storage.cloud.google.com/attrade-bucket
     staticResource: ''
   version:
-    CategoryHierarchy: 1.0
     PictureMedia: 1.0
     LanguageList: 1.0
 
 
 info:
   url: 'http://localhost:8080'
-  logo: EngVoc
+  logo: LangVoc
 
 debug: false
 
@@ -388,13 +262,6 @@ abbyy:
         empty: ''
 
 dictionary:
-  supported:
-    - 'EnRu'
-  abbr:
-    - 'En'
-    - 'Ru'
-  ids:
-    - 1033
-    - 1049
-  sourceDb: 'db'
-  sourceUpload: 'upload'
+  langAbbrs:
+    - 'RU'
+    - 'EN'

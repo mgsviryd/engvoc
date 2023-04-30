@@ -1,6 +1,7 @@
 package by.sviryd.engvoc.controller.rest;
 
 import by.sviryd.engvoc.config.DictionaryConfig;
+import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.service.CardService;
@@ -8,7 +9,6 @@ import by.sviryd.engvoc.service.DictionaryService;
 import by.sviryd.engvoc.service.PictureMediaService;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.json.Json;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("json/dictionary")
+@RequestMapping("/json/dictionary")
 public class DictionaryRestController {
     @Autowired
     private DictionaryConfig dictionaryConfig;
@@ -38,11 +38,6 @@ public class DictionaryRestController {
     private PictureMediaService pictureMediaService;
     @Autowired
     private CardService cardService;
-
-    @GetMapping("supported")
-    public List<String> supported() {
-        return dictionaryConfig.getSupported();
-    }
 
     @DeleteMapping("{id}")
     public void delete(
@@ -71,13 +66,24 @@ public class DictionaryRestController {
         return dictionaryService.save(dictionaryDb);
     }
 
-    @GetMapping("findAll")
+    @GetMapping("/findAll")
     @JsonView(Views.Dictionary.class)
     public List<Dictionary> findAll() {
         return dictionaryService.findAll();
     }
 
-    @PostMapping("saveUnique")
+    @GetMapping("/findDictionariesAndCards")
+    @JsonView({Views.DictionaryCard.class})
+    public HashMap<Object, Object> findDictionariesAndCards() {
+        List<Dictionary> dictionaries = dictionaryService.findAll();
+        List<Card> cards = cardService.findAll();
+        HashMap<Object, Object> data = new HashMap<>();
+        data.put("dictionaries", dictionaries);
+        data.put("cards", cards);
+        return data;
+    }
+
+    @PostMapping("/saveUnique")
     public HashMap<Object, Object> saveUnique(
             @RequestBody Dictionary dictionary
     ) {
@@ -95,7 +101,7 @@ public class DictionaryRestController {
         return data;
     }
 
-    @PostMapping(value = "saveUniqueWithPicture", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/saveUniqueWithPicture", consumes = {"multipart/form-data"})
     public HashMap<Object, Object> addWithPicture(
             @RequestPart("file") MultipartFile file,
             @RequestPart("dictionary") String dictionaryJson
@@ -117,7 +123,7 @@ public class DictionaryRestController {
         return data;
     }
 
-    @DeleteMapping(value = "deleteByIdIn", consumes = {"application/json"})
+    @DeleteMapping(value = "/deleteByIdIn", consumes = {"application/json"})
     public void deleteInBatch(
             @RequestBody String json
     ) {
@@ -134,10 +140,11 @@ public class DictionaryRestController {
         cardService.deleteByDictionaryIn(dictionariesDb);
         dictionaryService.deleteByIdIn(dictionariesDb.stream().map(Dictionary::getId).collect(Collectors.toList()));
     }
-    @DeleteMapping(value = "deleteByUnique", consumes = {"application/json"})
+
+    @DeleteMapping(value = "/deleteByUnique", consumes = {"application/json"})
     public void deleteByUnique(
             @RequestBody String json
-            ){
+    ) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
         boolean unique = obj.get("unique").getAsBoolean();

@@ -3,7 +3,7 @@
     <VueFileAgent
         ref="vueFileAgent"
         :theme="'list'"
-        :multiple="true"
+        :multiple="props.multiple"
         :deletable="true"
         :meta="true"
         :accept="props.accept"
@@ -28,18 +28,18 @@ import {mapState} from "vuex";
 export default {
   created() {
     this.$root.$on('setDefaultDropZone', () => {
-      // console.info("setDefaultDropZone")
       this.setDefaultDropZone()
     })
   },
-  props: [],
+  props: [
+
+  ],
   components: {
 
   },
   watch: {
     fileRecordsForUpload(newVal, oldVal){
       if (newVal.length === 1){
-        // console.info(this.fileRecordsForUpload[0].file["name"])
         this.$root.$emit('getPictureFormData', {formData: this.getFormData()})
       }
     },
@@ -55,15 +55,15 @@ export default {
       return this.lang.map.exceedSize + " " + this.props.size + "."
     },
     choose() {
-      return this.lang.map.chooseFilesWithExtension + " " + this.props.accept + "."
+      return this.lang.map.chooseFileWithExtension + " " + this.props.accept + "."
     }
   },
   data() {
     return {
-      wait: false,
       props:{
         accept: 'image/*',
         size: '5MB',
+        multiple: false,
         maxFiles: 1,
       },
       fileRecords: [],
