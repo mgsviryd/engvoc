@@ -153,9 +153,9 @@ public class CardRestController {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
         JsonArray idsString = obj.get("ids").getAsJsonArray();
-        Type arrayOfLongType = new TypeToken<ArrayList<Long>>() {
+        Type arrayOfLongType = new TypeToken<ArrayList<UUID>>() {
         }.getType();
-        List<Long> indexes = gson.fromJson(idsString, arrayOfLongType);
+        List<UUID> indexes = gson.fromJson(idsString, arrayOfLongType);
         if (indexes.isEmpty()) return Collections.emptyList();
         return cardService.findAllById(indexes);
     }
@@ -184,9 +184,9 @@ public class CardRestController {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
         JsonArray idsString = obj.get("ids").getAsJsonArray();
-        Type arrayOfLongType = new TypeToken<ArrayList<Long>>() {
+        Type arrayOfLongType = new TypeToken<ArrayList<UUID>>() {
         }.getType();
-        List<Long> indexes = gson.fromJson(idsString, arrayOfLongType);
+        List<UUID> indexes = gson.fromJson(idsString, arrayOfLongType);
         if (indexes == null || indexes.isEmpty()) return;
         cardService.deleteByIdIn(indexes);
     }
@@ -197,7 +197,7 @@ public class CardRestController {
     ) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
-        Long id = obj.get("id").getAsLong();
+        UUID id = UUID.fromString(obj.get("id").getAsString());
         Optional<Dictionary> dictionaryOpt = dictionaryService.findById(id);
         if (dictionaryOpt.isPresent()) {
             cardService.deleteByDictionary(dictionaryOpt.get());
@@ -285,7 +285,7 @@ public class CardRestController {
         List<Card> alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(checkCards);
         List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
         List<Card> forUpdate = cardUniqueService.getNotRepeatedByWordAndTranslation(cards, repeated);
-        List<Long> forUpdateIds = forUpdate.stream().map(by.sviryd.engvoc.domain.Card::getId).collect(Collectors.toList());
+        List<UUID> forUpdateIds = forUpdate.stream().map(by.sviryd.engvoc.domain.Card::getId).collect(Collectors.toList());
         try {
             cardService.updateDictionaryAndUniqueByIdIn(forUpdateIds, dictionary, dictionary.isUnique());
             forUpdate.forEach(c -> {

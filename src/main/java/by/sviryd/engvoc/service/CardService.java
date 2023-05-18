@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -75,24 +76,27 @@ public class CardService {
         cardRepo.deleteByDictionaryIn(dictionaries);
     }
 
-    public void deleteByIdIn(List<Long> ids) {
+    public void deleteByIdIn(List<UUID> ids) {
         cardRepo.deleteByIdIn(ids);
     }
 
-    public List<Card> findAllById(List<Long> ids) {
+    public List<Card> findAllById(List<UUID> ids) {
         return cardRepo.findAllById(ids);
     }
-    public Optional<Card> findById(Long id) {
+
+    public Optional<Card> findById(UUID id) {
         return cardRepo.findById(id);
     }
+
     @Transactional(rollbackFor = {UpdateAllOrNothingException.class})
-    public int updateDictionaryAndUniqueById(Long id, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
+    public int updateDictionaryAndUniqueById(UUID id, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
         int count = cardRepo.updateDictionaryAndUniqueById(id, dictionary, unique);
         if (count != 1) throw new UpdateAllOrNothingException();
         return count;
     }
+
     @Transactional(rollbackFor = {UpdateAllOrNothingException.class})
-    public int updateDictionaryAndUniqueByIdIn(List<Long> ids, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
+    public int updateDictionaryAndUniqueByIdIn(List<UUID> ids, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
         int count = cardRepo.updateDictionaryAndUniqueByIdIn(ids, dictionary, unique);
         if (count != ids.size()) throw new UpdateAllOrNothingException();
         return count;

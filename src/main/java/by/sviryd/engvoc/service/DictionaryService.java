@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -42,25 +43,6 @@ public class DictionaryService {
         return dictionaryRepo.findByName(name);
     }
 
-    //TODO - SQL Error: 1062, SQLState: 23000 in multithread
-    public Dictionary saveShaneOfDictionary(List<Dictionary> dictionaries) {
-        Dictionary parent = null;
-        Long parentId = 0L;
-        for (Dictionary c : dictionaries) {
-            if (parent != null) {
-                parentId = parent.getId();
-            }
-            Optional<Dictionary> optional = findByNameAndParent(c.getName(), parentId);
-            if (optional.isPresent()) {
-                parent = optional.get();
-            } else {
-                c.setParent(parentId);
-                parent = save(c);
-            }
-        }
-        return parent;
-    }
-
     public Optional<Dictionary> findByNameAndUnique(String name, Boolean unique) {
         return dictionaryRepo.findByNameAndUnique(name, unique);
     }
@@ -87,7 +69,7 @@ public class DictionaryService {
         return dictionaryRepo.findDistinctByNameAndParent(dictionaries);
     }
 
-    public void deleteByIdIn(List<Long> ids) {
+    public void deleteByIdIn(List<UUID> ids) {
         dictionaryRepo.deleteByIdIn(ids);
     }
 
@@ -95,11 +77,11 @@ public class DictionaryService {
         dictionaryRepo.deleteByUnique(unique);
     }
 
-    public List<Dictionary> findAllById(List<Long> ids) {
+    public List<Dictionary> findAllById(List<UUID> ids) {
         return dictionaryRepo.findAllById(ids);
     }
 
-    public Optional<Dictionary> findById(Long id) {
+    public Optional<Dictionary> findById(UUID id) {
         return dictionaryRepo.findById(id);
     }
 }

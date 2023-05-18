@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ExcelCardFullReaderService {
@@ -108,7 +109,7 @@ public class ExcelCardFullReaderService {
                 .translation(getCellOrException(row, columnConfig.getTranslation()).trim())
                 .example(getCellOrEmptyValue(row, columnConfig.getExample()).trim())
                 .exampleTranslation(getCellOrEmptyValue(row, columnConfig.getExampleTranslation()).trim())
-                .dictionary(new Dictionary(Long.parseLong(getCellOrEmptyValue(row, columnConfig.getDictionary()))))
+                .dictionary(new Dictionary(UUID.fromString(getCellOrEmptyValue(row, columnConfig.getDictionary()))))
                 .transcription(getCellOrEmptyValue(row, columnConfig.getTranscription()).trim())
                 .learned(StringConverterUtil.getBoolean(getCellOrEmptyValue(row, columnConfig.getLearned())))
                 .sound(getCellOrEmptyValue(row, columnConfig.getSound()).trim())

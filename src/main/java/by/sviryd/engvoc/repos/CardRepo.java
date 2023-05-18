@@ -10,8 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface CardRepo extends JpaRepository<Card, Long>, CardCustomRepo {
+public interface CardRepo extends JpaRepository<Card, UUID>, CardCustomRepo {
 
     @Query("select d from Card d where d.dictionary = :dictionary")
     Page<Card> getCardsByDictionary(@Param("dictionary") Dictionary dictionary, Pageable pageable);
@@ -21,15 +22,15 @@ public interface CardRepo extends JpaRepository<Card, Long>, CardCustomRepo {
 
     @Modifying
     @Query("update Card c set c.unique = :unique, c.dictionary = :dictionary where c.id = :id")
-    int updateDictionaryAndUniqueById(Long id, Dictionary dictionary, boolean unique);
+    int updateDictionaryAndUniqueById(UUID id, Dictionary dictionary, boolean unique);
 
     @Modifying
     @Query("update Card c set c.unique = :unique, c.dictionary= :dictionary where c.id in :ids")
-    int updateDictionaryAndUniqueByIdIn(List<Long> ids, Dictionary dictionary, boolean unique);
+    int updateDictionaryAndUniqueByIdIn(List<UUID> ids, Dictionary dictionary, boolean unique);
 
     void deleteByDictionary(Dictionary dictionary);
 
     void deleteByDictionaryIn(List<Dictionary> dictionaries);
 
-    void deleteByIdIn(List<Long> ids);
+    void deleteByIdIn(List<UUID> ids);
 }

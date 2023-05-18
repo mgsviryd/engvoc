@@ -11,6 +11,8 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.validator.constraints.Length;
 
@@ -21,6 +23,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @ToString(of = {"id", "name", "unique", "creationLDT"})
 @EqualsAndHashCode(of = {"name", "unique", "creationLDT"})
@@ -34,10 +37,13 @@ import java.util.List;
 public class Dictionary implements Serializable {
     public static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
+    @Type(type = "uuid-char")
     @DocumentId
     @JsonView(Views.Id.class)
-    private Long id;
+    private UUID id;
 
     @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Unique.class)
@@ -91,7 +97,7 @@ public class Dictionary implements Serializable {
     @OneToMany(mappedBy = "dictionary", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Card> cards = new ArrayList<>();
 
-    public Dictionary(Long id) {
+    public Dictionary(UUID id) {
         this.id = id;
     }
 

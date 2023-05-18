@@ -21,17 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/json/dictionary")
 public class DictionaryRestController {
-    @Autowired
-    private DictionaryConfig dictionaryConfig;
     @Autowired
     private DictionaryService dictionaryService;
     @Autowired
@@ -131,9 +126,9 @@ public class DictionaryRestController {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
         JsonArray idsString = obj.get("ids").getAsJsonArray();
-        Type arrayOfLongType = new TypeToken<ArrayList<Long>>() {
+        Type arrayOfLongType = new TypeToken<ArrayList<UUID>>() {
         }.getType();
-        List<Long> indexes = gson.fromJson(idsString, arrayOfLongType);
+        List<UUID> indexes = gson.fromJson(idsString, arrayOfLongType);
         if (indexes == null || indexes.isEmpty()) return;
         List<Dictionary> dictionariesDb = dictionaryService.findAllById(indexes);
         if (dictionariesDb.isEmpty()) return;

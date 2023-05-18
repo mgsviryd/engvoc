@@ -15,6 +15,8 @@ import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory;
 import org.apache.lucene.analysis.ngram.NGramFilterFactory;
 import org.apache.lucene.analysis.standard.StandardFilterFactory;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Parameter;
 import org.hibernate.search.annotations.*;
@@ -24,6 +26,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @ToString(of = {"id", "word", "translation", "unique", "creationLDT"})
 @EqualsAndHashCode(of = {"word", "translation", "unique", "creationLDT"})
@@ -60,10 +63,13 @@ public class Card implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
+    @Type(type = "uuid-char")
     @DocumentId
     @JsonView(Views.Id.class)
-    private Long id;
+    private UUID id;
 
     @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Unique.class)

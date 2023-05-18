@@ -2,6 +2,7 @@
   <b-modal :id="id"
            @shown="focusWord()"
            :header-class="'p-3'"
+           no-fade
   >
     <template #modal-header="{ close }">
       <h5>{{ getCapitalizeLang("addCard") }}</h5>
