@@ -12,6 +12,9 @@ export default {
   components: {
     CardNav,
   },
+  created(){
+    this.$store.dispatch('findDictionariesAndCards')
+  },
 }
 </script>
 

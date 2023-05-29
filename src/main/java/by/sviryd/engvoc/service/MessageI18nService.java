@@ -1,6 +1,5 @@
 package by.sviryd.engvoc.service;
 
-import by.sviryd.engvoc.config.MessageSourceConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceResolvable;
@@ -14,35 +13,24 @@ import java.util.Set;
 import java.util.TreeMap;
 
 @Service
-public class MessageSourceOnlyLanguageService implements MessageSource {
+public class MessageI18nService implements MessageSource {
     @Autowired
     private MessageSource messageSource;
     @Autowired
     private MessageSourceResourceBundleService messageSourceResourceBundleService;
-    @Autowired
-    private MessageSourceConfig messageSourceConfig;
 
     @Override
     public String getMessage(String code, @Nullable Object[] args, @Nullable String defaultMessage, Locale locale) {
-        if (messageSourceConfig.isOnlyLanguage()) {
-            locale = new Locale(locale.getLanguage());
-        }
         return messageSource.getMessage(code, args, defaultMessage, locale);
     }
 
     @Override
     public String getMessage(String code, @Nullable Object[] args, Locale locale) throws NoSuchMessageException {
-        if (messageSourceConfig.isOnlyLanguage()) {
-            locale = new Locale(locale.getLanguage());
-        }
         return messageSource.getMessage(code, args, locale);
     }
 
     @Override
     public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
-        if (messageSourceConfig.isOnlyLanguage()) {
-            locale = new Locale(locale.getLanguage());
-        }
         return messageSource.getMessage(resolvable, locale);
     }
 

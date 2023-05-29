@@ -1,8 +1,8 @@
 package by.sviryd.engvoc.controller.rest;
 
-import by.sviryd.engvoc.config.LangConfig;
-import by.sviryd.engvoc.service.MessageSourceOnlyLanguageService;
-import by.sviryd.engvoc.type.Lang;
+import by.sviryd.engvoc.config.LocaleConfig;
+import by.sviryd.engvoc.service.MessageI18nService;
+import by.sviryd.engvoc.type.LangLocale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,26 +15,28 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/json/lang")
-public class LangRestController {
+public class LocaleRestController {
     @Autowired
-    private LangConfig languageConfig;
+    private LocaleConfig languageConfig;
     @Autowired
-    private MessageSourceOnlyLanguageService messageSourceOnlyLanguageService;
+    private MessageI18nService messageI18nService;
 
     @GetMapping("/list")
-    public List<Lang> getLangs() {
-        return languageConfig.getLangs();
+    public List<LangLocale> getLangs() {
+        return languageConfig.getLangLocales();
     }
 
     @GetMapping("/map")
     public Map<String, String> getMap(
             @RequestParam String lang
     ) {
-        return messageSourceOnlyLanguageService.getMessages(new Locale(lang));
+        return messageI18nService.getMessages(LangLocale.getLangLocale(lang).getLocale());
     }
 
     @GetMapping("/change")
-    public void changeLang(
-            @RequestParam String lang) {
+    public Locale changeLang(
+            @RequestParam String lang,
+            Locale locale) {
+        return locale;
     }
 }

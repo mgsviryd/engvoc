@@ -19,6 +19,7 @@ public class AuthProvider implements AuthenticationProvider {
     @Autowired
     private UserService userService;
 
+    @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
@@ -37,6 +38,7 @@ public class AuthProvider implements AuthenticationProvider {
         } else throw new BadCredentialsException("Username not found!");
     }
 
+    @Override
     public boolean supports(Class<?> arg) {
         return true;
     }

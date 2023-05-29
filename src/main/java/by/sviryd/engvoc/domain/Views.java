@@ -2,6 +2,7 @@ package by.sviryd.engvoc.domain;
 
 public final class Views {
 
+    public interface Active{}
     public interface CountCard{}
 
     public interface Id {

@@ -1,6 +1,6 @@
 package by.sviryd.engvoc.config;
 
-import by.sviryd.engvoc.type.Lang;
+import by.sviryd.engvoc.type.LangLocale;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,15 +15,15 @@ import java.util.stream.Collectors;
 @Configuration
 @ConfigurationProperties(prefix = "dictionary")
 public class DictionaryConfig {
-    private List<String> langAbbrs;
-    private List<Lang> langs;
+    private List<String> localeAbbrs;
+    private List<LangLocale> langLocales;
 
-    public boolean isPresent(Lang lang){
-        return langs.contains(lang);
+    public boolean isPresent(LangLocale langLocale){
+        return langLocales.contains(langLocale);
     }
 
     @PostConstruct
     public void init(){
-        langs = langAbbrs.stream().map(Lang::getLang).collect(Collectors.toList());
+        langLocales = localeAbbrs.stream().map(LangLocale::getLangLocale).collect(Collectors.toList());
     }
 }

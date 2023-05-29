@@ -4,43 +4,46 @@
   </div>
 </template>
 <script>
+
 import {mapState} from 'vuex'
-import vlf from "../util/vlf"
 
 export default {
   components: {
 
   },
   async created() {
-    let frontend = await this.$store.dispatch('getFrontendAction', this.lang.lang.name)
-    let version = frontend.version
-    let keys = Object.keys(version)
-    for (let k in keys) {
-      if (this.objectPresent(this.frontend) && this.objectPresent(this.frontend.version)) {
-        if (this.needLoad(keys[k], version)) {
-          let action = 'get' + keys[k] + 'Action'
-          this.$store.dispatch(action)
-        }
-      } else {
-        this.$store.dispatch('get' + keys[k] + 'Action')
-      }
-    }
+    let frontend = await this.$store.dispatch('getFrontendAction', this.lang.lang.locale)
+    this.refreshVersions(frontend)
     this.$store.dispatch('setFrontendAction', frontend)
     this.$store.dispatch('getAuthenticationAction', this.$store.getters.getUsersTokens)
-    this.$store.dispatch('findDictionariesAndCards')
     this.$cookies.config('365d')
     this.sync()
   },
   computed: {
     ...mapState([
       'lang',
+        'frontend',
     ]),
   },
   methods: {
+    refreshVersions(frontend){
+      let version = frontend.version
+      let keys = Object.keys(version)
+      for (let k in keys) {
+        if (this.frontend && this.frontend.version) {
+          if (this.needLoad(keys[k], version)) {
+            let action = 'get' + keys[k] + 'Action'
+            this.$store.dispatch(action)
+          }
+        } else {
+          this.$store.dispatch('get' + keys[k] + 'Action')
+        }
+      }
+    },
     async sync() {
       let result = false
       await this.sleep(1)
-      this.syncAll()
+      await this.syncAll()
       while (true) {
         await this.sleep(1000)
         await this.syncAll()
@@ -59,11 +62,8 @@ export default {
     },
 
     needLoad(key, version) {
-      return !this.objectPresent(this.frontend.version[key])
+      return !this.frontend.version[key]
           || this.frontend.version[key] !== version[key]
-    },
-    objectPresent(object) {
-      return typeof object !== "undefined" && object !== null
     },
   },
 }

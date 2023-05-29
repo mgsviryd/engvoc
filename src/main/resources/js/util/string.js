@@ -17,5 +17,10 @@ export default {
     },
     isEqual(str1, str2){
         return str1.normalize() === str2.normalize()
-    }
+    },
+    breakNewLinesAndGetAsHtml(str){
+        const lines = str.split('\n')
+        lines.forEach((l,i)=> lines[i]=lines[i].concat("<br>"))
+        return lines.join('')
+    },
 }

@@ -59,22 +59,6 @@ public class UserController {
         return "redirect:/user";
     }
 
-    private void sendVerificationToken(User user) {
-        VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setUser(user);
-        verificationTokenService.save(verificationToken);
-        if (!StringUtils.isEmpty(user.getEmail())) {
-            String message = String.format(
-                    "Приветствуем Вас, %s! \n" +
-                            "Вы обновили email на " + url + "\n" +
-                            "Код активации:\t %s",
-                    user.getUsername(),
-                    verificationToken.getToken()
-            );
-            mailSenderService.send(user.getEmail(), "Обновление аккаунта", message);
-        }
-    }
-
 
     @GetMapping("/subscribe/{user}")
     public String subscribe(

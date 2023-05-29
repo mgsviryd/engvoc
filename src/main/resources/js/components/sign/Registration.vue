@@ -63,7 +63,7 @@
 
             <div>
                 <div class="col-sm-6">
-                    <div class="g-recaptcha" data-sitekey="6LdkuusUAAAAAE5xeWs2E1g5GFi_XAHPnrtoC2Uh"></div>
+<!--                    <div class="g-recaptcha" data-sitekey="6Lf-SzQmAAAAAIaMwoFGYAJFmZVG0n7TH8zK_Cq4"></div>-->
                     <div v-if="frontendData.captchaError" class="alert alert-danger" role="alert">
                         {{frontendData.captchaError}}
                     </div>
@@ -85,16 +85,16 @@
         },
         methods:{
             hasEmailErrors(){
-                return !!(this.frontendData.emailError
+                return !(this.frontendData.emailError
                 || this.frontendData.UserAlreadyExistsException
                 || this.UserEmailValidationException)
             },
             hasPasswordErrors(){
-                return !!(this.frontendData.passwordError
+                return !(this.frontendData.passwordError
                 || this.frontendData.UserPasswordValidationException)
             },
             hasConfirmPasswordErrors(){
-                return !!(this.frontendData.passwordError)
+                return !(this.frontendData.passwordError)
             }
         }
     }

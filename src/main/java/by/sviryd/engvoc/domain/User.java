@@ -2,6 +2,7 @@ package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
 import by.sviryd.engvoc.type.Role;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
@@ -35,6 +36,8 @@ public class User implements UserDetails, Serializable {
 
     private String password;
 
+    @Column(nullable = false, columnDefinition = "BIT", length = 1)
+    @JsonView(Views.Active.class)
     private boolean active;
 
     // oAoth2 (google)
@@ -45,16 +48,8 @@ public class User implements UserDetails, Serializable {
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     private LocalDateTime lastModifiedLDT;
 
-    @Column(length = 100, unique = true)
-    @Length(max = 100, message = "{by.attrade.attradeweb.domain.User.email.length.error}")
-//    @Email(regexp = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&" +
-//            "'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b" +
-//            "\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:" +
-//            "[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4]" +
-//            "[0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*" +
-//            "[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-" +
-//            "\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])",
-//            message = "{by.attrade.attradeweb.domain.User.email.error}")
+    @Column(length = 320, unique = true)
+    @Length(max = 320)
     private String email;
 
     @Column(length = 255, unique = true)

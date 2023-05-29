@@ -1,21 +1,22 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import frontendApi from "api/frontend";
+import frontendApi from "../api/frontend";
 import pictureMediaApi from "../api/pictureMedia";
-import languageApi from "api/language";
-import authenticationApi from "api/authentication";
+import languageApi from "../api/language";
+import authenticationApi from "../api/authentication";
 import cardApi from "../api/card";
 import dictionaryApi from "../api/dictionary";
 import VuexPersistence from "vuex-persist";
-import storeMethods from "store/storeMethods";
 import vlf from "../util/vlf";
 import date from "../util/date";
 import compare from "../util/compare";
 
+
+
 Vue.use(Vuex)
 
-var AsyncLock = require('async-lock');
-var lock = new AsyncLock();
+let AsyncLock = require('async-lock');
+let lock = new AsyncLock();
 
 const persist = new VuexPersistence(
     {
@@ -60,12 +61,16 @@ export default new Vuex.Store(
 
             lang: {
                 id: 0,
-                lang: {name: "en"},
+                lang: {lang: "en", country: "US", locale: "en_US"},
                 langs: [],
                 map: {}
             },
         },
         getters: {
+            isRegistrationPassword: state => str => {
+                return state.special.regex.registrationPassword.test(str)
+            },
+
             getActionId: state => () => state.action.id,
             getCardsByDictionaryInx: state => i => {
                 if (state.dictionaries.length <= i) return []
@@ -422,11 +427,11 @@ export default new Vuex.Store(
             },
 
             async changeLangAction({commit}, lang) {
-                const result = await languageApi.changeLang(lang.name)
+                const result = await languageApi.changeLang(lang.locale)
             },
 
             async getLanguageMapAction({commit}, lang) {
-                const result = await languageApi.getMap(lang.name)
+                const result = await languageApi.getMap(lang.locale)
                 const data = await result.data
                 if (result.ok) {
                     commit('getLanguageMapMutation', {lang: lang, data: data})
@@ -637,7 +642,7 @@ export default new Vuex.Store(
                     payload.formData.append('card', new Blob([JSON.stringify(payload.card)], {type: "application/json"}),)
                     result = await cardApi.saveWithPicture(payload.formData)
                 } else {
-                    result = await cardApi.saveWithoutPicture( payload.card)
+                    result = await cardApi.saveWithoutPicture(payload.card)
                 }
                 const data = await result.data
                 if (result.ok) {
@@ -668,7 +673,7 @@ export default new Vuex.Store(
                 commit('setDragdropStartMutation', payload)
             },
             dragdropEndAndExecuteAction({commit, state, dispatch}, payload) {
-                console.info("dragend: " + date.getUTCMilliseconds(new Date()))
+                // console.info("dragend: " + date.getUTCMilliseconds(new Date()))
                 commit('setDragdropEndMutation', payload)
                 if (!state.dragdrop.start
                     || !state.dragdrop.end
@@ -690,7 +695,25 @@ export default new Vuex.Store(
                 }
             },
 
-
+            async registerUserAction({commit}, payload) {
+                let result = await authenticationApi.register(payload)
+                const data = await result.data
+                if (result.ok) {
+                    return data.errors
+                }
+            },
+            async enterUserAction({commit}, payload) {
+                let result = await authenticationApi.signin(payload)
+                const data = await result.data
+                console.info(data)
+                if (result.ok) {
+                    console.info("errors: " + data.errors)
+                    if(data.user){
+                        console.info("user: "+ data.user)
+                    }
+                    return data.errors
+                }
+            },
         },
     }
 )

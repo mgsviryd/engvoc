@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
-import by.sviryd.engvoc.type.Lang;
+import by.sviryd.engvoc.type.LangLocale;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -51,11 +51,11 @@ public class Dictionary implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @JsonView(Views.Lang.class)
-    private Lang sourceLang;
+    private LangLocale sourceLangLocale;
 
     @Enumerated(EnumType.STRING)
     @JsonView(Views.Lang.class)
-    private Lang destinLang;
+    private LangLocale destinLangLocale;
 
     @Column(length = 100)
     @Length(max = 100)

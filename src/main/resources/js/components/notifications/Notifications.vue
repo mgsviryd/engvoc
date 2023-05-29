@@ -32,7 +32,7 @@
                             <div class="col-8" >
                                 <div class="row" @click.stop.prevent="goToModal(index)">
                                     <div class="col-1">
-                                        <h6><b>{{lang.map[notification.mark]}}</b></h6>
+                                        <h6><b>{{langLocale.map[notification.mark]}}</b></h6>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -42,7 +42,7 @@
                                 </div>
                                 <div v-if="notification.description" class="row">
                                     <div class="col text-justify">
-                                        <small>{{lang.map[notification.description]}}</small>
+                                        <small>{{langLocale.map[notification.description]}}</small>
                                     </div>
                                 </div>
                                 <div v-if="notification.path" class="row">
@@ -64,7 +64,7 @@
                     <div class="dropdown-divider"></div>
                 </div>
                 <div v-else="isFull">
-                    {{lang.map.noNotifications}}
+                    {{langLocale.map.noNotifications}}
                 </div>
             </div>
         </form>
@@ -104,8 +104,9 @@
             goTo(path){
                 this.$router.push({
                     path: path
-                }).then(() => {
-                }).catch(err => {
+                })
+                    .then(() => {})
+                    .catch(err => {
                 })
             },
             hideDropdown(){

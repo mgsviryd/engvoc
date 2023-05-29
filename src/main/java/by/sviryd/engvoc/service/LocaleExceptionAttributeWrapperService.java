@@ -14,14 +14,9 @@ import java.util.Locale;
 public class LocaleExceptionAttributeWrapperService {
     @Autowired
     private MessageSource messageSource;
-    @Autowired
-    private MessageSourceConfig config;
 
     public void wrapAsAttributes(List<LocaleException> errors, Model model, Locale locale) {
         for (LocaleException e : errors) {
-            if (config.isOnlyLanguage()){
-                locale = new Locale(locale.getLanguage());
-            }
             String message = messageSource.getMessage(e.getCode(), e.getArgs(), locale);
             model.addAttribute(e.getAttrName(), message);
         }

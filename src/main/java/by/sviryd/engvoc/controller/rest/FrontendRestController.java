@@ -1,8 +1,8 @@
 package by.sviryd.engvoc.controller.rest;
 
 import by.sviryd.engvoc.config.FrontendConfig;
-import by.sviryd.engvoc.config.LangConfig;
-import by.sviryd.engvoc.service.MessageSourceOnlyLanguageService;
+import by.sviryd.engvoc.config.LocaleConfig;
+import by.sviryd.engvoc.service.MessageI18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,20 +16,20 @@ public class FrontendRestController {
     @Autowired
     private FrontendConfig frontendConfig;
     @Autowired
-    private LangConfig langConfig;
+    private LocaleConfig langConfig;
     @Autowired
-    private MessageSourceOnlyLanguageService messageSourceOnlyLanguageService;
+    private MessageI18nService messageI18nService;
 
     @GetMapping()
     public Map<Object, Object> getFrontend(
             @RequestParam String lang
     ) {
-        Locale locale = lang == null ? new Locale(langConfig.getDefaultLang().getName()) : new Locale(lang);
+        Locale locale = lang == null ? langConfig.getDefaultLangLocale().getLocale() : new Locale(lang);
         HashMap<Object, Object> frontend = new HashMap<>();
         frontend.put("config", frontendConfig.getConfig());
         frontend.put("version", frontendConfig.getVersion());
-        frontend.put("langLangs", langConfig.getLangs());
-        frontend.put("langMap", messageSourceOnlyLanguageService.getMessages(locale));
+        frontend.put("langLangs", langConfig.getLangLocales());
+        frontend.put("langMap", messageI18nService.getMessages(locale));
         return frontend;
     }
 }

@@ -2,11 +2,7 @@ package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.UserRepo;
-import by.sviryd.engvoc.service.exception.UserAlreadyExistsException;
-import by.sviryd.engvoc.service.validation.UserEmailValidationService;
-import by.sviryd.engvoc.service.validation.UserPasswordValidationService;
 import by.sviryd.engvoc.type.Role;
-import by.sviryd.engvoc.util.LocaleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,7 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,12 +21,6 @@ public class UserService implements UserDetailsService {
     private final UserRepo userRepo;
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    private UserPasswordValidationService userPasswordValidationService;
-    @Autowired
-    private UserEmailValidationService userEmailValidationService;
-    @Autowired
-    private LocaleExceptionWrapperService localeExceptionWrapperService;
 
     @Autowired
     public UserService(UserRepo userRepo) {
@@ -43,7 +36,7 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
-    public boolean isMatchedPassword(String password, String password2){
+    public boolean isMatchedPassword(String password, String password2) {
         return passwordEncoder.matches(password, password2);
     }
 
@@ -61,23 +54,6 @@ public class UserService implements UserDetailsService {
 
     public User findBySub(String sub) {
         return userRepo.findBySub(sub);
-    }
-
-    public List<LocaleException> register(User user) {
-        List<LocaleException> exs = new ArrayList<>();
-        String email = user.getEmail();
-        User userFromDB = userRepo.findByEmail(email);
-        if (userFromDB != null) {
-            exs.add(new LocaleException(new UserAlreadyExistsException("Аккаунт " + email + " уже существует!"), email));
-        }
-        localeExceptionWrapperService.runAndWrap(() -> userEmailValidationService.validate(email), exs);
-        localeExceptionWrapperService.runAndWrap(() -> userPasswordValidationService.validate(user.getPassword()), exs);
-        if (exs.isEmpty()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setRoles(Collections.singleton(Role.USER));
-            userRepo.save(user);
-        }
-        return exs;
     }
 
     public List<User> findAll() {
@@ -120,5 +96,9 @@ public class UserService implements UserDetailsService {
 
     public Iterable<User> getUsersByTokens(List<String> tokens) {
         return userRepo.findAllByToken(tokens);
+    }
+
+    public User findByEmail(String email) {
+        return userRepo.findByEmail(email);
     }
 }

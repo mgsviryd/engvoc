@@ -34,7 +34,5 @@ public class FrontendConfig {
     public void init(){
         config.put("uploadPicture", serverPathConfig.getUploadPicture());
         config.put("staticPicture", serverPathConfig.getStaticPicture());
-        config.put("url",infoConfig.getUrl());
-        config.put("logo",infoConfig.getLogo());
     }
 }

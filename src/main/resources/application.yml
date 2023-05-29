@@ -13,6 +13,11 @@ spring:
 
   thymeleaf:
     cache: false
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 #mail
   mail:
       host: smtp.gmail.com
@@ -155,7 +160,6 @@ oauth2:
           - login
 
 messages-source:
-  onlyLanguage: true
   basename: 'lang/messages'
   encoding: 'UTF-8'
 
@@ -207,10 +211,10 @@ url:
     - 'is-need-property-choices'
 
 lang:
-  default: 'EN'
-  langAbbrs:
-    - 'RU'
-    - 'EN'
+  defaultAbbr: 'en_US'
+  localeAbbrs:
+    - 'ru_RU'
+    - 'en_US'
 
 frontend:
   config:
@@ -223,7 +227,7 @@ frontend:
 
 info:
   url: 'http://localhost:8080'
-  logo: LangVoc
+  logo: LANGVOC
 
 debug: false
 
@@ -262,6 +266,6 @@ abbyy:
         empty: ''
 
 dictionary:
-  langAbbrs:
-    - 'RU'
-    - 'EN'
+  localeAbbrs:
+    - 'ru_RU'
+    - 'en_US'

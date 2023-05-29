@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
-import by.sviryd.engvoc.type.Lang;
+import by.sviryd.engvoc.type.LangLocale;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -77,11 +77,11 @@ public class Card implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @JsonView(Views.Lang.class)
-    private Lang sourceLang;
+    private LangLocale sourceLangLocale;
 
     @Enumerated(EnumType.STRING)
     @JsonView(Views.Lang.class)
-    private Lang destinLang;
+    private LangLocale destinLangLocale;
 
 
     @Column(length = 100)
@@ -137,21 +137,18 @@ public class Card implements Serializable {
     @JsonView(Views.CreationLDT.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-ddThh:mm:ss")
     private LocalDateTime creationLDT;
 
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.LearnedLDT.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-ddThh:mm:ss")
     private LocalDateTime learnedLDT;
 
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.ForgotLDT.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-ddThh:mm:ss")
     private LocalDateTime forgotLDT;
 
     @JsonView(Views.CountForgot.class)

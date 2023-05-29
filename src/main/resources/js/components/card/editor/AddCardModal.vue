@@ -49,7 +49,7 @@
                     class="shadow-none"
                     @click.prevent.stop="cancel('textarea-word', 'word')"
           >
-            <i class="fa fa-times"></i>
+            <i class="fa fa-close"></i>
           </b-button>
           <b-button variant="outline-primary"
                     :id="'copy'+'textarea-word'"
@@ -102,7 +102,7 @@
                     class="shadow-none"
                     @click.prevent.stop="cancel('textarea-translation', 'translation')"
           >
-            <i class="fa fa-times"></i>
+            <i class="fa fa-close"></i>
           </b-button>
           <b-button variant="outline-primary"
                     :id="'copy'+'textarea-translation'"
@@ -156,7 +156,7 @@
                     class="shadow-none"
                     @click.prevent.stop="cancel('textarea-example', 'example')"
           >
-            <i class="fa fa-times"></i>
+            <i class="fa fa-close"></i>
           </b-button>
           <b-button variant="outline-primary"
                     :id="'copy'+'textarea-example'"
@@ -210,7 +210,7 @@
                     class="shadow-none"
                     @click.prevent.stop="cancel('textarea-exampleTranslation', 'exampleTranslation')"
           >
-            <i class="fa fa-times"></i>
+            <i class="fa fa-close"></i>
           </b-button>
           <b-button variant="outline-primary"
                     :id="'copy'+'textarea-exampleTranslation'"
@@ -379,7 +379,6 @@ export default {
       setTimeout(() => {
         this.properties[property].showCopyTooltip = false
       }, this.properties[property].timeoutCopyTooltip);
-
     },
     focusWord() {
       this.$refs['textarea-word'].focus();

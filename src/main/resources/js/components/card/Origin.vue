@@ -103,12 +103,12 @@ export default {
     return {
       propsDropZoneExcel: {
         accept: '.xlsx',
-        size: '20MB',
+        size: '10MB',
         storeAction: 'uploadCardsByExcelFileAction'
       },
       propsDropZoneXml: {
         accept: '.xml',
-        size: '20MB',
+        size: '10MB',
         storeAction: 'uploadCardsByXmlFileAction'
       },
       showComponent: true,

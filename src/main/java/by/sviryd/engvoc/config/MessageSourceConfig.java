@@ -15,9 +15,9 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 @Configuration
 @ConfigurationProperties(prefix = "messages-source")
 public class MessageSourceConfig {
-    private boolean onlyLanguage;
     private String basename;
     private String encoding;
+
     @Bean
     public MessageSource messageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();

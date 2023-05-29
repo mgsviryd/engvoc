@@ -10,8 +10,7 @@ import org.springframework.context.annotation.PropertySource;
 @Setter
 @Configuration
 @PropertySource("classpath:validation.properties")
-@ConfigurationProperties(prefix = "registration.email")
-public class UserEmailConfig {
+@ConfigurationProperties(prefix = "user.password")
+public class UserPasswordValidationConfig {
     private String regex;
-    private String message;
 }

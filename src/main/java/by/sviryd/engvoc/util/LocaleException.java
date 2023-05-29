@@ -1,27 +1,32 @@
 package by.sviryd.engvoc.util;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Getter
-@Setter
+@AllArgsConstructor
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LocaleException {
+    @JsonIgnore
     private Exception exception;
+    @JsonIgnore
+    private Object[] args;
     private String code;
     private String attrName;
-    private Object[] args;
 
     public LocaleException(Exception exception, Object... args) {
         this.exception = exception;
+        this.args = args;
         this.code = exception.getClass().getName();
         this.attrName = exception.getClass().getSimpleName();
-        this.args = args;
     }
 
-    public LocaleException(Exception exception, String code, String attrName, Object... args) {
+    public LocaleException(Exception exception, String message, String attrName, Object... args) {
         this.exception = exception;
-        this.code = code;
-        this.attrName = attrName;
         this.args = args;
+        this.code = exception.getClass().getName();
+        this.attrName = attrName;
     }
 }

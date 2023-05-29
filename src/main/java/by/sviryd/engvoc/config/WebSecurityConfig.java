@@ -56,25 +56,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(
                         "/",
-                        "/card**",
+                        "/sign**",
                         "/login**",
                         "/logout",
+                        "/card**",
                         "/search**",
-                        "/registration",
                         "/static/**",
                         "/activate/*",
                         "/pre-login",
-                        "/json**"
+                        "/json**",
+                        "/notFound**"
                 )
                 .permitAll()
                 .anyRequest().permitAll()
 
                 .and()
                 .formLogin()
-                .loginPage("/login")
+                .loginPage("/sign/in")
                 .usernameParameter("username")
                 .passwordParameter("password")
-                .failureForwardUrl("/login-failed")
+                .failureForwardUrl("/sign/failure")
+                .successForwardUrl("/sign/success")
                 .permitAll()
 
                 .and()
@@ -85,17 +87,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("/")
                 .permitAll()
 
-
-                .and()
-                .formLogin()
-                .defaultSuccessUrl("/")
-
                 .and()
                 .csrf()
+                .ignoringAntMatchers("/sign/**")
                 .ignoringAntMatchers("/login/**")
                 .ignoringAntMatchers("/logout/**")
-                .ignoringAntMatchers("/json/**")
                 .ignoringAntMatchers("/card/**")
+                .ignoringAntMatchers("/json/**")
         ;
         http
                 .addFilterBefore(ssoFilter(), UsernamePasswordAuthenticationFilter.class)

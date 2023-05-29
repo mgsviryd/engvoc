@@ -1,14 +1,14 @@
 <template>
-  <div v-if="showComponent">
+  <div v-if="show">
     <button type="button" class="btn btn-light dropdown rounded-0 border border-1 border-white"
             data-toggle="dropdown"
             aria-haspopup="true"
             aria-expanded="false"
             data-placement="bottom"
-            :title="[[lang.map.changeLang]]"
+            :title="getLang('changeLang')"
             id="langDropdown">
       <small>
-        <b>{{ getUpperCase(currentLang.name) }}</b>
+        <b>{{ getUpperCase(currentLang.lang) }}</b>
       </small>
     </button>
     <div class="dropdown-menu" aria-labelledby="langDropdown">
@@ -17,20 +17,20 @@
            class="dropdown-item disable nohover"
            data-toggle="tooltip"
            data-placement="bottom"
-           :title="getCapitalizeLang(l.name)"
+           :title="getCapitalizeLang(l.lang)"
         >
           <small>
-            <b>{{ getUpperCase(l.name) }}</b>
+            <b>{{ getUpperCase(l.lang) }}</b>
           </small>
           &ensp;<i class="fas fa-check text-success"></i>
         </a>
         <a v-else class="dropdown-item" @click="chooseLang(l)"
            data-toggle="tooltip"
            data-placement="bottom"
-           :title="getCapitalizeLang(l.name)"
+           :title="getCapitalizeLang(l.lang)"
         >
           <small>
-            <b>{{ getUpperCase(l.name) }}</b>
+            <b>{{ getUpperCase(l.lang) }}</b>
           </small>
         </a>
       </div>
@@ -45,7 +45,7 @@ import * as _ from "lodash";
 export default {
   data() {
     return {
-      showComponent: false,
+      show: true,
       currentLangs: [],
       currentLang: {},
     }
@@ -64,13 +64,14 @@ export default {
 
   methods: {
     fetchData() {
-      this.showComponent = false
+      this.show = false
+      console.info("lang: "+this.lang.lang)
       this.currentLangs = this.lang.langs
       this.currentLang = this.lang.lang
-      this.showComponent = true
+      this.show = true
     },
     isCurrentLang(lang) {
-      return this.currentLang.name === lang.name
+      return this.currentLang.lang === lang.lang
     },
     chooseLang(lang) {
       this.$store.dispatch('getLanguageMapAction', lang)

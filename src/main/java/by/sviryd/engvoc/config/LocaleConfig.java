@@ -1,6 +1,6 @@
 package by.sviryd.engvoc.config;
 
-import by.sviryd.engvoc.type.Lang;
+import by.sviryd.engvoc.type.LangLocale;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,18 +14,18 @@ import java.util.stream.Collectors;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "lang")
-public class LangConfig {
+public class LocaleConfig {
     private String defaultAbbr;
-    private List<String> langAbbrs;
-    private Lang defaultLang;
-    private List<Lang> langs;
+    private List<String> localeAbbrs;
+    private LangLocale defaultLangLocale;
+    private List<LangLocale> langLocales;
 
-    public boolean isPresent(Lang lang) {
-        return langs.contains(lang);
+    public boolean isPresent(LangLocale langLocale) {
+        return langLocales.contains(langLocale);
     }
     @PostConstruct
     public void init(){
-        defaultLang = Lang.getLang(defaultAbbr);
-        langs = langAbbrs.stream().map(Lang::getLang).collect(Collectors.toList());
+        defaultLangLocale = LangLocale.getLangLocale(defaultAbbr);
+        langLocales = localeAbbrs.stream().map(LangLocale::getLangLocale).collect(Collectors.toList());
     }
 }

@@ -50,11 +50,6 @@
             <artifactId>thymeleaf-extras-springsecurity5</artifactId>
         </dependency>
 
-        <!--<dependency>-->
-        <!--<groupId>org.springframework.boot</groupId>-->
-        <!--<artifactId>spring-boot-starter-freemarker</artifactId>-->
-        <!--</dependency>-->
-
         <!-- Static resource reload(CTRL + SHIFT + F9):
         1. Setting –> Build, Execution, Deployment –> Compiler and check Build project automatically->true
         2. SHIFT + CTRL + A -> Registry-> compiler.automake.allow.when.app.running->true-->
@@ -342,10 +337,14 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
         </dependency>
+
+
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.7</version>
         </dependency>
+
 
     </dependencies>
 

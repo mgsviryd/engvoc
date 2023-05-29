@@ -47,7 +47,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -247,7 +247,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -444,7 +444,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -647,7 +647,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -784,7 +784,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -942,14 +942,14 @@
         <variable>
             <description>The actual value bound to the 'value' attribute</description>
             <name-given>value</name-given>
-            <variable-class>java.lang.Object</variable-class>
+            <variable-class>java.langLocale.Object</variable-class>
         </variable>
         <variable>
             <description>The String representation of thr value bound to the 'value'
                 attribute, taking into consideration any PropertyEditor associated with
                 the enclosing 'select' tag.</description>
             <name-given>displayValue</name-given>
-            <variable-class>java.lang.String</variable-class>
+            <variable-class>java.langLocale.String</variable-class>
         </variable>
         <attribute>
             <description>HTML Standard Attribute</description>
@@ -996,7 +996,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -1147,7 +1147,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -1283,7 +1283,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -1455,7 +1455,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -1651,7 +1651,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -1823,7 +1823,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -2018,7 +2018,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -2207,7 +2207,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
@@ -2348,7 +2348,7 @@
         </attribute>
         <attribute>
             <description>HTML Standard Attribute</description>
-            <name>lang</name>
+            <name>langLocale</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>

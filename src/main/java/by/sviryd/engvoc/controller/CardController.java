@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("card")
 public class CardController {
     @GetMapping()
-    public String index(Model model) {
+    public String card(Model model) {
         return "main";
     }
 }

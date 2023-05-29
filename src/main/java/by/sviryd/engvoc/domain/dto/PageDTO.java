@@ -9,12 +9,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@ToString
+
 @AllArgsConstructor
-@EqualsAndHashCode
 @Data
-@Getter
-@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PageDTO<T> implements Serializable {
     private static final long serialVersionUID = 1L;
