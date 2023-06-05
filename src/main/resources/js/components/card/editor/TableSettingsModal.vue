@@ -47,7 +47,7 @@
                               @mouseup.prevent.stop="mouseupColumn(i, false)"
                               :id="getPropertySettingElementId(i)"
                           >
-                            <small>{{getCapitalizeLang(setting.label) }}</small>
+                            <small>{{ getCapitalizeLang(setting.label) }}</small>
                           </li>
                         </ul>
                       </div>
@@ -136,9 +136,9 @@ export default {
       this.orderCurrentPropertySettings()
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
-    getCapitalizeLang(key){
+    getCapitalizeLang(key) {
       return _.capitalize(this.getLang(key))
     },
     getLastInxNotShowColumn() {
@@ -178,9 +178,9 @@ export default {
           return
         }
         if (show) {
-          this.mouseupColumn(this.getLastInxShowColumn()+1, show)
+          this.mouseupColumn(this.getLastInxShowColumn() + 1, show)
         } else {
-          this.mouseupColumn(this.currentPropertySettings.length-1, show)
+          this.mouseupColumn(this.currentPropertySettings.length - 1, show)
         }
       }
       this.orderCurrentPropertySettings()

@@ -9,7 +9,6 @@ import vueHeadful from 'vue-headful'
 import Multiselect from 'vue-multiselect'
 import VueCookies from 'vue-cookies'
 import VueWait from 'vue-wait'
-const LanguageDetect = require('languagedetect')
 const VueScrollTo = require('vue-scrollto');
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
@@ -25,6 +24,8 @@ import VueFileAgent from 'vue-file-agent'
 import VueFileAgentStyles from 'vue-file-agent/dist/vue-file-agent.css'
 import GlobalEvents from 'vue-global-events'
 import VueForceNextTick from 'vue-force-next-tick'
+import {i18n} from "./setup/i18n-setup";
+
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
@@ -38,7 +39,6 @@ library.add(faTwitter, faUserSecret)
 
 Vue.use(VueCookies)
 Vue.use(VueWait)
-Vue.use(LanguageDetect)
 Vue.use(VueScrollTo, {
     container: "body",
     duration: 500,
@@ -58,10 +58,12 @@ Vue.use(VueFileAgent);
 Vue.use(VueFileAgentStyles);
 Vue.use(VueForceNextTick)
 
+
 new Vue({
     el: '#main',
     store,
     router,
+    i18n,
     wait: new VueWait(),
     render: a => a(Main),
 })

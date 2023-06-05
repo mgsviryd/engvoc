@@ -31,15 +31,11 @@ export default {
       this.setDefaultDropZone()
     })
   },
-  props: [
-
-  ],
-  components: {
-
-  },
+  props: [],
+  components: {},
   watch: {
-    fileRecordsForUpload(newVal, oldVal){
-      if (newVal.length === 1){
+    fileRecordsForUpload(newVal, oldVal) {
+      if (newVal.length === 1) {
         this.$root.$emit('getPictureFormData', {formData: this.getFormData()})
       }
     },
@@ -49,18 +45,18 @@ export default {
       'lang',
     ]),
     type() {
-      return this.lang.map.invalidTypeFile + " " + this.props.accept + "."
+      return this.$t('invalidTypeFile') + " " + this.props.accept + "."
     },
     size() {
-      return this.lang.map.exceedSize + " " + this.props.size + "."
+      return this.$t('sizeExceed') + " " + this.props.size + "."
     },
     choose() {
-      return this.lang.map.chooseFileWithExtension + " " + this.props.accept + "."
+      return this.$t('chooseFileWithExtension') + " " + this.props.accept + "."
     }
   },
   data() {
     return {
-      props:{
+      props: {
         accept: 'image/*',
         size: '5MB',
         multiple: false,
@@ -73,15 +69,15 @@ export default {
     };
   },
   methods: {
-    setDefaultDropZone(){
+    setDefaultDropZone() {
       this.fileRecordsForUpload = []
       this.fileRecords = []
     },
     getFormData() {
-        const formData = new FormData();
-        const file = this.fileRecordsForUpload[0].file
-        formData.append('file', file)
-        return formData
+      const formData = new FormData();
+      const file = this.fileRecordsForUpload[0].file
+      formData.append('file', file)
+      return formData
     },
     deleteUploadedFile(fileRecord) {
       const i = this.fileRecords.indexOf(fileRecord);

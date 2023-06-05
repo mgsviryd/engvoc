@@ -1,6 +1,6 @@
 <template>
   <div>
-    <sign></sign>
+    <sign :closable="false"></sign>
   </div>
 </template>
 

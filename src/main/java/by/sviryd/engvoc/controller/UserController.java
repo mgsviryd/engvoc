@@ -1,18 +1,13 @@
 package by.sviryd.engvoc.controller;
 
 import by.sviryd.engvoc.domain.User;
-import by.sviryd.engvoc.domain.VerificationToken;
-import by.sviryd.engvoc.service.MailSenderService;
 import by.sviryd.engvoc.service.UserService;
-import by.sviryd.engvoc.service.VerificationTokenService;
 import by.sviryd.engvoc.type.Role;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,18 +15,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/user")
 public class UserController {
-    private final UserService userService;
-    private final MailSenderService mailSenderService;
-    private final VerificationTokenService verificationTokenService;
-    @Value("${info.url}")
-    private String url;
-
     @Autowired
-    public UserController(UserService userService, MailSenderService mailSenderService, VerificationTokenService verificationTokenService) {
-        this.userService = userService;
-        this.mailSenderService = mailSenderService;
-        this.verificationTokenService = verificationTokenService;
-    }
+    private UserService userService;
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping

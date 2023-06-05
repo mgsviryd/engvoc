@@ -3,13 +3,14 @@ import Vuex from "vuex";
 import frontendApi from "../api/frontend";
 import pictureMediaApi from "../api/pictureMedia";
 import languageApi from "../api/language";
-import authenticationApi from "../api/authentication";
+import signApi from "../api/sign";
 import cardApi from "../api/card";
 import dictionaryApi from "../api/dictionary";
 import VuexPersistence from "vuex-persist";
 import vlf from "../util/vlf";
 import date from "../util/date";
 import compare from "../util/compare";
+import {loadLanguageAsync} from "../setup/i18n-setup"
 
 
 
@@ -67,10 +68,6 @@ export default new Vuex.Store(
             },
         },
         getters: {
-            isRegistrationPassword: state => str => {
-                return state.special.regex.registrationPassword.test(str)
-            },
-
             getActionId: state => () => state.action.id,
             getCardsByDictionaryInx: state => i => {
                 if (state.dictionaries.length <= i) return []
@@ -379,11 +376,7 @@ export default new Vuex.Store(
             getAuthenticationMutation(state, data) {
                 state.authentication = data
             },
-            getActivationMutation(state, data) {
-                if (state.authentication.user.id === data.id) {
-                    state.authentication.user.active = true
-                }
-            },
+
         },
         actions: {
             async updateFrontendAction({commit}, payload) {
@@ -399,6 +392,7 @@ export default new Vuex.Store(
             },
 
             async getFrontendAction({commit}, lang) {
+                await loadLanguageAsync(lang)
                 const result = await frontendApi.getFrontend(lang)
                 const data = await result.data
                 if (result.ok) {
@@ -427,16 +421,14 @@ export default new Vuex.Store(
             },
 
             async changeLangAction({commit}, lang) {
+                await loadLanguageAsync(lang.locale)
                 const result = await languageApi.changeLang(lang.locale)
-            },
-
-            async getLanguageMapAction({commit}, lang) {
-                const result = await languageApi.getMap(lang.locale)
                 const data = await result.data
                 if (result.ok) {
                     commit('getLanguageMapMutation', {lang: lang, data: data})
                 }
             },
+
             async getLanguageListAction({commit}) {
                 const result = await languageApi.getList()
                 const data = await result.data
@@ -445,27 +437,12 @@ export default new Vuex.Store(
                 }
             },
             async getAuthenticationAction({commit, getters}) {
-                const result = await authenticationApi.getAuthentication(getters.getUsersTokens)
+                const result = await signApi.getUsers(getters.getUsersTokens)
                 const data = await result.data
                 lock.acquire('authentication', () => {
                     if (result.ok) {
                         commit('getAuthenticationMutation', data)
                         commit('authenticationSyncLocalWithStateMutation')
-                    }
-                }).catch((err) => {
-                    console.log(err) // output: error
-                })
-            },
-            async getActivationAction({commit}, id) {
-                const result = await authenticationApi.getActivation(id)
-                const data = await result.data
-                lock.acquire('authentication', () => {
-                    if (result.ok) {
-                        commit('getActivationMutation', data)
-                        commit('authenticationSyncLocalWithStateMutation')
-                        return data
-                    } else {
-                        return null
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
@@ -695,15 +672,15 @@ export default new Vuex.Store(
                 }
             },
 
-            async registerUserAction({commit}, payload) {
-                let result = await authenticationApi.register(payload)
+            async signUpUserAction({commit}, payload) {
+                let result = await signApi.up(payload)
                 const data = await result.data
                 if (result.ok) {
                     return data.errors
                 }
             },
             async enterUserAction({commit}, payload) {
-                let result = await authenticationApi.signin(payload)
+                let result = await signApi.in(payload)
                 const data = await result.data
                 console.info(data)
                 if (result.ok) {

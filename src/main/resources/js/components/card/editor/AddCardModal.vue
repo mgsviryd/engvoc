@@ -245,9 +245,8 @@
 
 <script>
 import {mapState} from 'vuex'
-import singlePictureDropZone from "./SinglePictureDropZone.vue"
+import SinglePictureDropZone from "./SinglePictureDropZone.vue"
 import * as _ from "lodash"
-import langDetect from "languagedetect"
 
 export default {
   created() {
@@ -262,7 +261,7 @@ export default {
     })
   },
   components: {
-    singlePictureDropZone,
+    SinglePictureDropZone,
   },
   props: [
     'id',
@@ -364,7 +363,7 @@ export default {
       return _.capitalize(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
     cancel(ref, property) {
       this.card[property] = null
@@ -383,11 +382,11 @@ export default {
     focusWord() {
       this.$refs['textarea-word'].focus();
     },
-    insert(event, property){
-      if(event.ctrlKey && event.keyCode === 86){
+    insert(event, property) {
+      if (event.ctrlKey && event.keyCode === 86) {
         console.info(property)
       }
-      if (event.metaKey && event.keyCode === 86){
+      if (event.metaKey && event.keyCode === 86) {
         console.info(property)
       }
     },

@@ -98,7 +98,7 @@
               <span class="st-text-shift">{{ d.name }}</span>
               <span
                   class="st-right badge badge-light border bg-white badge-pill">
-                {{getCountCardsInDictionaryById(d.id) }}
+                {{ getCountCardsInDictionaryById(d.id) }}
               </span>
             </button>
           </div>
@@ -201,7 +201,7 @@ export default {
       return _.capitalize(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
     getNonUniqueShortLDTs() {
       return [...new Set(this.getNonUniqueDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]

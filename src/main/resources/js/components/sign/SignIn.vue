@@ -5,8 +5,10 @@
           body-class="pt-1"
           border-variant="light"
       >
-
-        <services :prefix-id="prefixId()"></services>
+        <services
+            :prefix-id="prefixId()"
+            @onClick="showSpinOverlay()"
+        ></services>
 
         <b-row class="mb-1">
           <b-col sm="12" class="">
@@ -86,9 +88,9 @@
             size="sm"
             :disabled="!stateTrue()"
             :class="!stateTrue()?'no-stateTrue':null"
-            @click.prevent.stop="enter()"
+            @click.prevent.stop="signIn()"
         >
-          {{ getUpperCaseLang("enter") }}
+          {{ getUpperCaseLang('signIn') }}
         </b-button>
       </b-card>
 
@@ -154,7 +156,6 @@
 import {mapState} from "vuex";
 import * as _ from "lodash"
 import RegexJS from "../../util/regex"
-import StringJS from "../../util/string"
 import RequestJS from "../../util/request"
 import GoogleCircle from "../spinner/GoogleCircle.vue"
 import Services from "./Services.vue"
@@ -261,7 +262,7 @@ export default {
     closeAllAlert() {
       this.alert.showInternetConnectionError = false
     },
-    enter() {
+    signIn() {
       this.closeAllAlert()
       this.overlay.showSignInOverlay = true
       this.overlay.showSignInSpin = true
@@ -286,10 +287,14 @@ export default {
           this.overlay.showSignInFailure = true
           _.delay(() => {
             this.overlay.showSignInFailure = false
-            this.hideRegisterOverlay()
+            this.hideSignInOverlay()
           }, 1000)
         }
       })
+    },
+    showSpinOverlay() {
+      this.overlay.showSignInOverlay = true
+      this.overlay.showSignInSpin = true
     },
     showErrors() {
       this.errors.forEach(e => {
@@ -303,17 +308,17 @@ export default {
       this.properties.email.showError = false
       this.properties.password.showError = false
     },
-    hideRegisterOverlay() {
+    hideSignInOverlay() {
       this.overlay.showSignInSpin = false
       this.overlay.showSignInSuccess = false
       this.overlay.showSignInOverlay = false
     },
     goToSignIn() {
-      this.hideRegisterOverlay()
+      this.hideSignInOverlay()
       this.openSignIn()
     },
-    hideRegisterOverlayAndErrorAndFlush() {
-      this.hideRegisterOverlay()
+    hideSignInOverlayAndErrorAndFlush() {
+      this.hideSignInOverlay()
       this.hideError()
       this.flushSignIn()
     },
@@ -324,8 +329,11 @@ export default {
       this.properties.password.wasOutFocus = false
     },
     openSignIn() {
-      this.hideRegisterOverlayAndErrorAndFlush()
+      this.hideSignInOverlayAndErrorAndFlush()
       this.focusEmail()
+    },
+    closeSignIn() {
+      this.hideSignInOverlayAndErrorAndFlush()
     },
     focusEmail() {
       this.$refs[this.properties.email.inputId].focus();
@@ -340,7 +348,7 @@ export default {
       return _.upperCase(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
     isBlank(str) {
       return str === null || str === ''
@@ -361,25 +369,25 @@ export default {
     },
     emailError() {
       if (this.isBlank(this.email)) {
-        return this.getCapitalizeLang("enterEmail")
+        return this.getCapitalizeLang('enterEmail')
       }
       if (!RegexJS.isEmail(this.email)) {
-        return this.getCapitalizeLang("signUpEmailError")
+        return this.getCapitalizeLang('signUpEmailError')
       }
       return ''
     },
     passwordError() {
       if (this.isBlank(this.password)) {
-        return this.getCapitalizeLang("enterPassword")
+        return this.getCapitalizeLang('enterPassword')
       }
       if (this.password.length < 8) {
-        return this.getCapitalizeLang("signUpPasswordShortLengthError")
+        return this.getCapitalizeLang('signUpPasswordShortLengthError')
       }
       if (this.password.length > 20) {
-        return this.getCapitalizeLang("signUpPasswordLongLengthError")
+        return this.getCapitalizeLang('signUpPasswordLongLengthError')
       }
       if (!RegexJS.isSignUpPassword(this.password)) {
-        return this.getLang("signUpPasswordSyntaxError")
+        return this.getLang('signUpPasswordSyntaxError')
       }
       return ''
     },
@@ -393,31 +401,10 @@ export default {
       this.properties[property].hasFocus = false
       this.show = true
     },
-    breakNewLinesAndGetAsHtml(str) {
-      return StringJS.breakNewLinesAndGetAsHtml(str)
-    },
     showBorderProperty(property) {
       if (!this.properties[property].wasOutFocus) return true
       if (this.properties[property].hasFocus) return true
       return false
-    },
-    isSignInPasswordMinCharacters() {
-      return this.password.length >= 8
-    },
-    isSignInPasswordMaxCharacters() {
-      return this.password.length <= 20
-    },
-    isSignInPasswordUppercaseLatinLetter() {
-      return RegexJS.hasUppercaseLatinLetter(this.password)
-    },
-    isSignInPasswordLowercaseLatinLetter() {
-      return RegexJS.hasLowercaseLatinLetter(this.password)
-    },
-    isSignInPasswordNumber() {
-      return RegexJS.hasNumber(this.password)
-    },
-    isSignInPasswordSpecialCharacter() {
-      return RegexJS.hasSpecialCharacter(this.password)
     },
   },
 }

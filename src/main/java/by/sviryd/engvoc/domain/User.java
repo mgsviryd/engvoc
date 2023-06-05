@@ -31,7 +31,7 @@ public class User implements UserDetails, Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 100)
+    @Column(length = 100, unique = true)
     private String username;
 
     private String password;
@@ -41,18 +41,18 @@ public class User implements UserDetails, Serializable {
     private boolean active;
 
     // oAoth2 (google)
-    @Column(length = 255, unique = true)
+    @Column(length = 255)
     private String sub;
 
     @UpdateTimestamp
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     private LocalDateTime lastModifiedLDT;
 
-    @Column(length = 320, unique = true)
+    @Column(length = 320)
     @Length(max = 320)
     private String email;
 
-    @Column(length = 255, unique = true)
+    @Column(length = 255)
     private String token;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)

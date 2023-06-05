@@ -15,4 +15,5 @@ public class Oauth2Config {
     private List<String> social;
     private List<String> idAttr;
     private List<String> nameAttr;
+    private List<String> emailAttr;
 }

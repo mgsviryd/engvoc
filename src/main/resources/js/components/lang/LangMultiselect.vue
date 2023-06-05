@@ -1,5 +1,6 @@
 <template>
   <multiselect
+      :tabindex="-1"
       v-model="value"
       :options="options"
       track-by="lang"
@@ -25,7 +26,6 @@
       <small>{{ getLanguageByLangAndCountry(props.option) }}</small>
     </template>
   </multiselect>
-
 </template>
 
 <script>
@@ -60,11 +60,10 @@ export default {
   methods: {
     fetchData() {
     },
-    onSelect(lang){
-      this.$store.dispatch('getLanguageMapAction', lang)
+    onSelect(lang) {
       this.$store.dispatch('changeLangAction', lang)
     },
-    getLanguageByLangAndCountry(lang){
+    getLanguageByLangAndCountry(lang) {
       return LocaleJS.getLanguageByLangAndCountry(lang)
     },
     getCapitalize(text) {
@@ -80,7 +79,7 @@ export default {
       return _.upperCase(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
   },
 }
@@ -92,11 +91,12 @@ export default {
 .multiselect {
   width: fit-content;
 }
+
 .multiselect .multiselect__content-wrapper {
   min-width: 100%;
   width: auto;
   border: none;
-  box-shadow: 4px 4px 10px 0 rgba(0,0,0,.1);
+  box-shadow: 4px 4px 10px 0 rgba(0, 0, 0, .1);
 }
 
 .multiselect--active .multiselect__tags {

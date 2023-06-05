@@ -1,7 +1,6 @@
 package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.User;
-import by.sviryd.engvoc.service.exception.UserAlreadyExistsException;
 import by.sviryd.engvoc.service.validation.*;
 import by.sviryd.engvoc.type.Role;
 import by.sviryd.engvoc.util.LocaleException;
@@ -14,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-public class RegisterUserService {
+public class SignUpUserService {
     @Autowired
     private UserService userService;
     @Autowired
@@ -34,23 +33,6 @@ public class RegisterUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public List<LocaleException> register(User user) {
-        List<LocaleException> exs = new ArrayList<>();
-        String email = user.getEmail();
-        User userFromDB = userService.findByEmail(email);
-        if (userFromDB != null) {
-            exs.add(new LocaleException(new UserAlreadyExistsException("Аккаунт " + email + " уже существует!"), email));
-        }
-        localeExceptionWrapperService.runAndWrap(() -> userEmailValidationService.validate(email), exs);
-        localeExceptionWrapperService.runAndWrap(() -> userPasswordValidationService.validate(user.getPassword()), exs);
-        if (exs.isEmpty()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setRoles(Collections.singleton(Role.USER));
-            userService.save(user);
-        }
-        return exs;
-    }
-
     public List<LocaleException> validate(String email, String password, String passwordRepeat, String recaptchaResponse) {
         List<LocaleException> exs = new ArrayList<>();
         localeExceptionWrapperService.runAndWrapIfAttrNoPrevious(() -> stringEmptyValidationService.validate(email), exs, "email");
@@ -64,12 +46,13 @@ public class RegisterUserService {
         localeExceptionWrapperService.runAndWrapIfAttrNoPrevious(() -> recaptchaResponseValidationService.validate(recaptchaResponse), exs, "recaptcha");
         return exs;
     }
-    public User register(String email, String password) {
-            User user = new User();
-            user.setUsername(email);
-            user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(password));
-            user.setRoles(Collections.singleton(Role.USER));
-            return userService.save(user);
+
+    public User up(String email, String password) {
+        User user = new User();
+        user.setUsername(email);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRoles(Collections.singleton(Role.USER));
+        return userService.save(user);
     }
 }

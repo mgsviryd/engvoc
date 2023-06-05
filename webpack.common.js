@@ -2,7 +2,9 @@ const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 module.exports = {
-    entry: path.join(__dirname, 'src', 'main', 'resources', 'js', 'main.js'),
+    entry: {
+        main: path.join(__dirname, 'src', 'main', 'resources', 'js', 'main.js'),
+    },
     module: {
         rules: [
             {
@@ -57,17 +59,27 @@ module.exports = {
                         loader: 'sass-loader'
                     }
                 ]
-            }
-
+            },
+            {
+                test: /\.json$/,
+                loader: 'json-loader'
+            },
+            {
+                test: /\.json5$/,
+                loader: 'json5-loader'
+            },
         ]
     },
     plugins: [
         new VueLoaderPlugin(),
     ],
+
+
     resolve: {
         modules: [
             path.join(__dirname, 'src', 'main', 'resources', 'js'),
             path.join(__dirname, 'node_modules'),
         ],
-    }
+    },
+
 }

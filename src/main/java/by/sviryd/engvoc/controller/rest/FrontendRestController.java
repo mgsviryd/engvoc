@@ -22,9 +22,9 @@ public class FrontendRestController {
 
     @GetMapping()
     public Map<Object, Object> getFrontend(
-            @RequestParam String lang
+            @RequestParam String lang,
+            Locale locale
     ) {
-        Locale locale = lang == null ? langConfig.getDefaultLangLocale().getLocale() : new Locale(lang);
         HashMap<Object, Object> frontend = new HashMap<>();
         frontend.put("config", frontendConfig.getConfig());
         frontend.put("version", frontendConfig.getVersion());

@@ -1,11 +1,10 @@
-
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
-#spring.jpa.hibernate.ddl-auto=update
-#instead above
+  #spring.jpa.hibernate.ddl-auto=update
+  #instead above
   jpa:
     generate-ddl: false
     show-sql: true
@@ -18,31 +17,31 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
-#mail
+  #mail
   mail:
-      host: smtp.gmail.com
-      username: mgsvirydclone@gmail.com
-      password: ${mailPassword}
-      port: 587
-      protocol: smtp
-      properties:
-        mail:
-          smtp:
-            auth: true
-            starttls:
-              enable: true
-#session
+    host: smtp.gmail.com
+    username: mgsvirydclone@gmail.com
+    password: ${mailPassword}
+    port: 587
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  #session
   session:
-      jdbc:
-        initialize-schema: always
-        table-name: SPRING_SESSION
+    jdbc:
+      initialize-schema: always
+      table-name: SPRING_SESSION
 
-#profiles
+  #profiles
   profiles:
-      active: ${devMode}
+    active: ${devMode}
 
   main:
-          allow-bean-definition-overriding: true
+    allow-bean-definition-overriding: true
 
 
 # server path
@@ -68,10 +67,8 @@ recaptcha:
 webpack:
   devPort: http://localhost:8000
 
-#registration
-registration:
-  token:
-    expirationDT: 5M
+sign:
+  tokenExpirationDT: 5M
 
 logging:
   level:
@@ -86,16 +83,16 @@ logging:
 #https://developers.facebook.com/apps/542929309886002/fb-login/settings/
 #https://theonetechnologies.com/blog/post/how-to-get-facebook-application-id-and-secret-key
 facebook:
-    client:
-        accessTokenUri: https://graph.facebook.com/oauth/access_token
-        authenticationScheme: query
-        clientAuthenticationScheme: form
-        clientId: 542929309886002
-        clientSecret: ${facebookClientSecret}
-        tokenName: oauth_token
-        userAuthorizationUri: https://www.facebook.com/dialog/oauth
-    resource:
-        userInfoUri: https://graph.facebook.com/me
+  client:
+    accessTokenUri: https://graph.facebook.com/oauth/access_token
+    authenticationScheme: query
+    clientAuthenticationScheme: form
+    clientId: 542929309886002
+    clientSecret: ${facebookClientSecret}
+    tokenName: oauth_token
+    userAuthorizationUri: https://www.facebook.com/dialog/oauth
+  resource:
+    userInfoUri: https://graph.facebook.com/me
 
 #https://github.com/settings/applications/1171196
 #https://github.com/settings/developers
@@ -111,57 +108,62 @@ github:
 
 #https://console.cloud.google.com/apis/credentials?project=attrade-core&supportedpurview=project
 google:
-    client:
-        accessTokenUri: https://www.googleapis.com/oauth2/v4/token
-        clientAuthenticationScheme: form
-        clientId: 185460716091-1rasqe3vdl56flepchpugq569c4hasnk.apps.googleusercontent.com
-        clientSecret: ${googleClientSecret}
-        scope: openid,email,profile
-        userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
-    resource:
-        preferTokenInfo: true
-        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+  client:
+    accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+    clientAuthenticationScheme: form
+    clientId: 185460716091-1rasqe3vdl56flepchpugq569c4hasnk.apps.googleusercontent.com
+    clientSecret: ${googleClientSecret}
+    scope: openid,email,profile
+    userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+  resource:
+    preferTokenInfo: true
+    userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
 
-    #https://script.google.com/d/1zm1fkG5LiHZkp74o5vFzzPLnvnaCt71gCk6fpED51dAfZC9NEKmZMPpx/edit?template=default
-    script:
-        translator:
-          url: https://script.google.com/macros/s/AKfycbxcmiDPFv1OFHdreLBzhHnX5OXt9wW4jctck1KNZsdwwftZScc/exec
-    #https://console.cloud.google.com/iam-admin/settings?project=attrade&supportedpurview=project
-    #https://console.developers.google.com/apis/api/storage-api.googleapis.com/overview?project=attrade
-    activator:
-      init: true
-      projectId: attrade
-      defaultBucket: attrade-bucket
-      pathToJsonKey: ${GOOGLE_APPLICATION_CREDENTIALS}
+  #https://script.google.com/d/1zm1fkG5LiHZkp74o5vFzzPLnvnaCt71gCk6fpED51dAfZC9NEKmZMPpx/edit?template=default
+  script:
+    translator:
+      url: https://script.google.com/macros/s/AKfycbxcmiDPFv1OFHdreLBzhHnX5OXt9wW4jctck1KNZsdwwftZScc/exec
+  #https://console.cloud.google.com/iam-admin/settings?project=attrade&supportedpurview=project
+  #https://console.developers.google.com/apis/api/storage-api.googleapis.com/overview?project=attrade
+  activator:
+    init: true
+    projectId: attrade
+    defaultBucket: attrade-bucket
+    pathToJsonKey: ${GOOGLE_APPLICATION_CREDENTIALS}
 security:
-    oauth2:
-        client:
-            auto-approve-scopes: '''.*'''
-            client-id: acme
-            client-secret: acmesecret
-            scope: read,write
-    security:
-      basic:
-        enable: false
-      ignored:  /**
+  oauth2:
+    client:
+      auto-approve-scopes: '''.*'''
+      client-id: acme
+      client-secret: acmesecret
+      scope: read,write
+  security:
+    basic:
+      enable: false
+    ignored: /**
 
 oauth2:
   social:
-          - google
-          - facebook
-          - github
+    - google
+    - facebook
+    - github
   idAttr:
-          - sub
-          - id
-          - id
+    - sub
+    - id
+    - id
   nameAttr:
-          - email
-          - name
-          - login
+    - email
+    - name
+    - login
+  emailAttr:
+    - email
+    - email
+    - email
 
 messages-source:
   basename: 'lang/messages'
   encoding: 'UTF-8'
+  defaultLocale: 'en_US'
 
 picture:
   media:
@@ -211,7 +213,7 @@ url:
     - 'is-need-property-choices'
 
 lang:
-  defaultAbbr: 'en_US'
+  defaultLocale: 'en_US'
   localeAbbrs:
     - 'ru_RU'
     - 'en_US'
@@ -254,7 +256,7 @@ excel:
     template:
       shortTemplateFilename: './src/main/resources/file/excel/template/short-engvoc.xlsx'
       fullTemplateFilename: './src/main/resources/file/excel/template/engvoc.xlsx'
-      
+
 
 abbyy:
   splitter:

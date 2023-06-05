@@ -23,10 +23,8 @@ public class AuthProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
-        User user;
+        User user = null;
         if (GenericValidator.isEmail(username)) {
-            user = userService.loadUserByEmail(username);
-        } else {
             user = userService.loadUserByUsername(username);
         }
         if (user != null) {

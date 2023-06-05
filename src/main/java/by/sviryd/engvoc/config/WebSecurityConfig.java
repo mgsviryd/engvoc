@@ -53,20 +53,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests()
-                .antMatchers(
-                        "/",
-                        "/sign**",
-                        "/login**",
-                        "/logout",
-                        "/card**",
-                        "/search**",
-                        "/static/**",
-                        "/activate/*",
-                        "/pre-login",
-                        "/json**",
-                        "/notFound**"
-                )
+                .authorizeRequests().anyRequest()
+//                .antMatchers(
+//                        "/",
+//                        "/sign**",
+//                        "/login**",
+//                        "/logout",
+//                        "/card**",
+//                        "/search**",
+//                        "/static/**",
+//                        "/activate/*",
+//                        "/pre-login",
+//                        "/json**",
+//                        "/notFound**",
+//                        "/error**",
+//                        "/user**"
+//                )
                 .permitAll()
                 .anyRequest().permitAll()
 
@@ -89,11 +91,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                 .and()
                 .csrf()
-                .ignoringAntMatchers("/sign/**")
-                .ignoringAntMatchers("/login/**")
-                .ignoringAntMatchers("/logout/**")
-                .ignoringAntMatchers("/card/**")
-                .ignoringAntMatchers("/json/**")
+                .ignoringAntMatchers("/**")
+//                .ignoringAntMatchers("/sign/**")
+//                .ignoringAntMatchers("/login/**")
+//                .ignoringAntMatchers("/logout/**")
+//                .ignoringAntMatchers("/card/**")
+//                .ignoringAntMatchers("/json/**")
+//                .ignoringAntMatchers("/user/**")
         ;
         http
                 .addFilterBefore(ssoFilter(), UsernamePasswordAuthenticationFilter.class)

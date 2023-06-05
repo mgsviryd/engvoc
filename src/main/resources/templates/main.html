@@ -2,17 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>English Vocabulary</title>
+    <title>LANGVOC</title>
     <meta charset="UTF-8">
     <!--Define parameters of viewing on different devices-->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" th:href="@{https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css}"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <!-- Recaptcha-->
     <script th:src="@{https://www.google.com/recaptcha/api.js}"></script>
     <!-- Font Awesome -->
-<!--    <link rel="stylesheet" th:href="@{https://use.fontawesome.com/releases/v5.8.2/css/all.css}">-->
+    <!--    <link rel="stylesheet" th:href="@{https://use.fontawesome.com/releases/v5.8.2/css/all.css}">-->
     <link rel="stylesheet" th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css}">
 
     <link rel="stylesheet" th:href="@{https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/css/flag-icons.min.css}"/>
@@ -24,12 +25,21 @@
 </head>
 <body>
 
-<div id="main"></div>
+<div id="main" th:attr="data=${data}"></div>
 
 <script th:if="${serverInfo?.get('isDevMode')}"
-        th:src="@{${serverInfo.get('webpackDevPort')} + '/main.js'}"></script>
+        th:src="@{${serverInfo.get('webpackDevPort')} + '/main.js'}">
+</script>
 <script th:unless="${serverInfo?.get('isDevMode')}"
-        th:src="@{/js/main.js}"></script>
+        th:src="@{/js/main.js}">
+</script>
+<!--<script th:if="${serverInfo?.get('isDevMode')}"-->
+<!--        th:src="@{${serverInfo.get('webpackDevPort')} + '/' + ${#locale} + '.js'}">-->
+<!--</script>-->
+<!--<script th:unless="${serverInfo?.get('isDevMode')}"-->
+<!--        th:src="@{'/js/' + ${#locale} + '.js'}">-->
+<!--</script>-->
+
 
 </body>
 </html>

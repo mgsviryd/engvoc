@@ -51,7 +51,7 @@
                       v-b-modal="this.prefixId + 'add-card-modal'"
             >
               <i class="fa fa-plus fa-xs text-success"></i>
-              {{getLang("card")}}
+              {{ getLang("card") }}
             </b-button>
           </div>
         </th>
@@ -273,7 +273,7 @@ export default {
         }
       }
     },
-    propertySettings(){
+    propertySettings() {
       return [
         {
           property: "word",
@@ -456,7 +456,7 @@ export default {
       return _.capitalize(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
     getTableSettingsElemId() {
       return this.prefixId + "modal-tableSettings"
@@ -471,17 +471,17 @@ export default {
           if (s.propertyType === "string") {
             return (item) => {
               const value = this.getProperty(item, s.property)
-                  if(value){
-                    return value.toLowerCase()
-                  }else return null
+              if (value) {
+                return value.toLowerCase()
+              } else return null
             }
           }
           if (s.propertyType === "dateISOString") {
             return (item) => {
               const value = this.getProperty(item, s.property)
-              if(value){
+              if (value) {
                 return new Date(value)
-              }else return null
+              } else return null
             }
           }
         }),

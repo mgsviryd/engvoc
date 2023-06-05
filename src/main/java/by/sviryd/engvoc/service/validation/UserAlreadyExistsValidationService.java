@@ -10,8 +10,8 @@ public class UserAlreadyExistsValidationService {
     @Autowired
     private UserService userService;
 
-    public void validate(String email) throws UserAlreadyExistsException {
-        if (userService.findByEmail(email) != null) {
+    public void validate(String username) throws UserAlreadyExistsException {
+        if (userService.findByUsername(username) != null) {
             throw new UserAlreadyExistsException();
         }
     }

@@ -92,8 +92,8 @@
 
 <script>
 import {mapState} from 'vuex'
-import DropZone from "../upload/DropZone.vue";
-import string from "../../util/string";
+import DropZone from "../upload/DropZone.vue"
+import * as _ from "lodash"
 
 export default {
   components: {
@@ -129,20 +129,23 @@ export default {
       'lang',
     ]),
     uploadFrom() {
-      return string.getWithFirstCapital(this.lang.map.uploadFrom)
+      return this.getCapitalizeLang('uploadFrom')
     },
     server() {
-      return string.getWithFirstCapital(this.lang.map.server)
+      return this.getCapitalizeLang('server')
     },
     xml() {
-      return string.getWithFirstCapital(this.lang.map.xml)
+      return this.getCapitalizeLang('xml')
     },
     excel() {
-      return string.getWithFirstCapital(this.lang.map.excel)
+      return this.getCapitalizeLang('excel')
     },
   },
   methods: {
     fetchData() {
+    },
+    getCapitalizeLang(key) {
+      return _.capitalize(this.$t(key))
     },
     activateLevel1() {
       this.disactiveAll()

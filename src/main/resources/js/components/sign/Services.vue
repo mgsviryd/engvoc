@@ -5,8 +5,11 @@
     </b-row>
     <b-row class="mb-1 justify-content-center">
       <a href="/login/google"
+         tabindex="-1"
          :id="prefixId +'google'"
-         class="btn btn-outline-danger mx-2">
+         class="btn btn-outline-danger mx-2"
+         @click="onClick()"
+      >
         <i class="fab fa-google fa-1x"></i>
       </a>
       <b-tooltip
@@ -19,8 +22,11 @@
         {{ getCapitalizeLang('google') }}
       </b-tooltip>
       <a href="/login/facebook"
+         tabindex="-1"
          :id="prefixId +'facebook'"
-         class="btn btn-outline-primary mx-2">
+         class="btn btn-outline-primary mx-2"
+         @click="onClick()"
+      >
         <i class="fab fa-facebook fa-1x"></i>
       </a>
       <b-tooltip
@@ -33,8 +39,11 @@
         {{ getCapitalizeLang('facebook') }}
       </b-tooltip>
       <a href="/login/github"
+         tabindex="-1"
          :id="prefixId +'github'"
-         class="btn btn-outline-dark mx-2">
+         class="btn btn-outline-dark mx-2"
+         @click="onClick()"
+      >
         <i class="fab fa-github  fa-1x"></i>
       </a>
       <b-tooltip
@@ -58,7 +67,7 @@ import * as _ from "lodash";
 import {mapState} from "vuex";
 
 export default {
-  props:['prefixId'],
+  props: ['prefixId'],
   computed: {
     ...mapState([
       'lang',
@@ -71,6 +80,9 @@ export default {
   },
 
   methods: {
+    onClick() {
+      this.$emit('onClick')
+    },
     getCapitalize(text) {
       return _.capitalize(text)
     },
@@ -81,7 +93,7 @@ export default {
       return _.upperCase(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
   }
 }

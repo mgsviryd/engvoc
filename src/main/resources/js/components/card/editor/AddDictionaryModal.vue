@@ -4,7 +4,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            {{getCapitalizeLang("addDictionary")}}
+            {{ getCapitalizeLang('addDictionary') }}
           </h5>
           <button type="button" class="close" aria-label="Close" @click.prevent.stop="reject()">
             <span aria-hidden="true">&times;</span>
@@ -19,10 +19,10 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click.prevent.stop="reject()">
-            {{ getCapitalizeLang("no") }}
+            {{ getCapitalizeLang('no') }}
           </button>
           <button type="button" class="btn btn-primary" @click.prevent.stop="confirm()">
-            {{ getCapitalizeLang("yes") }}
+            {{ getCapitalizeLang('yes') }}
           </button>
         </div>
       </div>
@@ -38,7 +38,7 @@ import * as _ from "lodash"
 export default {
   created() {
     this.$store.watch(this.$store.getters.getActionId, actionId => {
-      if(actionId === this.actionLocal.id){
+      if (actionId === this.actionLocal.id) {
         this.updateAction()
         this.closeIfNoErrors()
       }
@@ -84,7 +84,7 @@ export default {
   methods: {
     fetchData() {
     },
-    updateAction(){
+    updateAction() {
       this.actionLocal.id = this.action.id
       this.actionLocal.errors = this.action.errors
     },
@@ -110,7 +110,7 @@ export default {
       this.formData = null
       this.$root.$emit('setDefaultDropZone')
     },
-    close(){
+    close() {
       $("#" + this.id).modal('hide')
     },
     closeIfNoErrors() {
@@ -122,7 +122,7 @@ export default {
       return _.capitalize(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
   }
 }

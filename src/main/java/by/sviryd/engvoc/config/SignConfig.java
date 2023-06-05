@@ -10,7 +10,7 @@ import java.time.Duration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "registration.token")
-public class RegistrationTokenExpirationDTConfig {
-    private Duration expirationDT;
+@ConfigurationProperties(prefix = "sign")
+public class SignConfig {
+    private Duration tokenExpirationDT;
 }

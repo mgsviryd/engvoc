@@ -15,17 +15,18 @@ import java.util.stream.Collectors;
 @Configuration
 @ConfigurationProperties(prefix = "lang")
 public class LocaleConfig {
-    private String defaultAbbr;
     private List<String> localeAbbrs;
-    private LangLocale defaultLangLocale;
     private List<LangLocale> langLocales;
+    private String defaultLocale;
 
     public boolean isPresent(LangLocale langLocale) {
         return langLocales.contains(langLocale);
     }
+    public boolean isPresent(String locale){
+        return localeAbbrs.contains(locale);
+    }
     @PostConstruct
     public void init(){
-        defaultLangLocale = LangLocale.getLangLocale(defaultAbbr);
         langLocales = localeAbbrs.stream().map(LangLocale::getLangLocale).collect(Collectors.toList());
     }
 }

@@ -1,5 +1,6 @@
 package by.sviryd.engvoc.config;
 
+import by.sviryd.engvoc.interceptor.CustomLocaleChangeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -18,6 +19,8 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 public class MvcConfig implements WebMvcConfigurer {
     @Autowired
     private ServerPathConfig serverPathConfig;
+    @Autowired
+    private LocaleConfig localeConfig;
 
     @Bean
     public RestTemplate getRestTemplate() {
@@ -30,8 +33,9 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+        CustomLocaleChangeInterceptor localeChangeInterceptor = new CustomLocaleChangeInterceptor();
         localeChangeInterceptor.setParamName("lang");
+        localeChangeInterceptor.setLocaleConfig(localeConfig);
         registry.addInterceptor(localeChangeInterceptor);
     }
 
@@ -48,10 +52,10 @@ public class MvcConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/");
     }
 
-    @Bean
-    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> webServerCustomizer() {
-        return container -> {
-            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notFound"));
-        };
-    }
+//    @Bean
+//    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> webServerCustomizer() {
+//        return container -> {
+//            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notFound"));
+//        };
+//    }
 }

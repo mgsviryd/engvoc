@@ -26,17 +26,10 @@ public class LocaleRestController {
         return languageConfig.getLangLocales();
     }
 
-    @GetMapping("/map")
-    public Map<String, String> getMap(
-            @RequestParam String lang
-    ) {
-        return messageI18nService.getMessages(LangLocale.getLangLocale(lang).getLocale());
-    }
-
     @GetMapping("/change")
-    public Locale changeLang(
+    public Map<String, String> changeLang(
             @RequestParam String lang,
             Locale locale) {
-        return locale;
+        return messageI18nService.getMessages(locale);
     }
 }

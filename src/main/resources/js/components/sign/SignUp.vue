@@ -6,7 +6,10 @@
           border-variant="light"
       >
 
-        <services :prefix-id="prefixId()"></services>
+        <services
+            :prefix-id="prefixId()"
+            @onClick="showSpinOverlay()"
+        ></services>
 
         <b-row class="mb-1">
           <b-col sm="12" class="">
@@ -172,9 +175,9 @@
             size="sm"
             :disabled="!stateTrue()"
             :class="!stateTrue()?'no-stateTrue':null"
-            @click.prevent.stop="register()"
+            @click.prevent.stop="signUp()"
         >
-          {{ getUpperCaseLang("register") }}
+          {{ getUpperCaseLang('signUpDo') }}
         </b-button>
       </b-card>
 
@@ -265,23 +268,19 @@
             </template>
             <b-card-text>
               <b-row>
-                <small>{{ getCapitalizeLang('congratulateSignUpOn') }}&nbsp;{{ getUpperCaseLang('logo') }}</small>
+                <small>{{ getCapitalizeLang('onlyWithActivatedAccountHaveAccessTo') }}&nbsp;{{
+                    getUpperCaseLang('logo')
+                  }}</small>
               </b-row>
               <hr class="my-0">
               <b-row>
                 <small>{{ getCapitalizeLang('checkEmailToActivateSignUp') }}</small>
               </b-row>
-              <hr class="my-0">
-              <b-row>
-                <small>{{ getCapitalizeLang('onlyWithActivatedAccountHaveAccessTo') }}&nbsp;{{
-                    getUpperCaseLang('logo')
-                  }}</small>
-              </b-row>
             </b-card-text>
             <b-button
                 variant="outline-primary"
                 size="sm"
-                @click="goToSignIn()"
+                @click="routerSignIn()"
             >
               {{ getCapitalizeLang('signIn') }}
             </b-button>
@@ -289,7 +288,7 @@
               <b-button
                   variant="outline-secondary"
                   size="sm"
-                  @click="hideRegisterOverlayAndErrorAndFlush()"
+                  @click="hideSignUpOverlayAndErrorAndFlush()"
               >
                 <small>{{ getCapitalizeLang('hide') }}</small>
               </b-button>
@@ -306,7 +305,6 @@
 import {mapState} from "vuex";
 import * as _ from "lodash"
 import RegexJS from "../../util/regex"
-import StringJS from "../../util/string"
 import GoogleCircle from "../spinner/GoogleCircle.vue"
 import Services from "./Services.vue"
 
@@ -358,7 +356,7 @@ export default {
   },
   watch: {
     recaptchaResponse(newVal) {
-      this.registerUser()
+      this.signUpUser()
     },
   },
   data() {
@@ -426,7 +424,11 @@ export default {
       this.alert.showInternetConnectionError = false
       this.alert.showRecaptchaResponseError = false
     },
-    register() {
+    showSpinOverlay() {
+      this.overlay.showSignUpOverlay = true
+      this.overlay.showSignUpSpin = true
+    },
+    signUp() {
       this.closeAllAlert()
       this.overlay.showSignUpOverlay = true
       this.overlay.showSignUpSpin = true
@@ -439,7 +441,7 @@ export default {
       this.recaptchaValidate()
       this.recaptchaExecute()
     },
-    registerUser() {
+    signUpUser() {
       // console.info("recaptcha: " + this.recaptchaResponse)
       if (this.isBlank(this.recaptchaResponse)) {
         this.alert.showRecaptchaResponseError = true
@@ -448,13 +450,12 @@ export default {
         return
       }
       this.alert.showRecaptchaResponseError = false
-      this.$store.dispatch('registerUserAction',
+      this.$store.dispatch('signUpUserAction',
           {
             email: this.email,
             password: this.password,
             passwordRepeat: this.passwordRepeat,
             recaptchaResponse: this.recaptchaResponse,
-            lang: this.lang.lang.lang,
           }).then((errors) => {
         this.overlay.showSignUpSpin = false
         if (errors.length === 0) {
@@ -465,7 +466,7 @@ export default {
           this.overlay.showSignUpFailure = true
           _.delay(() => {
             this.overlay.showSignUpFailure = false
-            this.hideRegisterOverlay()
+            this.hideSignUpOverlay()
           }, 1000)
         }
       })
@@ -484,17 +485,20 @@ export default {
       this.properties.passwordRepeat.showError = false
       this.properties.recaptcha.showError = false
     },
-    hideRegisterOverlay() {
+    hideSignUpOverlay() {
       this.overlay.showSignUpSpin = false
       this.overlay.showSignUpSuccess = false
       this.overlay.showSignUpOverlay = false
     },
-    goToSignIn() {
-      this.hideRegisterOverlay()
-      this.openSignIn()
+    routerSignIn() {
+      this.$router.push({
+        path: "/sign/in"
+      }).then(() => {
+      }).catch(err => {
+      })
     },
-    hideRegisterOverlayAndErrorAndFlush() {
-      this.hideRegisterOverlay()
+    hideSignUpOverlayAndErrorAndFlush() {
+      this.hideSignUpOverlay()
       this.hideError()
       this.flushSignUp()
     },
@@ -506,12 +510,12 @@ export default {
       this.properties.password.wasOutFocus = false
       this.properties.passwordRepeat.wasOutFocus = false
     },
-    openSignIn() {
-
-    },
     openSignUp() {
-      this.hideRegisterOverlayAndErrorAndFlush()
+      this.hideSignUpOverlayAndErrorAndFlush()
       this.focusEmail()
+    },
+    closeSignUp() {
+      this.hideSignUpOverlayAndErrorAndFlush()
     },
     focusEmail() {
       this.$refs[this.properties.email.inputId].focus();
@@ -526,7 +530,7 @@ export default {
       return _.upperCase(this.getLang(key))
     },
     getLang(key) {
-      return this.lang.map[key]
+      return this.$t(key)
     },
     isBlank(str) {
       return str === null || str === ''
@@ -550,34 +554,34 @@ export default {
     },
     emailError() {
       if (this.isBlank(this.email)) {
-        return this.getCapitalizeLang("enterEmail")
+        return this.getCapitalizeLang('enterEmail')
       }
       if (!RegexJS.isEmail(this.email)) {
-        return this.getCapitalizeLang("signUpEmailError")
+        return this.getCapitalizeLang('signUpEmailError')
       }
       return ''
     },
     passwordError() {
       if (this.isBlank(this.password)) {
-        return this.getCapitalizeLang("enterPassword")
+        return this.getCapitalizeLang('enterPassword')
       }
       if (this.password.length < 8) {
-        return this.getCapitalizeLang("signUpPasswordShortLengthError")
+        return this.getCapitalizeLang('signUpPasswordShortLengthError')
       }
       if (this.password.length > 20) {
-        return this.getCapitalizeLang("signUpPasswordLongLengthError")
+        return this.getCapitalizeLang('signUpPasswordLongLengthError')
       }
       if (!RegexJS.isSignUpPassword(this.password)) {
-        return this.getLang("signUpPasswordSyntaxError")
+        return this.getLang('signUpPasswordSyntaxError')
       }
       return ''
     },
     passwordRepeatError() {
       if (this.isBlank(this.passwordRepeat)) {
-        return this.getCapitalizeLang("enterPassword")
+        return this.getCapitalizeLang('enterPassword')
       }
       if (this.password !== this.passwordRepeat) {
-        return this.getCapitalizeLang("signUpPasswordRepeatError")
+        return this.getCapitalizeLang('signUpPasswordRepeatError')
       }
       return ''
     },
@@ -589,9 +593,6 @@ export default {
       this.properties[property].wasOutFocus = true
       this.properties[property].hasFocus = false
       this.show = true
-    },
-    breakNewLinesAndGetAsHtml(str) {
-      return StringJS.breakNewLinesAndGetAsHtml(str)
     },
     showBorderProperty(property) {
       if (!this.properties[property].wasOutFocus) return true

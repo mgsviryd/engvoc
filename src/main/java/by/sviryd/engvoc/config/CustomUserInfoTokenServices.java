@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.FixedPrin
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.BaseOAuth2ProtectedResourceDetails;
@@ -72,7 +73,12 @@ public class CustomUserInfoTokenServices implements ResourceServerTokenServices 
             throw new InvalidTokenException(accessToken);
         }
         int i = getIndexSocial(map);
-        loadUser(map, oauth2Config.getSocial().get(i), oauth2Config.getIdAttr().get(i), oauth2Config.getNameAttr().get(i));
+        loadUser(
+                map,
+                oauth2Config.getSocial().get(i),
+                oauth2Config.getIdAttr().get(i),
+                oauth2Config.getNameAttr().get(i),
+                oauth2Config.getEmailAttr().get(i));
         return extractAuthentication(map);
     }
 
@@ -87,22 +93,23 @@ public class CustomUserInfoTokenServices implements ResourceServerTokenServices 
         throw new Oauth2ConfigMismatchEntryUrlException("Socials in config are not " + userInfoEndpointUrl);
     }
 
-    private void loadUser(Map<String, Object> map, String social, String idAttr, String nameAttr) {
+    private void loadUser(Map<String, Object> map, String social, String idAttr, String nameAttr, String emailAttr) {
         if (map.containsKey(idAttr)) {
-//            String sub = social + map.get(idAttr);
             String sub = "" + map.get(idAttr);
             User userFromDB = userService.findBySub(sub);
-            User user = Optional.ofNullable(userFromDB).orElseGet(() -> getUser(map, sub, nameAttr, social));
+            User user = Optional.ofNullable(userFromDB).orElseGet(() -> getUser(map, social, sub, nameAttr, emailAttr));
             userService.save(user);
         } else {
             throw new Oauth2TokenChangedException("Key " + idAttr + "is missed." + "Map contains: " + map.entrySet());
         }
     }
 
-    private User getUser(Map<String, Object> map, String sub, String nameAttr, String social) {
+    private User getUser(Map<String, Object> map, String social, String sub, String nameAttr, String emailAttr) {
         String name = (String) map.get(nameAttr);
+        String email = (String) map.get(emailAttr);
         User newUser = new User();
         newUser.setUsername(social + ": " + name);
+        newUser.setEmail(email);
         newUser.setPassword("1Aa".concat(UUID.randomUUID().toString()));
         newUser.setSub(sub);
         newUser.setToken("1Aa".concat(UUID.randomUUID().toString()));
@@ -113,7 +120,7 @@ public class CustomUserInfoTokenServices implements ResourceServerTokenServices 
 
     private OAuth2Authentication extractAuthentication(Map<String, Object> map) {
         Object principal = this.getPrincipal(map);
-        List authorities = this.authoritiesExtractor.extractAuthorities(map);
+        List<GrantedAuthority> authorities = this.authoritiesExtractor.extractAuthorities(map);
         OAuth2Request request = new OAuth2Request(
                 null,
                 clientId,

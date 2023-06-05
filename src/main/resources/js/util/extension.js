@@ -1,4 +1,4 @@
-import string from './string'
+import * as _ from "lodash"
 
 const excel = "xlsx"
 const xml = "xml"
@@ -8,16 +8,16 @@ export default {
     },
 
     isExcel(filename) {
-        return string.isEqual(this.getExtension(filename), excel)
+        return _.isEqual(_.normalize(this.getExtension(filename)), excel)
     },
     isXml(filename) {
-        return string.isEqual(this.getExtension(filename), xml)
+        return _.isEqual(_.normalize(this.getExtension(filename)), xml)
     },
 
     isExcelExt(ext) {
-        return string.isEqual(ext, excel)
+        return _.isEqual(_.normalize(ext), excel)
     },
     isXmlExt(ext) {
-        return string.isEqual(ext, xml)
+        return _.isEqual(_normalize(ext), xml)
     }
 }
