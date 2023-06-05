@@ -76,7 +76,7 @@
           </button>
         </div>
         <div class="btn-group btn-group-md btn-group-justified mx-2">
-          <lang-dropdown></lang-dropdown>
+          <lang-multiselect></lang-multiselect>
         </div>
       </nav>
       <div class="tab-content" id="tab-content-0 d-inline-block" style="width: 100%">
@@ -125,7 +125,7 @@ import Dictionary from '../../components/card/Dictionary.vue'
 import Editor from './editor/Editor.vue'
 import Origin from '../../components/card/Origin.vue'
 import Settings from '../../components/card/Settings.vue'
-import LangDropdown from '../../components/lang/LangDropdown.vue'
+import LangMultiselect from '../../components/lang/LangMultiselect.vue'
 
 export default {
   created() {
@@ -139,7 +139,7 @@ export default {
     Editor,
     Origin,
     Settings,
-    LangDropdown,
+    LangMultiselect,
   },
   computed: {
     ...mapState([

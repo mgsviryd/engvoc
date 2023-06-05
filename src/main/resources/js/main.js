@@ -4,7 +4,6 @@ import router from 'router/router'
 import Main from "pages/Main.vue"
 import "@babel/polyfill"
 import store from "store/store"
-import {connect} from "./util/ws"
 import "bootstrap"
 import vueHeadful from 'vue-headful'
 import Multiselect from 'vue-multiselect'
@@ -58,8 +57,6 @@ Vue.use(IconsPlugin)
 Vue.use(VueFileAgent);
 Vue.use(VueFileAgentStyles);
 Vue.use(VueForceNextTick)
-
-connect()
 
 new Vue({
     el: '#main',
