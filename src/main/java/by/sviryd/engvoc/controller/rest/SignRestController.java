@@ -59,7 +59,7 @@ public class SignRestController {
 
     @GetMapping("/sendVerificationToken")
     public boolean sendVerificationToken(@AuthenticationPrincipal User user, Locale locale) {
-        verificationTokenSenderService.sendSignActivateVerificationToken("/sign/activate/", user, locale);
+        verificationTokenSenderService.sendSignUpMailConfirmation("/sign/activate", user, locale);
         return true;
     }
 
@@ -111,7 +111,7 @@ public class SignRestController {
         List<LocaleException> exs = signUpUserService.validate(email, password, passwordRepeat, recaptchaResponse);
         if (exs.isEmpty()) {
             User user = signUpUserService.up(email, password);
-            verificationTokenSenderService.sendSignActivateVerificationToken("/sign/activate/", user, locale);
+            verificationTokenSenderService.sendSignUpMailConfirmation("/sign/activate", user, locale);
         }
         List<LocaleExceptionMessage> lems = exs.stream().map(e -> localeExceptionMessageService.getLEM(e, locale)).collect(Collectors.toList());
         data.put("errors", lems);

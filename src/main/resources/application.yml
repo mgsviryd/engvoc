@@ -53,6 +53,7 @@ server:
     upload: /upload
     uploadPicture: /upload/picture
     staticPicture: /static/picture
+    logoFilename: logo.png
 
 mail:
   debug: true
@@ -229,7 +230,9 @@ frontend:
 
 info:
   url: 'http://localhost:8080'
+  contactUrl: '/contact'
   logo: LANGVOC
+  logoUrl: '/logo/facebook_cover_photo_1.png'
 
 debug: false
 

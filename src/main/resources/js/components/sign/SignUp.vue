@@ -581,7 +581,7 @@ export default {
         return this.getCapitalizeLang('enterPassword')
       }
       if (this.password !== this.passwordRepeat) {
-        return this.getCapitalizeLang('signUpPasswordRepeatError')
+        return this.getLang('signUpPasswordRepeatError')
       }
       return ''
     },

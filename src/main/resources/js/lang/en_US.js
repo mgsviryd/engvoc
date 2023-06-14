@@ -79,7 +79,7 @@ const messages = {
   signUpPasswordShortLengthError: 'password must not be shorter than 8 characters',
   signUpPasswordLongLengthError: 'password must not be longer than 20 characters',
   signUpPasswordSyntaxError: 'Weak password. Password must contain uppercase letters, lowercase letters, numbers and special characters.',
-  signUpPasswordRepeatError: 'passwords do not coincide. Enter password again',
+  signUpPasswordRepeatError: 'Passwords do not coincide. Enter password again',
   signUpPasswordMinCharacters: 'minimum characters: 8',
   signUpPasswordMaxCharacters: 'maximum characters: 20',
   signUpPasswordUppercaseLetter: 'uppercase letter',

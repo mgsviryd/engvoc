@@ -21,6 +21,7 @@ public class ServerPathConfig {
     private String upload;
     private String uploadPicture;
     private String staticPicture;
+    private String logoFilename;
 
     @PostConstruct
     public void init() throws IOException {
