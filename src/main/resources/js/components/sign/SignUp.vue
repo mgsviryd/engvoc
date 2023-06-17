@@ -1,6 +1,5 @@
 <template>
   <b-collapse v-if="show" @shown="focusEmail()" :id="signupId" v-model="signupVmodel" class="mt-2">
-    <b-overlay :show="overlay.showSignUpOverlay" rounded="sm">
       <b-card
           body-class="pt-1"
           border-variant="light"
@@ -232,71 +231,6 @@
           <hr class="my-0">
         </template>
       </b-alert>
-
-      <template #overlay>
-        <div v-if="overlay.showSignUpSpin" class="text-center">
-          <div class="d-flex justify-content-center">
-            <google-circle :widthRem="3" :heightRem="3"></google-circle>
-          </div>
-          <p id="cancel-label">
-            {{ getCapitalizeLang('pleaseWaitTreeDot') }}
-          </p>
-        </div>
-        <div v-if="overlay.showSignUpFailure" class="text-center">
-          <div class="d-flex justify-content-center">
-            <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
-          </div>
-          <p id="cancel-label">
-            {{ getCapitalizeLang('failureOperation') }}
-          </p>
-        </div>
-        <div v-if="overlay.showSignUpSuccess">
-          <b-card
-              header-tag="header"
-              header-class="py-0"
-              header-bg-variant="success"
-              footer-tag="footer"
-              footer-class="py-1"
-              border-variant="success"
-              align="center"
-          >
-            <template #header>
-              <i class="fa-badge-check text-success"></i>
-              <h6 class="py-1">
-                {{ getUpperCaseLang('successOperation') }}
-              </h6>
-            </template>
-            <b-card-text>
-              <b-row>
-                <small>{{ getCapitalizeLang('onlyWithActivatedAccountHaveAccessTo') }}&nbsp;{{
-                    getUpperCaseLang('logo')
-                  }}</small>
-              </b-row>
-              <hr class="my-0">
-              <b-row>
-                <small>{{ getCapitalizeLang('checkEmailToActivateSignUp') }}</small>
-              </b-row>
-            </b-card-text>
-            <b-button
-                variant="outline-primary"
-                size="sm"
-                @click="routerSignIn()"
-            >
-              {{ getCapitalizeLang('signIn') }}
-            </b-button>
-            <template #footer>
-              <b-button
-                  variant="outline-secondary"
-                  size="sm"
-                  @click="hideSignUpOverlayAndErrorAndFlush()"
-              >
-                <small>{{ getCapitalizeLang('hide') }}</small>
-              </b-button>
-            </template>
-          </b-card>
-        </div>
-      </template>
-    </b-overlay>
   </b-collapse>
 
 </template>
@@ -369,12 +303,6 @@ export default {
         showRecaptchaResponseError: false,
         showInternetConnectionError: false,
       },
-      overlay: {
-        showSignUpOverlay: false,
-        showSignUpSpin: false,
-        showSignUpSuccess: false,
-        showSignUpFailure: false,
-      },
       recaptchaWait: 3000,
       recaptchaWidgetId: 0,
       email: '',
@@ -425,17 +353,17 @@ export default {
       this.alert.showRecaptchaResponseError = false
     },
     showSpinOverlay() {
-      this.overlay.showSignUpOverlay = true
-      this.overlay.showSignUpSpin = true
+      this.$emit('showOverlayMethod', true)
+      this.$emit('showSignUpSpinMethod', true)
     },
     signUp() {
       this.closeAllAlert()
-      this.overlay.showSignUpOverlay = true
-      this.overlay.showSignUpSpin = true
+      this.$emit('showOverlayMethod', true)
+      this.$emit('showSignUpSpinMethod', true)
       if (!window.navigator.onLine) {
         this.alert.showInternetConnectionError = true
-        this.overlay.showSignUpSpin = false
-        this.overlay.showSignUpOverlay = false
+        this.$emit('showSignUpSpinMethod', false)
+        this.$emit('showOverlayMethod', false)
         return
       }
       this.recaptchaValidate()
@@ -445,8 +373,8 @@ export default {
       // console.info("recaptcha: " + this.recaptchaResponse)
       if (this.isBlank(this.recaptchaResponse)) {
         this.alert.showRecaptchaResponseError = true
-        this.overlay.showSignUpSpin = false
-        this.overlay.showSignUpOverlay = false
+        this.$emit('showSignUpSpinMethod', false)
+        this.$emit('showOverlayMethod', false)
         return
       }
       this.alert.showRecaptchaResponseError = false
@@ -457,15 +385,15 @@ export default {
             passwordRepeat: this.passwordRepeat,
             recaptchaResponse: this.recaptchaResponse,
           }).then((errors) => {
-        this.overlay.showSignUpSpin = false
+        this.$emit('showSignUpSpinMethod', false)
         if (errors.length === 0) {
-          this.overlay.showSignUpSuccess = true
+          this.$emit('showSignUpSuccessMethod', true)
         } else {
           this.errors = errors
           this.showErrors()
-          this.overlay.showSignUpFailure = true
+          this.$emit('showSignUpFailureMethod', true)
           _.delay(() => {
-            this.overlay.showSignUpFailure = false
+            this.$emit('showSignUpFailureMethod', false)
             this.hideSignUpOverlay()
           }, 1000)
         }
@@ -486,9 +414,9 @@ export default {
       this.properties.recaptcha.showError = false
     },
     hideSignUpOverlay() {
-      this.overlay.showSignUpSpin = false
-      this.overlay.showSignUpSuccess = false
-      this.overlay.showSignUpOverlay = false
+      this.$emit('showSignUpSpinMethod', false)
+      this.$emit('showSignUpSuccessMethod', false)
+      this.$emit('showOverlayMethod', false)
     },
     routerSignIn() {
       this.$router.push({

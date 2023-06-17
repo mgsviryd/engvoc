@@ -1,6 +1,5 @@
 <template>
   <b-collapse v-if="show" @shown="focusEmail()" :id="signinId" v-model="signinVmodel" class="mt-2">
-    <b-overlay :show="overlay.showSignInOverlay" rounded="sm">
       <b-card
           body-class="pt-1"
           border-variant="light"
@@ -106,49 +105,6 @@
           <small>{{ getCapitalizeLang('noInternetConnection') }}</small>
         </b-row>
       </b-alert>
-
-      <template #overlay>
-        <div v-if="overlay.showSignInSpin" class="text-center">
-          <div class="d-flex justify-content-center">
-            <google-circle :widthRem="3" :heightRem="3"></google-circle>
-          </div>
-          <p>
-            {{ getCapitalizeLang('pleaseWaitTreeDot') }}
-          </p>
-        </div>
-        <div v-if="overlay.showSignInFailure" class="text-center">
-          <div class="d-flex justify-content-center">
-            <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
-          </div>
-          <p>
-            {{ getCapitalizeLang('failureOperation') }}
-          </p>
-        </div>
-        <div v-if="overlay.showSignInSuccess">
-          <b-card
-              header-tag="header"
-              header-class="py-0"
-              header-bg-variant="success"
-              footer-tag="footer"
-              footer-class="py-1"
-              border-variant="success"
-              align="center"
-          >
-            <template #header>
-              <h6 class="py-1">
-                {{ getUpperCaseLang('successOperation') }}
-              </h6>
-            </template>
-
-            <small>{{ getCapitalizeLang('pleaseWaitLoading') }}&nbsp;{{ getUpperCaseLang('logo') }}</small>
-
-            <template #footer>
-              <google-circle :widthRem="1" :heightRem="1"></google-circle>
-            </template>
-          </b-card>
-        </div>
-      </template>
-    </b-overlay>
   </b-collapse>
 </template>
 
@@ -157,7 +113,6 @@ import {mapState} from "vuex";
 import * as _ from "lodash"
 import RegexJS from "../../util/regex"
 import RequestJS from "../../util/request"
-import GoogleCircle from "../spinner/GoogleCircle.vue"
 import Services from "./Services.vue"
 
 export default {
@@ -168,7 +123,6 @@ export default {
     Object.assign(this.properties, this.defaultProperties)
   },
   components: {
-    GoogleCircle,
     Services,
   },
   props: [
@@ -212,12 +166,6 @@ export default {
       errors: [],
       alert: {
         showInternetConnectionError: false,
-      },
-      overlay: {
-        showSignInOverlay: false,
-        showSignInSpin: false,
-        showSignInSuccess: false,
-        showSignInFailure: false,
       },
       email: '',
       password: '',
@@ -264,12 +212,12 @@ export default {
     },
     signIn() {
       this.closeAllAlert()
-      this.overlay.showSignInOverlay = true
-      this.overlay.showSignInSpin = true
+      this.$emit('showOverlayMethod', true)
+      this.$emit('showSignInSpinMethod', true)
       if (!window.navigator.onLine) {
         this.alert.showInternetConnectionError = true
-        this.overlay.showSignInSpin = false
-        this.overlay.showSignInOverlay = false
+        this.$emit('showSignInSpinMethod', false)
+        this.$emit('showOverlayMethod', false)
         return
       }
       this.enterUser()
@@ -278,23 +226,24 @@ export default {
       this.$store.dispatch('enterUserAction',
           RequestJS.getBodyContentTypeUrlencoded({username: this.email, password: this.password})
       ).then((errors) => {
-        this.overlay.showSignInSpin = false
+        this.$emit('showSignInSpinMethod', false)
         if (errors.length === 0) {
-          this.overlay.showSignInSuccess = true
+          this.$emit('showSignInSuccessMethod', true)
         } else {
           this.errors = errors
           this.showErrors()
-          this.overlay.showSignInFailure = true
+          this.$emit('showSignInFailureMethod', true)
           _.delay(() => {
-            this.overlay.showSignInFailure = false
+            this.$emit('showSignInFailureMethod', false)
             this.hideSignInOverlay()
           }, 1000)
         }
       })
     },
     showSpinOverlay() {
-      this.overlay.showSignInOverlay = true
-      this.overlay.showSignInSpin = true
+      console.info("showSpinOverlay")
+      this.$emit('showOverlayMethod', true)
+      this.$emit('showSignInSpinMethod', true)
     },
     showErrors() {
       this.errors.forEach(e => {
@@ -309,9 +258,9 @@ export default {
       this.properties.password.showError = false
     },
     hideSignInOverlay() {
-      this.overlay.showSignInSpin = false
-      this.overlay.showSignInSuccess = false
-      this.overlay.showSignInOverlay = false
+      this.$emit('showSignInSpinMethod', false)
+      this.$emit('showSignInSuccessMethod', false)
+      this.$emit('showOverlayMethod', false)
     },
     goToSignIn() {
       this.hideSignInOverlay()
