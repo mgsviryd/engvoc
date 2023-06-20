@@ -1,41 +1,52 @@
 <template>
-  <div v-if="show" class="modal fade" :id="id">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">
-            {{ getCapitalizeLang('addDictionary') }}
-          </h5>
-          <button type="button" class="close" aria-label="Close" @click.prevent.stop="reject()">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <b-input v-model="dictionary.name" :placeholder="getCapitalizeLang('enterName')"></b-input>
-          <div v-if="actionLocal.errors.notUniqueDictionaryError" class="alert alert-danger">
-            {{ lang.map.notUniqueDictionaryError }}
-          </div>
-          <single-picture-drop-zone></single-picture-drop-zone>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click.prevent.stop="reject()">
-            {{ getCapitalizeLang('no') }}
-          </button>
-          <button type="button" class="btn btn-primary" @click.prevent.stop="confirm()">
-            {{ getCapitalizeLang('yes') }}
-          </button>
-        </div>
-      </div>
+  <b-modal
+      v-if="show"
+      :id="id"
+      :ref="id"
+      :header-class="'p-3'"
+      :body-class="'py-0'"
+      no-fade
+      :no-close-on-backdrop="!closable"
+      :no-close-on-esc="!closable"
+  >
+    <template #modal-header="{ close }">
+      <b-container fluid class="px-1">
+        <close-row v-if="closable"
+                   :title="getCapitalizeLang('addDictionary')"
+                   @close="reject()"
+        ></close-row>
+      </b-container>
+    </template>
+
+    <b-input v-model="dictionary.name" :placeholder="getCapitalizeLang('enterName')"></b-input>
+    <div v-if="actionLocal.errors.notUniqueDictionaryError" class="alert alert-danger">
+      {{ getLang('notUniqueDictionaryError') }}
     </div>
-  </div>
+    <single-picture-drop-zone></single-picture-drop-zone>
+
+    <template #modal-footer>
+      <b-button variant="secondary" @click.prevent.stop="reject()">
+        {{ getCapitalizeLang('no') }}
+      </b-button>
+      <b-button variant="primary" @click.prevent.stop="confirm()">
+        {{ getCapitalizeLang('yes') }}
+      </b-button>
+    </template>
+  </b-modal>
 </template>
 
 <script>
 import {mapState} from 'vuex'
-import singlePictureDropZone from "./SinglePictureDropZone.vue"
+import SinglePictureDropZone from "./SinglePictureDropZone.vue"
+import CloseRow from "../../close/CloseRow.vue"
 import * as _ from "lodash"
 
 export default {
+  props: [
+    'id',
+    'closable',
+    'unique',
+  ],
   created() {
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       if (actionId === this.actionLocal.id) {
@@ -48,12 +59,9 @@ export default {
     })
   },
   components: {
-    singlePictureDropZone,
+    SinglePictureDropZone,
+    CloseRow,
   },
-  props: [
-    'id',
-    'unique',
-  ],
   computed: {
     ...mapState([
       'action',
@@ -84,6 +92,12 @@ export default {
   methods: {
     fetchData() {
     },
+    showModal() {
+      this.$refs[this.id].show()
+    },
+    hideModal() {
+      this.$refs[this.id].hide()
+    },
     updateAction() {
       this.actionLocal.id = this.action.id
       this.actionLocal.errors = this.action.errors
@@ -111,7 +125,7 @@ export default {
       this.$root.$emit('setDefaultDropZone')
     },
     close() {
-      $("#" + this.id).modal('hide')
+      this.hideModal()
     },
     closeIfNoErrors() {
       if (Object.keys(this.actionLocal.errors).length === 0) {

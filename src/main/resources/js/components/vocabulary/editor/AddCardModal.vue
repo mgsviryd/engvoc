@@ -1,18 +1,26 @@
 <template>
-  <b-modal :id="id"
-           @shown="focusWord()"
-           :header-class="'p-3'"
-           no-fade
+  <b-modal
+      v-if="show"
+      :id="id"
+      :ref="id"
+      :header-class="'p-3'"
+      :body-class="'py-0'"
+      no-fade
+      :no-close-on-backdrop="!closable"
+      :no-close-on-esc="!closable"
+      @shown="focusWord()"
   >
     <template #modal-header="{ close }">
-      <h5>{{ getCapitalizeLang("addCard") }}</h5>
-      <button type="button" class="close" aria-label="Close" @click.prevent.stop="reject()">
-        <span aria-hidden="true">&times;</span>
-      </button>
+      <b-container fluid class="px-1">
+        <close-row v-if="closable"
+                   :title="getCapitalizeLang('addCard')"
+                   @close="reject()"
+        ></close-row>
+      </b-container>
     </template>
 
     <span>{{ getCapitalizeLang("dictionary") + ':' }}</span>
-    {{ card.dictionary.name }}
+    {{ dictionary.name }}
 
     <b-row>
       <b-col sm="10" class="pr-1">
@@ -246,9 +254,20 @@
 <script>
 import {mapState} from 'vuex'
 import SinglePictureDropZone from "./SinglePictureDropZone.vue"
+import CloseRow from "../../close/CloseRow.vue"
 import * as _ from "lodash"
 
 export default {
+  props: [
+    'id',
+    'closable',
+    'unique',
+    'dictionary',
+  ],
+  components: {
+    SinglePictureDropZone,
+    CloseRow,
+  },
   created() {
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       if (actionId === this.actionLocal.id) {
@@ -260,14 +279,6 @@ export default {
       this.formData = payload.formData
     })
   },
-  components: {
-    SinglePictureDropZone,
-  },
-  props: [
-    'id',
-    'unique',
-    'dictionary',
-  ],
   computed: {
     ...mapState([
       'action',
@@ -278,9 +289,13 @@ export default {
     $route: [
       'fetchData',
     ],
+    dictionary(){
+      this.fetchData()
+    }
   },
   data() {
     return {
+      show: true,
       card: {
         unique: this.unique,
         word: null,
@@ -321,6 +336,15 @@ export default {
   },
   methods: {
     fetchData() {
+      this.show = false
+      this.card.dictionary = this.dictionary
+      this.show = true
+    },
+    showModal() {
+      this.$refs[this.id].show()
+    },
+    hideModal() {
+      this.$refs[this.id].hide()
     },
     updateAction() {
       this.actionLocal.id = this.action.id
@@ -352,7 +376,7 @@ export default {
       this.$root.$emit('setDefaultDropZone')
     },
     close() {
-      this.$bvModal.hide(this.id)
+      this.hideModal()
     },
     closeIfNoErrors() {
       if (Object.keys(this.actionLocal.errors).length === 0) {

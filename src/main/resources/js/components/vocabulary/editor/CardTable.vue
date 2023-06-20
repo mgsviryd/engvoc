@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="card-table-">
+  <div v-if="show" class="card-table- container p-0 m-0">
     <table class="table bg-white table-hover table-bordered border-2 border-dark table-sm">
       <thead class="thead-dark"
              style="position: sticky; top: 0;"
@@ -22,43 +22,48 @@
             </button>
             <button class="btn btn-light px-0 py-0"
                     @mousedown.prevent.stop="mousedownSelected()">
-              <span class="st-text-shift"><small><b>SELECTED</b></small></span>
+              <span class="st-text-shift">
+                {{getLang('selected')}}
+              </span>
               <span class="st-right badge bg-white border border-secondary badge-pill">{{
                   selectedCardIds.length
                 }}</span>
             </button>
             <button class="btn btn-light shadow-none px-1 py-0"
-                    :disabled="isUnselectAll()"
-                    @click.prevent.s.stop="unselectAll()"
+                    :disabled="isDeselectAll()"
+                    @click.prevent.s.stop="deselectAll()"
                     data-toggle="tooltip"
-                    :title="getCapitalizeLang(unselectAllSetting.tooltip.title)"
-                    :data-placement="unselectAllSetting.tooltip.placement"
-                    :data-delay="unselectAllSetting.tooltip.delay"
+                    :title="getCapitalizeLang(deselectAllSetting.tooltip.title)"
+                    :data-placement="deselectAllSetting.tooltip.placement"
+                    :data-delay="deselectAllSetting.tooltip.delay"
             >
               <i class="fa fa-xmark fa-xs text-danger"></i>
             </button>
           </div>
-          <div class="btn-group btn-group-sm btn-group-justified">
-            <button class="btn btn-light shadow-none px-1 py-0"
-                    data-toggle="modal"
-                    :data-target="'#' + getTableSettingsElemId()"
+          <b-button-group size="sm">
+            <b-button
+                variant="light"
+                class="shadow-none px-1 py-0"
+                @click="$refs[id.tableSettingsModal].showModal()"
             >
               <i class="fa fa-gear fa-xs text-secondary"></i>
-            </button>
-          </div>
-          <div class="btn-group btn-group-sm btn-group-justified">
-            <b-button class="btn btn-light shadow-none btn-sm px-1 py-0"
-                      v-b-modal="this.prefixId + 'add-card-modal'"
+            </b-button>
+          </b-button-group>
+          <b-button-group size="sm">
+            <b-button
+                variant="light"
+                class="shadow-none px-1 py-0"
+                @click="$refs[id.addCardModal].showModal()"
             >
               <i class="fa fa-plus fa-xs text-success"></i>
               {{ getLang("card") }}
             </b-button>
-          </div>
+          </b-button-group>
         </th>
       </tr>
       <tr class="border-0">
         <th class="st-squeeze border-0 border-left-0 py-0">
-          N
+          {{getUpperCaseLang('abbrNumber')}}
         </th>
         <template v-for="(property,i) in sortByColumnInx(propertySettings)">
           <th v-if="property.showColumn"
@@ -178,7 +183,9 @@
           </td>
         </tr>
         <tr class="collapse" :id="getCardDetailsElemId(card.id)">
-          <td colspan="5" class="st-squeeze border-1 border-secondary border-right-0">DETAILS</td>
+          <td colspan="5" class="st-squeeze border-1 border-secondary border-right-0">
+            {{getUpperCaseLang('details')}}
+          </td>
         </tr>
       </template>
       </tbody>
@@ -190,7 +197,9 @@
     >
     </div>
     <table-settings-modal
-        :id="getTableSettingsElemId()"
+        :id="id.tableSettingsModal"
+        :ref="id.tableSettingsModal"
+        :closable="true"
         :instance-mark="instanceMark"
         :property-settings="propertySettings"
     >
@@ -198,20 +207,30 @@
     <GlobalEvents @mouseup="mouseupOutside()"/>
 
     <add-card-modal
-        :id="this.prefixId + 'add-card-modal'"
+        :id="id.addCardModal"
+        :ref="id.addCardModal"
+        :closable="true"
         :unique="true"
-        :dictionary="this.dictionary"
+        :dictionary="dictionary"
     ></add-card-modal>
   </div>
 </template>
 
 <script>
-import {mapGetters, mapState} from "vuex";
-import tableSettingsModal from "./TableSettingsModal.vue";
-import * as _ from "lodash"
-import addCardModal from "./AddCardModal.vue"
+import {mapGetters, mapState} from 'vuex'
+import TableSettingsModal from './TableSettingsModal.vue'
+import AddCardModal from './AddCardModal.vue'
+import * as _ from 'lodash'
 
 export default {
+  props: [
+    'dictionary',
+    'instanceMark',
+  ],
+  components: {
+    TableSettingsModal,
+    AddCardModal,
+  },
   created() {
     this.$root.$on('dragdrop-init', (payload) => {
       this.dragdropInit(payload)
@@ -224,14 +243,6 @@ export default {
     })
     this.fetchData()
     this.showEmpty = typeof this.dictionaryCards === 'undefined' || this.dictionaryCards.length === 0;
-  },
-  props: [
-    'instanceMark',
-    'dictionary',
-  ],
-  components: {
-    tableSettingsModal,
-    addCardModal,
   },
   watch: {
     $route: [
@@ -255,11 +266,11 @@ export default {
     prefixId() {
       return this.name + "-" + this.instanceMark + "-"
     },
-    unselectAllSetting() {
+    deselectAllSetting() {
       return {
         tooltip: {
           placement: top,
-          title: "unselectAll",
+          title: "deselectAll",
           delay: {show: 500, hide: 100}
         }
       }
@@ -420,6 +431,10 @@ export default {
   data() {
     return {
       name: "cardTable",
+      id: {
+        addCardModal: this.prefixId + 'add-card-modal',
+        tableSettingsModal: this.prefixId + "table-settings-modal"
+      },
       card: {
         word: null,
         translation: null,
@@ -442,24 +457,30 @@ export default {
   },
   methods: {
     fetchData() {
-      this.show = false
-      if (this.isSourceExists()) {
-        this.show = true
-        const cards = [...this.getCardsByDictionaryId(this.dictionary.id)]
-        this.showEmpty = typeof cards === 'undefined' || cards.length === 0
-        this.dictionaryCards = cards
-        this.groupCards()
-        this.updateSelected()
+      if (this.dictionary) {
+        this.show = false
+        if (this.isSourceExists()) {
+          this.show = true
+          const cards = this.getCardsByDictionaryId(this.dictionary.id)
+          this.showEmpty = typeof cards === 'undefined' || cards.length === 0
+          if (cards){
+            this.dictionaryCards = [...cards]
+          }else{
+            this.dictionaryCards = []
+          }
+          this.groupCards()
+          this.updateSelected()
+        }
       }
-    },
-    getCapitalizeLang(key) {
-      return _.capitalize(this.getLang(key))
     },
     getLang(key) {
       return this.$t(key)
     },
-    getTableSettingsElemId() {
-      return this.prefixId + "modal-tableSettings"
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    getUpperCaseLang(key) {
+      return _.upperCase(this.getLang(key))
     },
     getProperty(item, property) {
       return _.get(item, property)
@@ -594,14 +615,14 @@ export default {
     isSelectAll() {
       return this.selectedCardIds.length === this.dictionaryCards.length
     },
-    isUnselectAll() {
+    isDeselectAll() {
       return this.selectedCardIds.length === 0
     },
     selectAll() {
       this.selectedCardIds = this.dictionaryCards.map(c => c.id)
       this.selectedCardIds.forEach(id => $("#" + this.getCardElemId(id)).addClass("card-select"))
     },
-    unselectAll() {
+    deselectAll() {
       this.selectedCardIds.forEach(id => $("#" + this.getCardElemId(id)).removeClass("card-select"))
       this.selectedCardIds = []
     },

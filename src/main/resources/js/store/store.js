@@ -1,18 +1,19 @@
-import Vue from "vue";
-import Vuex from "vuex";
-import frontendApi from "../api/frontend";
-import pictureMediaApi from "../api/pictureMedia";
-import languageApi from "../api/language";
-import signApi from "../api/sign";
-import cardApi from "../api/card";
-import dictionaryApi from "../api/dictionary";
-import VuexPersistence from "vuex-persist";
-import vlf from "../util/vlf";
-import date from "../util/date";
-import compare from "../util/compare";
+import Vue from "vue"
+import Vuex from "vuex"
+import frontendApi from "../api/frontend"
+import pictureMediaApi from "../api/pictureMedia"
+import languageApi from "../api/language"
+import signApi from "../api/sign"
+import cardApi from "../api/card"
+import dictionaryApi from "../api/dictionary"
+import VuexPersistence from "vuex-persist"
+import vlf from "../util/vlf"
+import date from "../util/date"
+import compare from "../util/compare"
+import documentJS from "../util/document"
 import {loadLanguageAsync} from "../setup/i18n-setup"
-
-
+import * as _ from "lodash"
+import localforage from 'localforage'
 
 Vue.use(Vuex)
 
@@ -21,13 +22,15 @@ let lock = new AsyncLock();
 
 const persist = new VuexPersistence(
     {
-        storage: window.localStorage,
+        key: 'root',
+        storage: localforage,
         reducer: (state) => (
             {
                 authentication: state.authentication,
                 frontend: state.frontend,
                 pictureMedia: state.pictureMedia,
                 lang: state.lang,
+                vocabulary: state.vocabulary,
                 cards: state.cards,
                 dictionaries: state.dictionaries,
                 action: state.action,
@@ -42,11 +45,15 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            pageAttributes: {},
             dragdrop: {},
             pictures: [],
             action: {
                 id: 0,
                 errors: {},
+            },
+            vocabulary:{
+                id: 0,
             },
             dictionaries: [],
             cards: [],
@@ -55,7 +62,7 @@ export default new Vuex.Store(
             authentication: {
                 id: 0,
                 users: [],
-                user: {},
+                user: null,
             },
             frontend: {},
             pictureMedia: {},
@@ -69,6 +76,13 @@ export default new Vuex.Store(
         },
         getters: {
             getActionId: state => () => state.action.id,
+            getAuthenticationId: state => () => state.authentication.id,
+            getLangId: state => () => state.lang.id,
+            getVocabularyId: state => () => state.vocabulary.id,
+
+            isDictionaryUnique: (state,getters) => (id) => {
+                return getters.getDictionaryById(id).unique
+            },
             getCardsByDictionaryInx: state => i => {
                 if (state.dictionaries.length <= i) return []
                 return state.cards[i]
@@ -119,7 +133,6 @@ export default new Vuex.Store(
             },
             sortArrayByStringProperty: (state) => (dictionaries, property) => dictionaries.sort((a, b) => compare.compareStringNaturalByProperty(a, b, property)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
-            getLangId: state => () => state.lang.id,
             isAuthenticated: (state) => {
                 return typeof state.authentication.user !== 'undefined' && state.authentication.user !== null
             },
@@ -131,9 +144,36 @@ export default new Vuex.Store(
                         return x.token
                     })
                 }
-            }
+            },
+            isUserExists: (state) => (user) => {
+                return state.authentication.users.map(u => u.id).indexOf(user.id) >= 0
+            },
+            isNoAuthentication: (state, getters) => {
+                return getters.isNoUser && getters.isNoUsers
+            },
+            isNoUser: (state) => {
+                return _.isNil(state.authentication.user) || _.isEmpty(state.authentication.user)
+            },
+            isNoUsers: (state) => {
+                return _.isNil(state.authentication.users) || _.isEmpty(state.authentication.users)
+            },
         },
         mutations: {
+            addAndSetUserMutation(state, payload) {
+                if (payload.user && !this.getters.isUserExists(payload.user)) {
+                    state.authentication.users = [
+                        ...state.authentication.users,
+                        payload.user,
+                    ]
+                }
+                state.authentication.user = payload.user
+                state.authentication.id = date.getUTCMilliseconds(new Date())
+            },
+            logoutMutation(state) {
+                state.authentication.user = null
+                state.authentication.id = date.getUTCMilliseconds(new Date())
+            },
+
             //dragdrop
             dragdropDefaultMutation(state) {
                 state.dragdrop = {}
@@ -153,8 +193,8 @@ export default new Vuex.Store(
 
 
             // pictures
-            setPicturesMutation(state, pictures) {
-                state.pictures = pictures
+            setPicturesMutation(state, payload) {
+                state.pictures = payload
             },
             deletePicturesMutation(state) {
                 state.pictures = []
@@ -228,6 +268,7 @@ export default new Vuex.Store(
                 state.dictionaries.forEach((d, i) => {
                     state.cards[i] = payload.cards.filter(c => c.dictionary.id === d.id)
                 })
+                state.vocabulary.id = date.getUTCMilliseconds(new Date())
             },
 
             defaultCardsMutation(state) {
@@ -331,12 +372,24 @@ export default new Vuex.Store(
 
             setDictionariesMutation(state, payload) {
                 state.dictionaries = payload.dictionaries
+                state.vocabulary.id = date.getUTCMilliseconds(new Date())
+            },
+            setDictionariesAndCardsMutation(state, payload) {
+                state.dictionaries = payload.dictionaries
+                state.cards = []
+                state.dictionaries.forEach((d, i) => {
+                    state.cards[i] = payload.cards.filter(c => c.dictionary.id === d.id)
+                })
+                state.vocabulary.id = date.getUTCMilliseconds(new Date())
             },
 
             updateFrontendMutation(state, data) {
                 state.frontend = data
                 state.lang.langs = data.langLangs
                 state.lang.map = data.langMap
+            },
+            setPageAttributesMutation(state, payload) {
+                state.pageAttributes = documentJS.getPageAttributes(payload.id, payload.attr)
             },
             getPictureMediaMutation(state, data) {
                 state.pictureMedia = data
@@ -373,8 +426,9 @@ export default new Vuex.Store(
             getLanguageListMutation(state, data) {
                 state.lang.list = data
             },
-            getAuthenticationMutation(state, data) {
-                state.authentication = data
+            setAuthenticationMutation(state, payload) {
+                state.authentication = payload
+                state.authentication.id = date.getUTCMilliseconds(new Date())
             },
 
         },
@@ -389,6 +443,9 @@ export default new Vuex.Store(
 
             async setFrontendAction({commit}, data) {
                 commit('updateFrontendMutation', data)
+            },
+            async setPageAttributesAction({commit}, payload) {
+                commit('setPageAttributesMutation', payload)
             },
 
             async getFrontendAction({commit}, lang) {
@@ -441,7 +498,7 @@ export default new Vuex.Store(
                 const data = await result.data
                 lock.acquire('authentication', () => {
                     if (result.ok) {
-                        commit('getAuthenticationMutation', data)
+                        commit('setAuthenticationMutation', data)
                         commit('authenticationSyncLocalWithStateMutation')
                     }
                 }).catch((err) => {
@@ -557,8 +614,7 @@ export default new Vuex.Store(
                 const result = await dictionaryApi.findDictionariesAndCards()
                 const data = await result.data
                 if (result.ok) {
-                    commit('setDictionariesMutation', {dictionaries: data.dictionaries})
-                    commit('setCardsMutation', {cards: data.cards})
+                    commit('setDictionariesAndCardsMutation', {dictionaries: data.dictionaries, cards: data.cards})
                 }
             },
             async findDictionaries({commit}) {
@@ -682,15 +738,19 @@ export default new Vuex.Store(
             async enterUserAction({commit}, payload) {
                 let result = await signApi.in(payload)
                 const data = await result.data
-                console.info(data)
                 if (result.ok) {
-                    console.info("errors: " + data.errors)
-                    if(data.user){
-                        console.info("user: "+ data.user)
+                    if (data.user) {
+                        commit('addAndSetUserMutation', {user: data.user})
                     }
                     return data.errors
                 }
             },
+            async logoutAction({commit}) {
+                let result = await signApi.logout()
+                if (result.ok) {
+                    commit('logoutMutation')
+                }
+            }
         },
     }
 )

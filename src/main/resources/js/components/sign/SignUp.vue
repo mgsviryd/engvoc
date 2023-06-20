@@ -29,6 +29,7 @@
                   :state="stateEmail()"
                   trim
                   v-model="email"
+                  @keyup.enter="signUp()"
                   @focusin="onFocusinProperty('email')"
                   @focusout="onFocusoutProperty( 'email')"
                   @input="inputProperty('email')"
@@ -65,6 +66,7 @@
                   :state="statePassword()"
                   trim
                   v-model="password"
+                  @keyup.enter="signUp()"
                   @focusin="onFocusinProperty('password')"
                   @focusout="onFocusoutProperty( 'password')"
                   @input="inputProperty('password')"
@@ -151,6 +153,7 @@
                   :state="statePasswordRepeat()"
                   trim
                   v-model="passwordRepeat"
+                  @keyup.enter="signUp()"
                   @focusin="onFocusinProperty('passwordRepeat')"
                   @focusout="onFocusoutProperty('passwordRepeat')"
                   @input="inputProperty('passwordRepeat')"
@@ -357,17 +360,19 @@ export default {
       this.$emit('showSignUpSpinMethod', true)
     },
     signUp() {
-      this.closeAllAlert()
-      this.$emit('showOverlayMethod', true)
-      this.$emit('showSignUpSpinMethod', true)
-      if (!window.navigator.onLine) {
-        this.alert.showInternetConnectionError = true
-        this.$emit('showSignUpSpinMethod', false)
-        this.$emit('showOverlayMethod', false)
-        return
+      if(this.stateTrue()) {
+        this.closeAllAlert()
+        this.$emit('showOverlayMethod', true)
+        this.$emit('showSignUpSpinMethod', true)
+        if (!window.navigator.onLine) {
+          this.alert.showInternetConnectionError = true
+          this.$emit('showSignUpSpinMethod', false)
+          this.$emit('showOverlayMethod', false)
+          return
+        }
+        this.recaptchaValidate()
+        this.recaptchaExecute()
       }
-      this.recaptchaValidate()
-      this.recaptchaExecute()
     },
     signUpUser() {
       // console.info("recaptcha: " + this.recaptchaResponse)

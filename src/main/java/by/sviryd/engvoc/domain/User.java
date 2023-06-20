@@ -40,7 +40,9 @@ public class User implements UserDetails, Serializable {
     @JsonView(Views.Active.class)
     private boolean active;
 
-    // oAoth2 (google)
+    @Column(length = 20, unique = true)
+    private String social;
+
     @Column(length = 255)
     private String sub;
 

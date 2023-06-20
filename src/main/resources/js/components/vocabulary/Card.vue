@@ -1,14 +1,6 @@
 <template>
   <div>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
-    <button type="button" class="btn btn-primary">Primary</button>
+
   </div>
 </template>
 
@@ -26,22 +18,15 @@
             }
         },
         created(){
-            // this.fetchData()
-            // this.$store.watch(this.$store.getters.getBasketId, basketId => {
-            //     this.fetchData()
-            // })
+            this.fetchData()
         },
         watch: {
             $route: 'fetchData',
         },
         computed: {
             ...mapState([
-                // 'basket',
                 'lang',
             ]),
-            basketAmount(){
-                // return this.basket.amount
-            },
         },
         methods: {
             fetchData(){

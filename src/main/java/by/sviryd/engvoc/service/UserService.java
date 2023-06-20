@@ -97,8 +97,8 @@ public class UserService implements UserDetailsService {
         userRepo.save(user);
     }
 
-    public Iterable<User> getUsersByTokens(List<String> tokens) {
-        return userRepo.findAllByToken(tokens);
+    public Iterable<User> findAllByTokenIn(List<String> tokens) {
+        return userRepo.findAllByTokenIn(tokens);
     }
 
     public User findByEmail(String email) {

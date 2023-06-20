@@ -7,11 +7,15 @@ import by.sviryd.engvoc.util.LocaleException;
 import by.sviryd.engvoc.util.LocaleExceptionMessage;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Type;
 import java.security.Principal;
 import java.util.*;
@@ -59,7 +63,7 @@ public class SignRestController {
 
     @GetMapping("/sendVerificationToken")
     public boolean sendVerificationToken(@AuthenticationPrincipal User user, Locale locale) {
-        verificationTokenSenderService.sendSignUpMailConfirmation("/sign/activate", user, locale);
+        verificationTokenSenderService.sendSignUpMailConfirmation("/sign/confirm", user, locale);
         return true;
     }
 
@@ -76,13 +80,7 @@ public class SignRestController {
         }.getType();
         List<String> tokens = gson.fromJson(tokensArray, stringType);
         Map<String, Object> frontendData = new HashMap<>();
-        Iterable<User> users;
-        if (tokens.isEmpty()) {
-            users = Collections.emptyList();
-        } else {
-            users = userService.getUsersByTokens(tokens);
-        }
-        frontendData.put("users", users);
+        List<User> users;
         if (user != null) {
             frontendData.put("user", user);
         } else {
@@ -92,8 +90,21 @@ public class SignRestController {
                 user = userService.findBySub(sub);
                 frontendData.put("user", user);
             } catch (Exception e) {
+                frontendData.put("user", null);
             }
         }
+        if (tokens.isEmpty()) {
+            users = new ArrayList<>(1);
+        } else {
+            users = IterableUtils.toList(userService.findAllByTokenIn(tokens));
+        }
+        if (user != null) {
+            Long id = user.getId();
+            if (users.stream().noneMatch(u -> u.getId().equals(id))) {
+                users.add(user);
+            }
+        }
+        frontendData.put("users", users);
         gson = new GsonBuilder().addSerializationExclusionStrategy(gsonExcludeStrategies.getUserOnlyInfo()).create();
         return gson.toJson(frontendData);
     }
@@ -111,10 +122,21 @@ public class SignRestController {
         List<LocaleException> exs = signUpUserService.validate(email, password, passwordRepeat, recaptchaResponse);
         if (exs.isEmpty()) {
             User user = signUpUserService.up(email, password);
-            verificationTokenSenderService.sendSignUpMailConfirmation("/sign/activate", user, locale);
+            verificationTokenSenderService.sendSignUpMailConfirmation("/sign/confirm", user, locale);
         }
         List<LocaleExceptionMessage> lems = exs.stream().map(e -> localeExceptionMessageService.getLEM(e, locale)).collect(Collectors.toList());
         data.put("errors", lems);
         return data;
+    }
+
+    @GetMapping("/logout")
+    public void logout(
+            HttpServletRequest request,
+            Authentication authentication
+    ) throws ServletException {
+        if (authentication != null) {
+            request.getSession().invalidate();
+            request.logout();
+        }
     }
 }

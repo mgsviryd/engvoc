@@ -9,6 +9,7 @@ import by.sviryd.engvoc.service.VerificationTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.UUID;
@@ -47,6 +49,18 @@ public class SignController {
         return "main";
     }
 
+    @GetMapping("/logout")
+    public String logout(
+            HttpServletRequest request,
+            Authentication authentication
+    ) throws ServletException {
+        if (authentication != null) {
+            request.getSession().invalidate();
+            request.logout();
+        }
+        return "redirect:/";
+    }
+
     @PostMapping(value = "/failure")
     public ModelAndView failure(
             HttpServletRequest request
@@ -63,35 +77,35 @@ public class SignController {
         return new ModelAndView("redirect:" + "/json/sign/success");
     }
 
-    @GetMapping("/activate/{token}")
+    @GetMapping("/confirm/{token}")
     public String activate(@PathVariable VerificationToken token) {
         if (token != null) {
             if (token.isExpiredToken()) {
-                return "redirect:" + "/sign/activation/expiredToken";
+                return "redirect:" + "/sign/expiredToken";
             } else {
                 User user = token.getUser();
                 user.setToken("1Aa".concat(UUID.randomUUID().toString()));
                 user.setActive(true);
                 userService.save(user);
                 verificationTokenService.delete(token);
-                return "redirect:" + "/sign/activation/success";
+                return "redirect:" + "/sign/success";
             }
         } else {
-            return "redirect:" + "/sign/activation/failure";
+            return "redirect:" + "/sign/failure";
         }
     }
 
-    @GetMapping("/activation/expiredToken")
+    @GetMapping("/expiredToken")
     public String activationExpiredToken() {
         return "main";
     }
 
-    @GetMapping("/activation/success")
+    @GetMapping("/success")
     public String activationSuccess() {
         return "main";
     }
 
-    @GetMapping("/activation/failure")
+    @GetMapping("/failure")
     public String activationFailure() {
         return "main";
     }

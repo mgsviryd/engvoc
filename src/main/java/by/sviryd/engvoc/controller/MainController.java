@@ -10,7 +10,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.Locale;
 
 @Controller
 public class MainController {
@@ -22,10 +25,13 @@ public class MainController {
     @GetMapping("/")
     public String main(
             Model model,
-            Authentication authentication) {
+            Authentication authentication,
+            Locale locale
+    ) {
+        model.addAttribute("title", messageI18nService.getMessage("logo", new Object[]{}, locale));
         HashMap<Object, Object> data = new HashMap<>();
         User user = null;
-        if (authentication != null){
+        if (authentication != null) {
             user = userAuthenticationService.getUser(authentication);
         }
         data.put("user", user);

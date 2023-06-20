@@ -1,50 +1,76 @@
 <template>
-    <div class="modal fade" :id="idModal">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">{{lang.map.confirmAction}}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>{{message}}</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="reject">{{lang.map.no}}</button>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" @click="confirm">{{lang.map.yes}}</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  <b-modal
+      v-if="show"
+      :id="id"
+      :ref="id"
+      :header-class="'p-3'"
+      :body-class="'py-0'"
+      no-fade
+      :no-close-on-backdrop="!closable"
+      :no-close-on-esc="!closable"
+  >
+
+    <template #modal-header="{ close }">
+      <b-container fluid class="px-1">
+        <close-row v-if="closable"
+                   :title="getCapitalizeLang('confirmAction')"
+                   @close="reject()"
+        ></close-row>
+      </b-container>
+    </template>
+
+    <p>{{ message }}</p>
+
+    <template #modal-footer="{ ok, cancel, hide }">
+      <button type="button" class="btn btn-secondary" @click.prevent.stop="reject()">
+        {{ getCapitalizeLang("no") }}
+      </button>
+      <button type="button" class="btn btn-primary" @click.prevent.stop="confirm()">
+        {{ getCapitalizeLang("yes") }}
+      </button>
+    </template>
+  </b-modal>
 </template>
 
 <script>
-    import {mapState} from 'vuex'
+import {mapState} from 'vuex'
+import CloseRow from "../close/CloseRow.vue"
+import * as _ from "lodash"
 
-    export default{
-        props: ['message', 'id'],
-        data(){
-            return {}
-        },
-        methods: {
-            confirm(){
-                this.$emit('confirm')
-            },
-            reject(){
-                this.$emit('reject')
-            },
-        },
-        computed: {
-            ...mapState([
-                'lang',
-            ]),
-            idModal(){
-                return this.id
-            }
-        }
+export default {
+  props: [
+    'id',
+    'closable',
+    'message',
+  ],
+  components: {
+    CloseRow,
+  },
+  computed: {
+    ...mapState([
+      'lang',
+    ]),
+  },
+  data() {
+    return {
+      show: true,
     }
+  },
+  methods: {
+    getLang(key) {
+      return this.$t(key)
+    },
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    confirm() {
+      this.$emit('confirm')
+    },
+    reject() {
+      this.$emit('reject')
+    },
+  }
+}
 </script>
 
 <style scoped>

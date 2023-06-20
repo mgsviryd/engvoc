@@ -1,110 +1,123 @@
 <template>
   <b-collapse v-if="show" @shown="focusEmail()" :id="signinId" v-model="signinVmodel" class="mt-2">
-      <b-card
-          body-class="pt-1"
-          border-variant="light"
-      >
-        <services
-            :prefix-id="prefixId()"
-            @onClick="showSpinOverlay()"
-        ></services>
+    <b-card
+        body-class="pt-1"
+        border-variant="light"
+    >
+      <services
+          :prefix-id="prefixId()"
+          @onClick="showSpinOverlay()"
+      ></services>
 
-        <b-row class="mb-1">
-          <b-col sm="12" class="">
-            <b-input-group
-                label-class="py-0"
-                label-cols-sm="3"
-                label-cols-lg="3"
-                content-cols-sm="7"
-                content-cols-lg="7"
-                :label-for="properties.email.inputId"
+      <b-row class="mb-1">
+        <b-col sm="12" class="">
+          <b-input-group
+              label-class="py-0"
+              label-cols-sm="3"
+              label-cols-lg="3"
+              content-cols-sm="7"
+              content-cols-lg="7"
+              :label-for="properties.email.inputId"
+          >
+            <b-form-input
+                class="shadow-none rounded-sm"
+                :class="{'border-success':showBorderProperty('email')}"
+                :id="properties.email.inputId"
+                :ref="properties.email.inputId"
+                size="sm"
+                :state="stateEmail()"
+                trim
+                v-model="email"
+                @keyup.enter="signIn()"
+                @input="inputProperty($event, 'email')"
+                @focusin.prevent.stop="onFocusinProperty($event, properties.email.inputId, 'email')"
+                @focusout.prevent.stop="onFocusoutProperty($event, properties.email.inputId, 'email')"
+                :placeholder="getCapitalizeLang('email')"
             >
-              <b-form-input
-                  class="shadow-none rounded-sm"
-                  :class="{'border-success':showBorderProperty('email')}"
-                  :id="properties.email.inputId"
-                  :ref="properties.email.inputId"
-                  size="sm"
-                  :state="stateEmail()"
-                  trim
-                  v-model="email"
-                  @input="inputProperty($event, 'email')"
-                  @focusin.prevent.stop="onFocusinProperty($event, properties.email.inputId, 'email')"
-                  @focusout.prevent.stop="onFocusoutProperty($event, properties.email.inputId, 'email')"
-                  :placeholder="getCapitalizeLang('email')"
-              >
-              </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.email.wasOutFocus">
-                <small>{{ emailError() }}</small>
-              </div>
-            </b-input-group>
-            <div class="my-0 text-danger" v-if="properties.email.showError">
-              <small v-for="(e,i) in getErrors('email')">{{ getCapitalize(e.message) }}</small>
+            </b-form-input>
+            <div class="invalid-feedback my-0" v-if="properties.email.wasOutFocus">
+              <small>{{ emailError() }}</small>
             </div>
-          </b-col>
-        </b-row>
+          </b-input-group>
+          <div class="my-0 text-danger" v-if="properties.email.showError">
+            <small v-for="(e,i) in getErrors('email')">{{ getCapitalize(e.message) }}</small>
+          </div>
+        </b-col>
+      </b-row>
 
-        <b-row class="mb-1">
-          <b-col sm="12" class="">
-            <b-input-group
-                label-class="py-0"
-                label-cols-sm="3"
-                label-cols-lg="3"
-                content-cols-sm="7"
-                content-cols-lg="7"
-                :label-for="properties.password.inputId"
+      <b-row class="mb-1">
+        <b-col sm="12" class="">
+          <b-input-group
+              label-class="py-0"
+              label-cols-sm="3"
+              label-cols-lg="3"
+              content-cols-sm="7"
+              content-cols-lg="7"
+              :label-for="properties.password.inputId"
+          >
+            <b-form-input
+                class="shadow-none rounded-sm"
+                :class="{'border-success':showBorderProperty('password')}"
+                type="password"
+                :id="properties.password.inputId"
+                :ref="properties.password.inputId"
+                size="sm"
+                :state="statePassword()"
+                trim
+                v-model="password"
+                @keyup.enter="signIn()"
+                @input="inputProperty($event,'password')"
+                @focusin.prevent.stop="onFocusinProperty($event, properties.password.inputId, 'password')"
+                @focusout.prevent.stop="onFocusoutProperty($event, properties.password.inputId, 'password')"
+                :placeholder="getCapitalizeLang('password')"
             >
-              <b-form-input
-                  class="shadow-none rounded-sm"
-                  :class="{'border-success':showBorderProperty('password')}"
-                  type="password"
-                  :id="properties.password.inputId"
-                  :ref="properties.password.inputId"
-                  size="sm"
-                  :state="statePassword()"
-                  trim
-                  v-model="password"
-                  @input="inputProperty($event,'password')"
-                  @focusin.prevent.stop="onFocusinProperty($event, properties.password.inputId, 'password')"
-                  @focusout.prevent.stop="onFocusoutProperty($event, properties.password.inputId, 'password')"
-                  :placeholder="getCapitalizeLang('password')"
-              >
-              </b-form-input>
+            </b-form-input>
 
-              <div class="invalid-feedback my-0" v-if="properties.password.wasOutFocus">
-                <small>{{ passwordError() }}</small>
-              </div>
-            </b-input-group>
-            <div class="my-0 text-danger" v-if="properties.password.showError">
-              <small v-for="(e,i) in getErrors('password')">{{ getCapitalize(e.message) }}</small>
+            <div class="invalid-feedback my-0" v-if="properties.password.wasOutFocus">
+              <small>{{ passwordError() }}</small>
             </div>
-          </b-col>
-        </b-row>
+          </b-input-group>
+          <div class="my-0 text-danger" v-if="properties.password.showError">
+            <small v-for="(e,i) in getErrors('password')">{{ getCapitalize(e.message) }}</small>
+          </div>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col>
+          <b-link class="float-right mt-0 mb-1"
+                  tabindex="-1"
+                  @mousedown="$event.preventDefault()"
+                  @click="routerForgotPassword()"
+          >
+            <small>{{ getCapitalizeLang('forgotPassword') }}?</small>
+          </b-link>
+        </b-col>
+      </b-row>
 
-        <b-button
-            block
-            variant="success"
-            size="sm"
-            :disabled="!stateTrue()"
-            :class="!stateTrue()?'no-stateTrue':null"
-            @click.prevent.stop="signIn()"
-        >
-          {{ getUpperCaseLang('signIn') }}
-        </b-button>
-      </b-card>
-
-      <b-alert
-          class="mx-3 mb-1"
-          variant="danger"
-          dismissible
-          fade
-          :show="alert.showInternetConnectionError"
-          @dismissed="alert.showInternetConnectionError=false"
+      <b-button
+          block
+          variant="success"
+          size="sm"
+          :disabled="!stateTrue()"
+          :class="!stateTrue()?'no-stateTrue':null"
+          @click.prevent.stop="signIn()"
       >
-        <b-row>
-          <small>{{ getCapitalizeLang('noInternetConnection') }}</small>
-        </b-row>
-      </b-alert>
+        {{ getUpperCaseLang('signIn') }}
+      </b-button>
+    </b-card>
+
+    <b-alert
+        class="mx-3 mb-1"
+        variant="danger"
+        dismissible
+        fade
+        :show="alert.showInternetConnectionError"
+        @dismissed="alert.showInternetConnectionError=false"
+    >
+      <b-row>
+        <small>{{ getCapitalizeLang('noInternetConnection') }}</small>
+      </b-row>
+    </b-alert>
   </b-collapse>
 </template>
 
@@ -173,12 +186,17 @@ export default {
     }
   },
   methods: {
+    routerForgotPassword() {
+    },
+
     prefixId() {
       return this.name
     },
+
     inputProperty(event, property) {
       this.properties[property].showError = false
     },
+
     checkCapsLock(event, property) {
       if (event.getModifierState("CapsLock")) {
         this.properties[property].capsLockOn = true
@@ -186,6 +204,7 @@ export default {
         this.properties[property].capsLockOn = false
       }
     },
+
     checkWrongChar(event, property) {
       if (this.isSignCharWrong(event.key)) {
         event.preventDefault()
@@ -211,16 +230,18 @@ export default {
       this.alert.showInternetConnectionError = false
     },
     signIn() {
-      this.closeAllAlert()
-      this.$emit('showOverlayMethod', true)
-      this.$emit('showSignInSpinMethod', true)
-      if (!window.navigator.onLine) {
-        this.alert.showInternetConnectionError = true
-        this.$emit('showSignInSpinMethod', false)
-        this.$emit('showOverlayMethod', false)
-        return
+      if (this.stateTrue()) {
+        this.closeAllAlert()
+        this.$emit('showOverlayMethod', true)
+        this.$emit('showSignInSpinMethod', true)
+        if (!window.navigator.onLine) {
+          this.alert.showInternetConnectionError = true
+          this.$emit('showSignInSpinMethod', false)
+          this.$emit('showOverlayMethod', false)
+          return
+        }
+        this.enterUser()
       }
-      this.enterUser()
     },
     enterUser() {
       this.$store.dispatch('enterUserAction',
@@ -286,6 +307,9 @@ export default {
     },
     focusEmail() {
       this.$refs[this.properties.email.inputId].focus();
+    },
+    focusPassword() {
+      this.$refs[this.properties.password.inputId].focus();
     },
     getCapitalize(text) {
       return _.capitalize(text)
@@ -354,6 +378,9 @@ export default {
       if (!this.properties[property].wasOutFocus) return true
       if (this.properties[property].hasFocus) return true
       return false
+    },
+    changeEmail(email){
+      this.email = email
     },
   },
 }

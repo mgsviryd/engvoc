@@ -54,8 +54,8 @@ Vue.use(VueScrollTo, {
 })
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
-Vue.use(VueFileAgent);
-Vue.use(VueFileAgentStyles);
+Vue.use(VueFileAgent)
+Vue.use(VueFileAgentStyles)
 Vue.use(VueForceNextTick)
 
 

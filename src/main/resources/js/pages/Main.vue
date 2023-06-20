@@ -19,11 +19,21 @@ export default {
     this.$cookies.config('365d')
     this.sync()
   },
+  watch: {
+    main(newVal){
+      if (newVal){
+        this.$store.dispatch('setPageAttributesAction', {id: "main", attr: "data"})
+      }
+    }
+  },
   computed: {
     ...mapState([
       'lang',
         'frontend',
     ]),
+    main(){
+      return document.getElementById("main")
+    }
   },
   methods: {
     refreshVersions(frontend){

@@ -1,7 +1,9 @@
 <template>
-  <div v-if="show" class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block">
-    <button class="btn  btn-primary text-left rounded-0  border-1 border-secondary" data-toggle="collapse"
+  <div v-if="show" class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block" style="width: 100%">
+    <button class="btn btn-primary text-left rounded-0  border-1 border-secondary"
+            data-toggle="collapse"
             :href="'#'+getUniqueDictionariesElemId()"
+            :id="'button'+getUniqueDictionariesElemId()"
             role="button"
             aria-expanded="false"
             :aria-controls="getUniqueDictionariesElemId()"
@@ -9,15 +11,16 @@
     >
       <context-menu ref="uniqueDictionaries">
         <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(true)">DELETE</button>
+          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(true)">
+            {{ getUpperCaseLang('delete') }}
+          </button>
         </div>
       </context-menu>
-      <span class="st-text-shift">{{ lang.map.db }}</span>
+      <span class="st-text-shift">{{ getLang('db') }}</span>
       <span class="st-right badge badge-light bg-white badge-pill">{{ getUniqueDictionaries().length }}</span>
     </button>
     <button class="btn  btn-outline-success d-flex justify-content-center align-items-center"
-            data-toggle="modal"
-            :data-target="'#' + this.prefixId + 'add-dictionary-unique-modal'"
+            @click="$refs[id.addDictionaryUniqueModal].showModal()"
     >
       <i class="fas fa-plus"></i>
     </button>
@@ -35,19 +38,22 @@
         >
           <context-menu ref="uniqueDictionaryContextMenu">
             <div class="btn-group-vertical btn-group-sm d-block">
-              <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">DELETE</button>
+              <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">
+                {{ getUpperCaseLang('delete') }}
+              </button>
             </div>
           </context-menu>
           <span class="st-text-shift">{{ d.name }}</span>
-          <span class="st-right badge badge-light bg-white border badge-pill"> {{
-              getCountCardsInDictionaryById(d.id)
-            }} </span>
+          <span class="st-right badge badge-light bg-white border badge-pill">
+            {{ getCountCardsInDictionaryById(d.id) }}
+          </span>
         </button>
       </div>
     </div>
 
     <button class="btn  btn-primary text-left rounded-0 m-0  border-1 border-secondary" data-toggle="collapse"
             :href="'#'+getNonUniqueDictionariesElemId()"
+            :id="'button'+getNonUniqueDictionariesElemId()"
             role="button"
             aria-expanded="false"
             :aria-controls="getNonUniqueDictionariesElemId()"
@@ -55,24 +61,29 @@
     >
       <context-menu ref="nonUniqueDictionaries">
         <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(false)">DELETE</button>
+          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(false)">
+            {{ getUpperCaseLang('delete') }}
+          </button>
         </div>
       </context-menu>
-      <span class="st-text-shift">{{ lang.map.upload }}</span>
+      <span class="st-text-shift">{{ getLang('upload') }}</span>
       <span class="st-right badge badge-light badge-pill">{{ nonUniqueDictionaries.length }}</span>
     </button>
-    <button class="btn  btn-outline-success d-flex justify-content-center align-items-center"
-            data-toggle="modal"
-            :data-target="'#' + this.prefixId + 'add-dictionary-nonunique-modal'">
+    <b-button
+        variant="outline-success"
+        class="d-flex justify-content-center align-items-center"
+        @click="$refs[id.addDictionaryNonUniqueModal].showModal()"
+    >
       <i class="fas fa-plus"></i>
-    </button>
+    </b-button>
     <div class="collapse" :id="getNonUniqueDictionariesElemId()">
       <div v-for="(ldt,i) in nonUniqueShortLDTs"
            :key="ldt"
            class="btn-group-vertical btn-group-sm d-block">
         <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
                 data-toggle="collapse"
-                :href="'#'+getNonUniqueDictionariesCreationShortLDTElemId(i)" role="button"
+                :href="'#'+getNonUniqueDictionariesCreationShortLDTElemId(i)"
+                role="button"
                 aria-expanded="false"
                 :aria-controls="getNonUniqueDictionariesCreationShortLDTElemId(i)">
           <span class="st-text-shift">{{ ldt }}</span>
@@ -92,7 +103,9 @@
             >
               <context-menu ref="nonUniqueDictionaryContextMenu">
                 <div class="btn-group-vertical btn-group-sm d-block">
-                  <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">DELETE</button>
+                  <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">
+                    {{ getUpperCaseLang('delete') }}
+                  </button>
                 </div>
               </context-menu>
               <span class="st-text-shift">{{ d.name }}</span>
@@ -107,11 +120,15 @@
       </div>
     </div>
     <add-dictionary-modal
-        :id="this.prefixId + 'add-dictionary-unique-modal'"
+        :id="id.addDictionaryUniqueModal"
+        :ref="id.addDictionaryUniqueModal"
+        :closable="true"
         :unique="true"
     ></add-dictionary-modal>
     <add-dictionary-modal
-        :id="this.prefixId + 'add-dictionary-nonunique-modal'"
+        :id="id.addDictionaryNonUniqueModal"
+        :ref="id.addDictionaryNonUniqueModal"
+        :closable="true"
         :unique="false"
     ></add-dictionary-modal>
     <GlobalEvents @mouseup="mouseupOutside()"/>
@@ -119,13 +136,20 @@
 </template>
 
 <script>
-import contextMenu from 'vue-context-menu'
-import {mapState, mapGetters} from "vuex";
-import addDictionaryModal from "./AddDictionaryModal.vue";
-import date from "../../../util/date"
-import * as _ from "lodash";
+import {mapState, mapGetters} from 'vuex'
+import ContextMenu from 'vue-context-menu'
+import AddDictionaryModal from './AddDictionaryModal.vue'
+import date from '../../../util/date'
+import * as _ from 'lodash'
 
 export default {
+  components: {
+    ContextMenu,
+    AddDictionaryModal,
+  },
+  props: [
+    'instance',
+  ],
   created() {
     this.$root.$on('dragdrop-init', (payload) => {
       this.dragdropInit(payload)
@@ -136,14 +160,12 @@ export default {
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       this.fetchData()
     })
+    this.$store.watch(this.$store.getters.getVocabularyId, vocabularyId => {
+          this.$forceNextTick(() => {
+            this.goToDictionary()
+          })
+    })
   },
-  components: {
-    contextMenu,
-    addDictionaryModal,
-  },
-  props: [
-    'instanceMark',
-  ],
   watch: {
     $route: [
       'fetchData',
@@ -151,6 +173,8 @@ export default {
     dictionaries() {
       this.fetchData()
     },
+    dictionary() {
+    }
   },
   computed: {
     ...mapState([
@@ -164,13 +188,18 @@ export default {
       'getNonUniqueDictionariesPropertyValues',
       'getCountCardsInDictionaryById',
       'sortArrayByStringProperty',
+      'isDictionaryUnique',
     ]),
     prefixId() {
-      return this.name + "-" + this.instanceMark + "-"
+      return this.name + "-" + this.instance.instanceMark + "-"
     },
   },
   data() {
     return {
+      id: {
+        addDictionaryUniqueModal: this.prefixId + 'add-dictionary-unique-modal',
+        addDictionaryNonUniqueModal: this.prefixId + 'add-dictionary-non-unique-modal',
+      },
       name: "dictionaryNav",
       show: true,
       uniqueDictionaries: [],
@@ -197,11 +226,14 @@ export default {
       this.nonUniqueShortLDTs = this.getNonUniqueShortLDTs()
       this.show = true
     },
+    getLang(key) {
+      return this.$t(key)
+    },
     getCapitalizeLang(key) {
       return _.capitalize(this.getLang(key))
     },
-    getLang(key) {
-      return this.$t(key)
+    getUpperCaseLang(key) {
+      return _.upperCase(this.getLang(key))
     },
     getNonUniqueShortLDTs() {
       return [...new Set(this.getNonUniqueDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]
@@ -236,7 +268,16 @@ export default {
     },
     parentLoadDictionary(d) {
       this.updateActiveDictionaryElemId(d.id)
-      return this.$emit('loadDictionary', d, this.instanceMark)
+      this.routerEditorDictionaries(d.id)
+    },
+    routerEditorDictionaries(id) {
+      let query = {id1: this.$route.query.id1, id2: this.$route.query.id2}
+      query[this.instance.instanceMark] = id
+      this.$router.replace({
+        query
+      }).then(() => {
+      }).catch(err => {
+      })
     },
 
     deleteDictionariesByUnique(unique) {
@@ -330,6 +371,21 @@ export default {
     },
     async deactivateDragoverStyle(dictionaries) {
       dictionaries.forEach(d => $("#" + this.getDictionaryElemId(d.id)).removeClass("dragover"))
+    },
+    goToDictionary() {
+      if (this.instance) {
+        if (this.instance.dictionary) {
+          if (this.instance.dictionary.unique) {
+            $('#' + 'button' + this.getUniqueDictionariesElemId()).click()
+            this.updateActiveDictionaryElemId(this.instance.dictionary.id)
+          } else {
+            $('#' + 'button' + this.getNonUniqueDictionariesElemId()).click()
+            // console.info(this.getShortLDT(this.instance.dictionary.creationLDT))
+            // $('#' + this.getNonUniqueDictionariesCreationShortLDTElemId(this.getShortLDT(this.instance.dictionary["creationLDT"]))).collapse('show')
+            this.updateActiveDictionaryElemId(this.instance.dictionary.id)
+          }
+        }
+      }
     },
   },
 }

@@ -23,7 +23,7 @@
     "flag-icons": "^6.7.0",
     "flatted": "^2.0.1",
     "json5-loader": "^4.0.1",
-    "localforage": "^1.7.3",
+    "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "uuid": "^9.0.0",
     "vue": "^2.6.10",

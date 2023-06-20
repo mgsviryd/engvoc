@@ -3,6 +3,7 @@ const messages ={
   googleRecaptcha: 'Google Recaptcha',
   google: 'google',
   facebook: 'facebook',
-  github: 'github'
+  github: 'github',
+  abbrNumber: 'n'
 }
 module.exports = messages

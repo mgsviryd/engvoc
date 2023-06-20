@@ -7,5 +7,5 @@ public interface UserRepo extends JpaRepository<User,Long> {
     User findByUsername(String username);
     User findByEmail(String email);
     User findBySub(String sub);
-    Iterable<User> findAllByToken(Iterable<String> tokens);
+    Iterable<User> findAllByTokenIn(Iterable<String> tokens);
 }

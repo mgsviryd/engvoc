@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class SignUpUserService {
@@ -52,6 +53,7 @@ public class SignUpUserService {
         user.setUsername(email);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setToken("1Aa".concat(UUID.randomUUID().toString()));
         user.setRoles(Collections.singleton(Role.USER));
         return userService.save(user);
     }

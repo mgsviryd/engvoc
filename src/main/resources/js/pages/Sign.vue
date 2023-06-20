@@ -1,11 +1,14 @@
 <template>
   <div>
-    <sign :closable="false"></sign>
+    <sign
+        :closable="false"
+        :show="true"
+    ></sign>
   </div>
 </template>
 
 <script>
-import Sign from '../components/sign/Sign.vue'
+import Sign from '../components/sign/SignModal.vue'
 
 
 export default {

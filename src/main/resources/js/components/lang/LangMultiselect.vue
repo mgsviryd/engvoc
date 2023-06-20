@@ -37,8 +37,7 @@ export default {
 
   },
   created() {
-    this.value = this.lang.lang
-    this.options = this.lang.langs
+    this.fetchData()
   },
   components: {},
   computed: {
@@ -50,6 +49,14 @@ export default {
     $route: [
       'fetchData',
     ],
+    lang: {
+      handler: function () {
+        this.$forceNextTick(() => {
+          this.fetchData()
+        })
+      },
+      deep: true
+    }
   },
   data() {
     return {
@@ -59,6 +66,8 @@ export default {
   },
   methods: {
     fetchData() {
+      this.value = this.lang.lang
+      this.options = this.lang.langs
     },
     onSelect(lang) {
       this.$store.dispatch('changeLangAction', lang)
@@ -87,7 +96,6 @@ export default {
 </script>
 
 <style>
-
 .multiselect {
   width: fit-content;
 }
@@ -97,6 +105,7 @@ export default {
   width: auto;
   border: none;
   box-shadow: 4px 4px 10px 0 rgba(0, 0, 0, .1);
+  z-index: 1022;
 }
 
 .multiselect--active .multiselect__tags {

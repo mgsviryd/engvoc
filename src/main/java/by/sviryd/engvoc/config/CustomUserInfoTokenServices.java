@@ -112,6 +112,7 @@ public class CustomUserInfoTokenServices implements ResourceServerTokenServices 
         newUser.setEmail(email);
         newUser.setPassword("1Aa".concat(UUID.randomUUID().toString()));
         newUser.setSub(sub);
+        newUser.setSocial(social);
         newUser.setToken("1Aa".concat(UUID.randomUUID().toString()));
         newUser.setActive(true);
         newUser.setRoles(Collections.singleton(Role.USER));

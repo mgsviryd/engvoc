@@ -1,17 +1,22 @@
 <template>
 <div v-if="show">
+  <greeting-nav></greeting-nav>
   <h6>Greeting</h6>
   <h6 v-if="pageAttributes.user">{{pageAttributes.user.username}}</h6>
 </div>
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from "vuex"
 import documentJS from "../../util/document"
+import GreetingNav from "./GreetingNav.vue"
 
 export default {
   mounted() {
 
+  },
+  components: {
+    GreetingNav,
   },
   created() {
     this.fetchData()
@@ -24,18 +29,20 @@ export default {
   computed: {
     ...mapState([
       'lang',
+        'pageAttributes',
     ]),
   },
   data() {
     return {
       show: false,
-      pageAttributes: null,
+      // pageAttributes: null,
     }
   },
   methods:{
     fetchData(){
       this.show=false
-      this.pageAttributes = documentJS.getPageAttributes("main", "data")
+      // this.pageAttributes = documentJS.getPageAttributes("main", "data")
+      console.info(this.pageAttributes)
       this.show = true
     }
   }

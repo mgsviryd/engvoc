@@ -1,54 +1,58 @@
 <template>
-  <div v-if="showComponent" class="card-origin-">
+  <div v-if="show">
     <nav
-        class="navbar navbar-fixed-top navbar-expand-lg navbar-dark bg-dark py-2 shadow border-bottom border-secondary"
+        class="navbar navbar-fixed-top navbar-expand-lg navbar-dark bg-dark py-1 shadow border-bottom border-secondary"
         style="width:100%;">
-      <div class="btn-group btn-group-md btn-group-justified">
+      <b-button-group size="sm" class="btn-group-justified">
 
-        <button class="btn btn-light mr-sm-1 disabled">
+        <b-button variant="light"
+                  class="mr-1 disabled">
           <small>
             <b>
-              {{ uploadFrom }} :
+              {{ getCapitalizeLang('uploadFrom') }} :
             </b>
           </small>
-        </button>
+        </b-button>
 
-        <button class="btn btn-light mr-sm-1" :class="{ active: isButtonActive1}"
-                href="#card-origin-tab1" data-toggle="tab" role="tab" aria-controls="card-origin-tab1"
-                id="card-origin-button1"
-                aria-selected="false"
-                @click="activateLevel1()">
+        <b-button variant="light"
+                  class="mr-1" :class="{ active: isButtonActive1}"
+                  href="#card-origin-tab1" data-toggle="tab" role="tab" aria-controls="card-origin-tab1"
+                  id="card-origin-button1"
+                  aria-selected="false"
+                  @click="activateLevel1()">
           <small>
             <b>
-              {{ server }}
+              {{ getCapitalizeLang('server') }}
             </b>
           </small>
-        </button>
+        </b-button>
 
-        <button class="btn btn-light mr-sm-1 text-capitalize" :class="{ active: isButtonActive2}"
-                href="#card-origin-tab2" data-toggle="tab" role="tab" aria-controls="card-origin-tab2"
-                id="card-origin-button2"
-                aria-selected="false"
-                @click="activateLevel2()">
+        <b-button variant="light"
+                  class="mr-1" :class="{ active: isButtonActive2}"
+                  href="#card-origin-tab2" data-toggle="tab" role="tab" aria-controls="card-origin-tab2"
+                  id="card-origin-button2"
+                  aria-selected="false"
+                  @click="activateLevel2()">
           <small>
             <b>
-              {{ xml }}
+              {{ getCapitalizeLang('xml') }}
             </b>
           </small>
-        </button>
+        </b-button>
 
-        <button class="btn btn-light mr-sm-1 text-capitalize" :class="{ active: isButtonActive3}"
-                href="#card-origin-tab3" data-toggle="tab" role="tab" aria-controls="card-origin-tab3"
-                id="card-origin-button3"
-                aria-selected="false"
-                @click="activateLevel3()">
+        <b-button variant="light"
+                  class="mr-1" :class="{ active: isButtonActive3}"
+                  href="#card-origin-tab3" data-toggle="tab" role="tab" aria-controls="card-origin-tab3"
+                  id="card-origin-button3"
+                  aria-selected="false"
+                  @click="activateLevel3()">
           <small>
             <b>
-              {{ excel }}
+              {{ getCapitalizeLang('excel') }}
             </b>
           </small>
-        </button>
-      </div>
+        </b-button>
+      </b-button-group>
     </nav>
 
 
@@ -101,6 +105,7 @@ export default {
   },
   data() {
     return {
+      show: true,
       propsDropZoneExcel: {
         accept: '.xlsx',
         size: '10MB',
@@ -111,7 +116,6 @@ export default {
         size: '10MB',
         storeAction: 'uploadCardsByXmlFileAction'
       },
-      showComponent: true,
       isButtonActive1: false,
       isButtonActive2: false,
       isButtonActive3: false,
@@ -128,18 +132,6 @@ export default {
     ...mapState([
       'lang',
     ]),
-    uploadFrom() {
-      return this.getCapitalizeLang('uploadFrom')
-    },
-    server() {
-      return this.getCapitalizeLang('server')
-    },
-    xml() {
-      return this.getCapitalizeLang('xml')
-    },
-    excel() {
-      return this.getCapitalizeLang('excel')
-    },
   },
   methods: {
     fetchData() {

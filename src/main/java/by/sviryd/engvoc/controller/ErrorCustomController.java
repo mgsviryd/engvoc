@@ -1,5 +1,6 @@
 package by.sviryd.engvoc.controller;
 
+import by.sviryd.engvoc.service.MessageI18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -10,6 +11,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Locale;
 import java.util.Map;
 
 @Controller
@@ -17,18 +19,21 @@ import java.util.Map;
 public class ErrorCustomController implements ErrorController {
     @Autowired
     private ErrorAttributes errorAttributes;
+    @Autowired
+    private MessageI18nService messageI18nService;
 
     @RequestMapping()
     public String error(
             Model model,
             HttpServletRequest request,
-            HttpServletResponse response
+            HttpServletResponse response,
+            Locale locale
     ) {
         int status = response.getStatus();
         ServletWebRequest servletWebRequest = new ServletWebRequest(request);
         Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(servletWebRequest, true);
         model.addAllAttributes(errorAttributes);
-        model.addAttribute("title", "Error " + status);
+        model.addAttribute("title", messageI18nService.getMessage("titleError", new Object[]{}, locale)+ " " + status);
         switch (status) {
             case 404:
                 return "error-404";
