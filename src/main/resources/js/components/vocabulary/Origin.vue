@@ -74,7 +74,10 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-4 col-sm-3 border-right border-muted px-0">
-              <drop-zone :props="propsDropZoneXml"></drop-zone>
+              <div class="container-fluid">
+                <upload-files :drop-zone-props="propsDropZoneXml"></upload-files>
+<!--                <drop-zone :props="propsDropZoneXml"></drop-zone>-->
+              </div>
             </div>
           </div>
         </div>
@@ -85,7 +88,9 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-4 col-sm-3 border-right border-muted px-0">
-              <drop-zone :props="propsDropZoneExcel"></drop-zone>
+              <div class="container-fluid">
+                <drop-zone :props="propsDropZoneExcel"></drop-zone>
+              </div>
             </div>
           </div>
         </div>
@@ -97,11 +102,13 @@
 <script>
 import {mapState} from 'vuex'
 import DropZone from "../upload/DropZone.vue"
+import UploadFiles from "./origin/UploadFiles.vue"
 import * as _ from "lodash"
 
 export default {
   components: {
     DropZone,
+    UploadFiles,
   },
   data() {
     return {

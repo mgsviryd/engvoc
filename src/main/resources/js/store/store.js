@@ -35,6 +35,7 @@ const persist = new VuexPersistence(
                 dictionaries: state.dictionaries,
                 action: state.action,
                 pictures: state.pictures,
+                props: state.props,
             }
         )
     }
@@ -73,6 +74,14 @@ export default new Vuex.Store(
                 langs: [],
                 map: {}
             },
+            props:{
+                download:{
+                    lang:{
+                        source: {lang: "en", country: "US", locale: "en_US"},
+                        destin: {lang: "en", country: "US", locale: "en_US"},
+                    }
+                }
+            }
         },
         getters: {
             getActionId: state => () => state.action.id,
@@ -430,6 +439,11 @@ export default new Vuex.Store(
                 state.authentication = payload
                 state.authentication.id = date.getUTCMilliseconds(new Date())
             },
+            changePropsDownloadLang(state, payload){
+                state.props.download.lang.source = payload.source
+                state.props.download.lang.destin = payload.destin
+                console.info(state.props.download.lang)
+            },
 
         },
         actions: {
@@ -750,6 +764,32 @@ export default new Vuex.Store(
                 if (result.ok) {
                     commit('logoutMutation')
                 }
+            },
+
+            async downloadExcelFileAction({commit}, payload) {
+                let result = await cardApi.downloadExcelFile(payload.dictionary.id)
+                const data = await result.data
+                if (result.ok) {
+                    let blob = new Blob([data], { type: result.headers['content-type'] })
+                    let link = document.createElement('a')
+                    link.href = window.URL.createObjectURL(blob)
+                    link.download = payload.dictionary.name + '.xlsx'
+                    link.click();
+                }
+            },
+            async downloadXmlFileAction({commit}, payload) {
+                let result = await cardApi.downloadXmlFile(payload.dictionary.id)
+                const data = await result.data
+                if (result.ok) {
+                    let blob = new Blob([data], { type: result.headers['content-type'] })
+                    let link = document.createElement('a')
+                    link.href = window.URL.createObjectURL(blob)
+                    link.download = payload.dictionary.name + '.xml'
+                    link.click();
+                }
+            },
+            async changePropsDownloadLang({commit}, payload){
+                commit('changePropsDownloadLang', payload)
             }
         },
     }

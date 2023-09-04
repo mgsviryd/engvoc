@@ -165,13 +165,13 @@ export default {
   },
   created() {
     this.$store.watch(this.$store.getters.getVocabularyId, vocabularyId => {
-      this.activateDictionaries(this.id1, this.id2)
+      this.activateDictionaries(this.left, this.right)
     })
     this.$watch(
         () => this.$route.query,
         (toQueries, previousQueries) => {
           this.$forceNextTick(() => {
-            this.activateDictionaries(toQueries.id1, toQueries.id2)
+            this.activateDictionaries(toQueries.left, toQueries.right)
           })
         }
     )
@@ -181,9 +181,9 @@ export default {
       handler: function (mark) {
         this.$forceNextTick(() => {
           this.activate(mark)
-            const id1 = this.$route.query.id1
-            const id2 = this.$route.query.id2
-            this.activateDictionaries(id1, id2)
+            const left = this.$route.query.left
+            const right = this.$route.query.right
+            this.activateDictionaries(left, right)
         })
       },
       immediate: true
@@ -200,8 +200,8 @@ export default {
   },
   data() {
     return {
-      id1: null,
-      id2: null,
+      left: null,
+      right: null,
       show: true,
       card: {
         activated: false,
@@ -251,12 +251,12 @@ export default {
       this[tab].activated = true
     },
 
-    activateDictionaries(id1, id2) {
+    activateDictionaries(left, right) {
       this.show = false
-      this.id1 = id1
-      this.id2 = id2
-      this.$refs.editor.loadDictionary(id1, "id1")
-      this.$refs.editor.loadDictionary(id2, "id2")
+      this.left = left
+      this.right = right
+      this.$refs.editor.loadDictionary(left, "left")
+      this.$refs.editor.loadDictionary(right, "right")
       this.show = true
     },
   }

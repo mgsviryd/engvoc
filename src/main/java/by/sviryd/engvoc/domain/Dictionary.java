@@ -51,11 +51,11 @@ public class Dictionary implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @JsonView(Views.Lang.class)
-    private LangLocale sourceLangLocale;
+    private LangLocale source;
 
     @Enumerated(EnumType.STRING)
     @JsonView(Views.Lang.class)
-    private LangLocale destinLangLocale;
+    private LangLocale destin;
 
     @Column(length = 100)
     @Length(max = 100)

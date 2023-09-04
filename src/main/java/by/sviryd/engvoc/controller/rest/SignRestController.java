@@ -110,7 +110,10 @@ public class SignRestController {
     }
 
     @PostMapping("/up")
-    public HashMap<Object, Object> up(@RequestBody String json, Locale locale) {
+    public HashMap<Object, Object> up(
+            @RequestBody String json,
+            Locale locale
+    ) {
         Gson gson = new Gson();
         HashMap<Object, Object> data = new HashMap<>();
         JsonParser parser = new JsonParser();

@@ -4,6 +4,7 @@ package by.sviryd.engvoc.service.card.writer;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.service.card.DictionaryBindService;
 import by.sviryd.engvoc.util.StringConverterUtil;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -18,9 +19,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.List;
 
 @Service
@@ -44,7 +43,26 @@ public class XmlCardWriterService {
             throw new RuntimeException("The dictionary name " + filename + " is not supported name.");
         String dictionary = bindService.getDictionaryNameWithoutAbbr(filename);
         String abbr = bindService.getDictionaryAbbr(filename);
+        Document doc = getDocument(cards, dictionary, abbr);
+        try (FileOutputStream output = new FileOutputStream(file)) {
+            writeXml(doc, output);
+        } catch (Exception e) {
+        }
+    }
 
+    public ByteArrayInputStream dateToXml(List<Card> cards, String dictionary, String abbr) throws Exception {
+        Document doc = getDocument(cards, dictionary, abbr);
+        DOMSource source = new DOMSource(doc);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StreamResult result = new StreamResult(out);
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.transform(source, result);
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    @NotNull
+    private Document getDocument(List<Card> cards, String dictionary, String abbr) throws ParserConfigurationException {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.newDocument();
@@ -55,7 +73,7 @@ public class XmlCardWriterService {
         rootElement.setAttribute("formatVersion", "5");
         rootElement.setAttribute("title", dictionary);
         rootElement.setAttribute("sourceLanguageId", String.valueOf(bindService.getSourceAbbrId(abbr)));
-        rootElement.setAttribute("destinationLanguageId", String.valueOf(bindService.getDestinationAbbrId((abbr))));
+        rootElement.setAttribute("destinationLanguageId", String.valueOf(bindService.getDestinationAbbrId(abbr)));
         rootElement.setAttribute("soundFile", "Sound" + bindService.getSourceAbbr(abbr));
         doc.appendChild(rootElement);
         rootElement.setAttribute("nextWordId", String.valueOf(cards.size()));
@@ -102,10 +120,6 @@ public class XmlCardWriterService {
             card.appendChild(meanings);
             rootElement.appendChild(card);
         }
-
-        try (FileOutputStream output = new FileOutputStream(file)) {
-            writeXml(doc, output);
-        } catch (Exception e) {
-        }
+        return doc;
     }
 }

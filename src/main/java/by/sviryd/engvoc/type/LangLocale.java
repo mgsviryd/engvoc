@@ -30,6 +30,10 @@ public enum LangLocale {
         }
     }
 
+    public static String getCapitalizeLangCouple(LangLocale lang1, LangLocale lang2){
+        return StringUtils.capitalize(lang1.getLang()).concat(StringUtils.capitalize(lang2.getLang()));
+    }
+
     public Locale getLocale() {
         return new Locale(lang, country);
     }

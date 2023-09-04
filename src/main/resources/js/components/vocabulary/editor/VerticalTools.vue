@@ -5,8 +5,7 @@
               class="p-1 border-right-0 border-left-0 rounded-0 border-dark shadow-none"
               @click.prevent.stop="showHideInstance()"
     >
-      <i v-if="instance.show" class="fa-solid fa-clone fa-xs"></i>
-      <i v-else class="fa-solid fa-square fa-xs"></i>
+      <i class="fa-solid fa-clone fa-xs"></i>
     </b-button>
     <b-button size="sm"
               variant="secondary"
@@ -17,26 +16,34 @@
     <b-button size="sm"
               variant="light"
               class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
+              @click.prevent.stop="showFullNav()"
     >
-      <i class="fa-solid fa-angles-right"></i>
+      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-right"></i>
+      <i v-else class="fa-solid fa-angles-left"></i>
     </b-button>
     <b-button size="sm"
               variant="light"
               class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
+              @click.prevent.stop="stepUpNav()"
     >
-      <i class="fa-solid fa-angle-right"></i>
+      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-right"></i>
+      <i v-else class="fa-solid fa-angle-left"></i>
     </b-button>
     <b-button size="sm"
               variant="light"
               class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
+              @click.prevent.stop="stepDownNav()"
     >
-      <i class="fa-solid fa-angle-left"></i>
+      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-left"></i>
+      <i v-else class="fa-solid fa-angle-right"></i>
     </b-button>
     <b-button size="sm"
               variant="light"
               class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
+              @click.prevent.stop="hideFullNav()"
     >
-      <i class="fa-solid fa-angles-left"></i>
+      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-left"></i>
+      <i v-else class="fa-solid fa-angles-right"></i>
     </b-button>
     </div>
 </template>
@@ -82,7 +89,19 @@ export default {
     },
     showHideInstance(){
       this.$emit('showHideInstance', this.instance.instanceMark)
-    }
+    },
+    showFullNav(){
+      this.$emit('showFullNav', this.instance.instanceMark)
+    },
+    hideFullNav(){
+      this.$emit('hideFullNav', this.instance.instanceMark)
+    },
+    stepUpNav(){
+      this.$emit('stepUpNav', this.instance.instanceMark)
+    },
+    stepDownNav(){
+      this.$emit('stepDownNav', this.instance.instanceMark)
+    },
   }
 }
 </script>

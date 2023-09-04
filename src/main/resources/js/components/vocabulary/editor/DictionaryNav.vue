@@ -271,7 +271,7 @@ export default {
       this.routerEditorDictionaries(d.id)
     },
     routerEditorDictionaries(id) {
-      let query = {id1: this.$route.query.id1, id2: this.$route.query.id2}
+      let query = {left: this.$route.query.left, right: this.$route.query.right}
       query[this.instance.instanceMark] = id
       this.$router.replace({
         query

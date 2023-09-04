@@ -59,6 +59,19 @@
               {{ getLang("card") }}
             </b-button>
           </b-button-group>
+          <b-button-group size="sm" class="border-1 border-secondary shadow-none">
+            <b-dropdown size="sm"  variant="link" toggle-class="text-decoration-none" no-caret style="z-index: 1022">
+              <template #button-content >
+                <i class="fa fa-download fa-xs text-white"></i>
+              </template>
+              <b-dropdown-item @click="downloadExcelFile()">
+                {{ getLang("excel") }}
+              </b-dropdown-item>
+              <b-dropdown-item @click="downloadXmlFile()">
+                {{ getLang("xml") }}
+              </b-dropdown-item>
+            </b-dropdown>
+          </b-button-group>
         </th>
       </tr>
       <tr class="border-0">
@@ -740,11 +753,18 @@ export default {
       cards.forEach(card => $("#" + this.getCardElemId(card.id)).removeClass("dragover"))
       $("#" + this.blankElemId).removeClass("dragover")
     },
+    downloadExcelFile(){
+      this.$store.dispatch("downloadExcelFileAction",  {dictionary: this.dictionary})
+    },
+    downloadXmlFile(){
+      this.$store.dispatch("downloadXmlFileAction", {dictionary: this.dictionary})
+    }
   },
 }
 </script>
 
 <style scoped>
+
 .card-table- {
   height: 550px;
   overflow-y: auto;
@@ -753,6 +773,7 @@ export default {
 table {
   font-size: 15px;
   font-family: Calibri;
+  overflow-y: visible !important;
 }
 
 th, td:not(.st-squeeze, .st-text-shift) {

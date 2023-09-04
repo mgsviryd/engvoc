@@ -168,7 +168,7 @@ export default {
     },
     isNoUsersGetter() {
       return this.isNoUsers
-    }
+    },
   }
 }
 </script>
