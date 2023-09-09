@@ -1,0 +1,2 @@
+insert into usr (id, active, email, last_modifiedldt, password, social, sub, token, username) VALUES (1,false,'mgsviryd@gmail.com','2023-09-11 23:52:45','$2a$08$XQV7..wX8BXpCxVP1TlyAOq1LP5IL4i82/5YnT10q8JQAUPfkyNp2',null,null,'1Aa88380258-913c-4915-847b-78000ff7b2e3','mgsviryd@gmail.com');
+insert into user_role (user_id, roles) VALUES (1, 'USER');

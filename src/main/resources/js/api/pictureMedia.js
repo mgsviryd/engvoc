@@ -1,4 +1,4 @@
-import Vue from "vue";
+import Vue from "vue"
 
 const configMultipartJson = {headers: {"Content-Type": "multipart/form-data", "Accept": "application/json"}}
 

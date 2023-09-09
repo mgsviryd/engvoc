@@ -27,6 +27,6 @@ public class LocaleConfig {
     }
     @PostConstruct
     public void init(){
-        langLocales = localeAbbrs.stream().map(LangLocale::getLangLocale).collect(Collectors.toList());
+        langLocales = localeAbbrs.stream().map(LangLocale::findLangLocale).collect(Collectors.toList());
     }
 }

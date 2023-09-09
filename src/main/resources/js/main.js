@@ -59,6 +59,7 @@ Vue.use(VueFileAgentStyles)
 Vue.use(VueForceNextTick)
 
 
+
 new Vue({
     el: '#main',
     store,

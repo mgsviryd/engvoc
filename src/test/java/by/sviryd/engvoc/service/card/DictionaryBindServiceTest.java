@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class DictionaryBindServiceTest {
     @Autowired
-    private DictionaryBindService service;
+    private XmlDictionaryFilenameBindService service;
 
     @Test
     public void isSupported() {

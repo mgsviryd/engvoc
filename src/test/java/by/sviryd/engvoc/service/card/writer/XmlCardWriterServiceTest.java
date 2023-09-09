@@ -1,7 +1,9 @@
 package by.sviryd.engvoc.service.card.writer;
 
 import by.sviryd.engvoc.domain.Card;
+import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.service.card.reader.XmlCardReaderService;
+import by.sviryd.engvoc.type.LangLocale;
 import by.sviryd.engvoc.util.MultipartFileUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,12 +29,15 @@ public class XmlCardWriterServiceTest {
 
     private final File source = new File("./src/main/resources/test/xml/dictionary/ClothesEnRu.xml");
     private final File dest = new File("./src/main/resources/test/xml/dictionary/emptyEnRu.xml");
+    private final Dictionary dictionary = new Dictionary();
 
     @Test
     public void write() throws Exception {
+        dictionary.setSource(LangLocale.en_US);
+        dictionary.setTarget(LangLocale.ru_RU);
         List<Card> cards = readerService.extract(source);
         int sizeRead = cards.size();
-        service.write(dest, cards);
+        service.write(dest, cards, dictionary);
         cards = readerService.extract(dest);
         int sizeWrite = cards.size();
         Assert.assertEquals(sizeRead, sizeWrite);

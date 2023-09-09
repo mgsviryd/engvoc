@@ -1,6 +1,8 @@
 package by.sviryd.engvoc.repos.impl;
 
 import by.sviryd.engvoc.domain.Card;
+import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.CardCustomRepo;
 import by.sviryd.engvoc.service.JPAUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,35 +31,58 @@ class CardCustomRepoImpl implements CardCustomRepo {
     }
 
     @Override
-    public Card findDistinctByWordAndTranslationWithUniqueTrue(Card card) {
+    public Card findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(Card card, User client) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Card> cq = cb.createQuery(Card.class);
         Root<Card> root = cq.from(Card.class);
         List<Predicate> predicatesOR = new ArrayList<>();
-        Predicate word = cb.equal(root.get("word"), card.getWord());
-        Predicate translation = cb.equal(root.get("translation"), card.getTranslation());
-        Predicate uniqueTrue = cb.equal(root.get("unique"), true);
-        Predicate and = cb.and(word, translation, uniqueTrue);
+        Predicate pClient = cb.equal(root.get("client"), client);
+        Predicate pWord = cb.equal(root.get("word"), card.getWord());
+        Predicate pTranslation = cb.equal(root.get("translation"), card.getTranslation());
+        Predicate pUnrepeatedTrue = cb.equal(root.get("unrepeated"), true);
+        Predicate and = cb.and(pClient, pWord, pTranslation, pUnrepeatedTrue);
         predicatesOR.add(and);
         Predicate or = cb.or(predicatesOR.toArray(new Predicate[predicatesOR.size()]));
         cq.select(root).where(or).distinct(true);
         TypedQuery<Card> query = entityManager.createQuery(cq);
         List<Card> resultList = query.getResultList();
-        if (resultList.isEmpty())return null;
+        if (resultList.isEmpty()) return null;
         return resultList.get(0);
     }
 
     @Override
-    public List<Card> findDistinctByWordAndTranslationWithUniqueTrue(List<Card> cards) {
+    public List<Card> findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(List<Card> cards, User client) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Card> cq = cb.createQuery(Card.class);
         Root<Card> root = cq.from(Card.class);
         List<Predicate> predicatesOR = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
-            Predicate word = cb.equal(root.get("word"), cards.get(i).getWord());
-            Predicate translation = cb.equal(root.get("translation"), cards.get(i).getTranslation());
-            Predicate uniqueTrue = cb.equal(root.get("unique"), true);
-            Predicate and = cb.and(word, translation, uniqueTrue);
+            Predicate pWord = cb.equal(root.get("word"), cards.get(i).getWord());
+            Predicate pTranslation = cb.equal(root.get("translation"), cards.get(i).getTranslation());
+            Predicate pClient = cb.equal(root.get("client"), client);
+            Predicate pUnrepeatedTrue = cb.equal(root.get("unrepeated"), true);
+            Predicate and = cb.and(pWord, pTranslation, pClient, pUnrepeatedTrue);
+            predicatesOR.add(and);
+        }
+        Predicate or = cb.or(predicatesOR.toArray(new Predicate[predicatesOR.size()]));
+        cq.select(root).where(or).distinct(true);
+        TypedQuery<Card> query = entityManager.createQuery(cq);
+        return query.getResultList();
+    }
+
+    public List<Card> findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, LangLocalePair pair) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Card> cq = cb.createQuery(Card.class);
+        Root<Card> root = cq.from(Card.class);
+        List<Predicate> predicatesOR = new ArrayList<>();
+        for (int i = 0; i < cards.size(); i++) {
+            Predicate pClient = cb.equal(root.get("client"), client);
+            Predicate pPair = cb.equal(root.get("pair"), pair);
+            Predicate pWord = cb.equal(root.get("word"), cards.get(i).getWord());
+            Predicate pTranslation = cb.equal(root.get("translation"), cards.get(i).getTranslation());
+            Predicate pUnrepeatedTrue = cb.equal(root.get("unrepeated"), true);
+            Predicate pLearnedFalse = cb.equal(root.get("learned"), false);
+            Predicate and = cb.and(pClient, pPair, pWord, pTranslation, pUnrepeatedTrue, pLearnedFalse);
             predicatesOR.add(and);
         }
         Predicate or = cb.or(predicatesOR.toArray(new Predicate[predicatesOR.size()]));

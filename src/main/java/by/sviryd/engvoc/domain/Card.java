@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
-import by.sviryd.engvoc.type.LangLocale;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -28,14 +28,13 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@ToString(of = {"id", "word", "translation", "unique", "creationLDT"})
-@EqualsAndHashCode(of = {"word", "translation", "unique", "creationLDT"})
+@ToString(of = {"id", "word", "translation", "unrepeated", "creationLDT"})
+@EqualsAndHashCode(of = {"word", "translation", "unrepeated", "creationLDT"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
 @Setter
-@Entity
 @NormalizerDef(
         name = "ascii1",
         filters = {
@@ -58,7 +57,9 @@ import java.util.UUID;
                         })
         }
 )
-@Table
+@JsonIgnoreProperties(value = {"cards"})
+@Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"client_id", "word", "translation", "unrepeated", "creationLDT", "dictionary_id"}))
 public class Card implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -71,17 +72,23 @@ public class Card implements Serializable {
     @JsonView(Views.Id.class)
     private UUID id;
 
-    @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
-    @JsonView(Views.Unique.class)
-    private boolean unique;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    @JsonView(Views.User.class)
+    private User author;
 
-    @Enumerated(EnumType.STRING)
-    @JsonView(Views.Lang.class)
-    private LangLocale sourceLangLocale;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    @JsonView(Views.User.class)
+    private User client;
 
-    @Enumerated(EnumType.STRING)
-    @JsonView(Views.Lang.class)
-    private LangLocale destinLangLocale;
+    @JsonView(Views.LangLocalePair.class)
+    @Embedded
+    private LangLocalePair pair;
+
+    @Column(nullable = false, columnDefinition = "BIT", length = 1)
+    @JsonView(Views.Unrepeated.class)
+    private boolean unrepeated;
 
 
     @Column(length = 100)
@@ -151,6 +158,13 @@ public class Card implements Serializable {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime forgotLDT;
 
+
+    @JsonView(Views.CountShown.class)
+    private Integer countShown;
+
+    @JsonView(Views.CountAnswered.class)
+    private Integer countAnswered;
+
     @JsonView(Views.CountForgot.class)
     private Integer countForgot;
 
@@ -167,11 +181,24 @@ public class Card implements Serializable {
     @JsonView(Views.Learned.class)
     private boolean learned;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "user_id")
-//    private User authorCard;
-
     @OneToOne
     @JsonView(Views.Dictionary.class)
     private Dictionary dictionary;
+
+    public void makeLearned(){
+        setLearned(true);
+        setLearnedLDT(LocalDateTime.now());
+        setCountShown(null);
+    }
+    public void makeUnlearned(){
+        setLearned(false);
+        setCountShown(null);
+        setCountAnswered(null);
+        setLearnedLDT(null);
+    }
+    public void makeForgot(){
+        setCountForgot(getCountForgot()+1);
+        setForgotLDT(LocalDateTime.now());
+        makeUnlearned();
+    }
 }

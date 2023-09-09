@@ -4,7 +4,6 @@ import by.sviryd.engvoc.config.card.io.ExcelCardColumnConfig;
 import by.sviryd.engvoc.config.card.io.ExcelCardRowConfig;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.service.card.DictionaryBindService;
 import by.sviryd.engvoc.util.StringConverterUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -28,8 +27,6 @@ public class ExcelCardFullReaderService {
     private ExcelCardRowConfig rowConfig;
     @Autowired
     private ExcelCardColumnConfig columnConfig;
-    @Autowired
-    private DictionaryBindService bindService;
 
     public List<Card> extract(File file, String sheetName) {
         try (FileInputStream fip = new FileInputStream(file);

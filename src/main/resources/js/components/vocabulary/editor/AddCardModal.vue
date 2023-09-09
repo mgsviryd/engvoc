@@ -261,7 +261,7 @@ export default {
   props: [
     'id',
     'closable',
-    'unique',
+    'unrepeated',
     'dictionary',
   ],
   components: {
@@ -297,7 +297,7 @@ export default {
     return {
       show: true,
       card: {
-        unique: this.unique,
+        unrepeated: this.unrepeated,
         word: null,
         translation: null,
         example: null,
@@ -364,7 +364,7 @@ export default {
     setDataToDefault() {
       this.actionLocal.errors = {}
       this.card = {
-        unique: this.unique,
+        unrepeated: this.unrepeated,
         word: null,
         translation: null,
         example: null,

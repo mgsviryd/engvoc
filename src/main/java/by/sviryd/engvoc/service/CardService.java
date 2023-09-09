@@ -2,6 +2,8 @@ package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.CardRepo;
 import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,24 +51,31 @@ public class CardService {
         return cardRepo.findAll(pageable);
     }
 
-    public Page<Card> getCardsByDictionary(Dictionary dictionary, Pageable pageable) {
-        return cardRepo.getCardsByDictionary(dictionary, pageable);
+    public Page<Card> findAllByDictionary(Dictionary dictionary, Pageable pageable) {
+        return cardRepo.findAllByDictionary(dictionary, pageable);
     }
 
-    public List<Card> getCardsByDictionary(Dictionary dictionary) {
-        return cardRepo.getCardsByDictionary(dictionary);
+    public List<Card> findAllByDictionary(Dictionary dictionary) {
+        return cardRepo.findAllByDictionary(dictionary);
     }
 
     public Page<Card> findAll(Pageable pageable) {
         return cardRepo.findAll(pageable);
     }
 
-    public List<Card> findDistinctByWordAndTranslationWithUniqueTrue(List<Card> cards) {
-        return cardRepo.findDistinctByWordAndTranslationWithUniqueTrue(cards);
+    public List<Card> findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(List<Card> cards, User client) {
+        return cardRepo.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards, client);
     }
 
-    public Card findDistinctByWordAndTranslationWithUniqueTrue(Card card) {
-        return cardRepo.findDistinctByWordAndTranslationWithUniqueTrue(card);
+    public List<Card> findByClientAndPair(User client, LangLocalePair pair) {
+        return cardRepo.findByClientAndPair(client, pair);
+    }
+    public List<Card> findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, LangLocalePair pair) {
+        return cardRepo.findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(cards, client, pair);
+    }
+
+    public Card findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(Card card, User client) {
+        return cardRepo.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(card, client);
     }
 
     public void deleteByDictionary(Dictionary dictionary) {
@@ -84,21 +94,33 @@ public class CardService {
         return cardRepo.findAllById(ids);
     }
 
+    public List<Card> findAllByClientAndPair(User client, LangLocalePair pair) {
+        return cardRepo.findAllByClientAndPair(client, pair);
+    }
+
     public Optional<Card> findById(UUID id) {
         return cardRepo.findById(id);
     }
 
     @Transactional(rollbackFor = {UpdateAllOrNothingException.class})
-    public int updateDictionaryAndUniqueById(UUID id, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
-        int count = cardRepo.updateDictionaryAndUniqueById(id, dictionary, unique);
+    public int updateDictionaryAndUnrepeatedById(UUID id, Dictionary dictionary, boolean unrepeated) throws UpdateAllOrNothingException {
+        int count = cardRepo.updateDictionaryAndUnrepeatedById(id, dictionary, unrepeated);
         if (count != 1) throw new UpdateAllOrNothingException();
         return count;
     }
 
     @Transactional(rollbackFor = {UpdateAllOrNothingException.class})
-    public int updateDictionaryAndUniqueByIdIn(List<UUID> ids, Dictionary dictionary, boolean unique) throws UpdateAllOrNothingException {
-        int count = cardRepo.updateDictionaryAndUniqueByIdIn(ids, dictionary, unique);
+    public int updateDictionaryAndUnrepeatedByIdIn(List<UUID> ids, Dictionary dictionary, boolean unrepeated) throws UpdateAllOrNothingException {
+        int count = cardRepo.updateDictionaryAndUnrepeatedByIdIn(ids, dictionary, unrepeated);
         if (count != ids.size()) throw new UpdateAllOrNothingException();
         return count;
+    }
+
+    public List<Card> getCardsByDictionaryIdIn(List<UUID> ids) {
+        return cardRepo.getCardsByDictionaryIdIn(ids);
+    }
+
+    public int updateLearnedAndLearnedLDTByIdIn(List<UUID> ids, boolean learned, LocalDateTime learnedLDT) {
+        return cardRepo.updateLearnedAndLearnedLDTByIdIn(ids, learned, learnedLDT);
     }
 }

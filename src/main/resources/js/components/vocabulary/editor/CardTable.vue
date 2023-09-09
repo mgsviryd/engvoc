@@ -23,7 +23,7 @@
             <button class="btn btn-light px-0 py-0"
                     @mousedown.prevent.stop="mousedownSelected()">
               <span class="st-text-shift">
-                {{getLang('selected')}}
+                {{ getLang('selected') }}
               </span>
               <span class="st-right badge bg-white border border-secondary badge-pill">{{
                   selectedCardIds.length
@@ -60,23 +60,27 @@
             </b-button>
           </b-button-group>
           <b-button-group size="sm" class="border-1 border-secondary shadow-none">
-            <b-dropdown size="sm"  variant="link" toggle-class="text-decoration-none" no-caret style="z-index: 1022">
-              <template #button-content >
-                <i class="fa fa-download fa-xs text-white"></i>
-              </template>
-              <b-dropdown-item @click="downloadExcelFile()">
-                {{ getLang("excel") }}
-              </b-dropdown-item>
-              <b-dropdown-item @click="downloadXmlFile()">
-                {{ getLang("xml") }}
-              </b-dropdown-item>
-            </b-dropdown>
+            <b-button
+                id="download-xml-file"
+                variant="light"
+                class="py-0 px-1 shadow-none"
+                v-b-tooltip.hover :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('xml')"
+                @click="downloadXmlFile()">
+              <img src="/static/picture/icon/xml-extension.png" alt="..." width="24" height="24">
+            </b-button>
+            <b-button
+                variant="light"
+                class="py-0 px-1 shadow-none"
+                v-b-tooltip.hover :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('excel')"
+                @click="downloadExcelFile()">
+              <img src="/static/picture/icon/excel.png" alt="..." width="24" height="24">
+            </b-button>
           </b-button-group>
         </th>
       </tr>
       <tr class="border-0">
         <th class="st-squeeze border-0 border-left-0 py-0">
-          {{getUpperCaseLang('abbrNumber')}}
+          {{ getUpperCaseLang('abbrNumber') }}
         </th>
         <template v-for="(property,i) in sortByColumnInx(propertySettings)">
           <th v-if="property.showColumn"
@@ -197,7 +201,7 @@
         </tr>
         <tr class="collapse" :id="getCardDetailsElemId(card.id)">
           <td colspan="5" class="st-squeeze border-1 border-secondary border-right-0">
-            {{getUpperCaseLang('details')}}
+            {{ getUpperCaseLang('details') }}
           </td>
         </tr>
       </template>
@@ -223,7 +227,7 @@
         :id="id.addCardModal"
         :ref="id.addCardModal"
         :closable="true"
-        :unique="true"
+        :unrepeated="true"
         :dictionary="dictionary"
     ></add-card-modal>
   </div>
@@ -233,6 +237,7 @@
 import {mapGetters, mapState} from 'vuex'
 import TableSettingsModal from './TableSettingsModal.vue'
 import AddCardModal from './AddCardModal.vue'
+import PictureStatic from '../../picture/PictureStatic.vue'
 import * as _ from 'lodash'
 
 export default {
@@ -243,6 +248,7 @@ export default {
   components: {
     TableSettingsModal,
     AddCardModal,
+    PictureStatic,
   },
   created() {
     this.$root.$on('dragdrop-init', (payload) => {
@@ -476,9 +482,9 @@ export default {
           this.show = true
           const cards = this.getCardsByDictionaryId(this.dictionary.id)
           this.showEmpty = typeof cards === 'undefined' || cards.length === 0
-          if (cards){
+          if (cards) {
             this.dictionaryCards = [...cards]
-          }else{
+          } else {
             this.dictionaryCards = []
           }
           this.groupCards()
@@ -753,10 +759,12 @@ export default {
       cards.forEach(card => $("#" + this.getCardElemId(card.id)).removeClass("dragover"))
       $("#" + this.blankElemId).removeClass("dragover")
     },
-    downloadExcelFile(){
-      this.$store.dispatch("downloadExcelFileAction",  {dictionary: this.dictionary})
+    downloadExcelFile() {
+      $('download-excel-file').removeClass("active")
+      this.$store.dispatch("downloadExcelFileAction", {dictionary: this.dictionary})
     },
-    downloadXmlFile(){
+    downloadXmlFile() {
+      $('download-xml-file').removeClass("active")
       this.$store.dispatch("downloadXmlFileAction", {dictionary: this.dictionary})
     }
   },
@@ -764,6 +772,14 @@ export default {
 </script>
 
 <style scoped>
+
+.dropdown-class {
+  position: relative;
+}
+
+.dropdown-class > li {
+  z-index: 1050;
+}
 
 .card-table- {
   height: 550px;

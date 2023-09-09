@@ -19,8 +19,8 @@
     </template>
 
     <b-input v-model="dictionary.name" :placeholder="getCapitalizeLang('enterName')"></b-input>
-    <div v-if="actionLocal.errors.notUniqueDictionaryError" class="alert alert-danger">
-      {{ getLang('notUniqueDictionaryError') }}
+    <div v-if="actionLocal.errors.notUnrepeatedDictionaryError" class="alert alert-danger">
+      {{ getLang('notUnrepetedDictionaryError') }}
     </div>
     <single-picture-drop-zone></single-picture-drop-zone>
 
@@ -45,7 +45,7 @@ export default {
   props: [
     'id',
     'closable',
-    'unique',
+    'unrepeated',
   ],
   created() {
     this.$store.watch(this.$store.getters.getActionId, actionId => {
@@ -80,7 +80,7 @@ export default {
         name: "",
         parent: 0,
         picture: null,
-        unique: this.unique,
+        unrepeated: this.unrepeated,
       },
       formData: null,
       actionLocal: {
@@ -119,7 +119,7 @@ export default {
         name: null,
         parent: null,
         picture: null,
-        unique: this.unique,
+        unrepeated: this.unrepeated,
       }
       this.formData = null
       this.$root.$emit('setDefaultDropZone')

@@ -12,7 +12,7 @@ public class GsonExcludeStrategies {
     ExclusionStrategy userOnlyInfo = new ExclusionStrategy() {
         @Override
         public boolean shouldSkipField(FieldAttributes field) {
-            String[] excludeFields = new String[]{"password", "sub","subscribers", "subscriptions"};
+            String[] excludeFields = new String[]{"password", "sub", "authorCards", "clientCards", "dictionaries", "subscribers", "subscriptions"};
             return someFieldExcluded(field, User.class, excludeFields);
         }
 

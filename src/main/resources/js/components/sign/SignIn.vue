@@ -244,7 +244,7 @@ export default {
       }
     },
     enterUser() {
-      this.$store.dispatch('enterUserAction',
+      this.$store.dispatch('signInAction',
           RequestJS.getBodyContentTypeUrlencoded({username: this.email, password: this.password})
       ).then((errors) => {
         this.$emit('showSignInSpinMethod', false)

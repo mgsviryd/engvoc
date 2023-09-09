@@ -3,7 +3,7 @@ package by.sviryd.engvoc.service.card.reader;
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.service.card.AbbyyLatinCyrillicSplitterService;
-import by.sviryd.engvoc.service.card.DictionaryBindService;
+import by.sviryd.engvoc.service.card.XmlDictionaryFilenameBindService;
 import by.sviryd.engvoc.util.FileExtensionUtil;
 import javafx.util.Pair;
 import lombok.AllArgsConstructor;
@@ -32,16 +32,18 @@ public class XmlCardReaderService {
     private static final String MEANING = "meaning";
     private static final String STATISTICS = "statistics";
     private static final String STATUS = "status";
+    private static final String SHOWN = "shown";
+    private static final String ANSWERED = "answered";
     private static final String SOUND = "sound";
     private static final String NAME = "name";
-    private static final int LEARNED_MARK = 4;
+    private static final String LEARNED_MARK = "4";
     private static final String TRANSLATIONS = "translations";
     private static final String TRANSCRIPTION = "transcription";
     private static final String EXAMPLES = "examples";
     private static final String EXAMPLE = "example";
 
     @Autowired
-    private DictionaryBindService dictionaryConfig;
+    private XmlDictionaryFilenameBindService dictionaryConfig;
 
     @Autowired
     private AbbyyLatinCyrillicSplitterService splitter;
@@ -58,10 +60,11 @@ public class XmlCardReaderService {
     }
 
     public List<Card> extract(MultipartFile file) {
-        if (!FileExtensionUtil.isXml(file.getName())) {
+        String filename = file.getOriginalFilename();
+        if (!FileExtensionUtil.isXml(filename)) {
             throw new IllegalArgumentException("File " + file + "is not xml.");
         }
-        String dictionaryName = dictionaryConfig.getDictionaryNameWithoutAbbr(file.getName());
+        String dictionaryName = dictionaryConfig.getDictionaryNameWithoutAbbr(filename);
         if (dictionaryName == null) {
             throw new IllegalArgumentException("File " + file + "is not supported dictionary.");
         }
@@ -70,7 +73,7 @@ public class XmlCardReaderService {
         try {
             document = reader.read(file.getInputStream());
         } catch (Exception e) {
-            throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
+            throw new IllegalArgumentException("Something wrong with " + filename);
         }
         return getCards(document, dictionaryName);
     }
@@ -95,6 +98,8 @@ public class XmlCardReaderService {
                     Element eMeaning = eMeanings.get(i);
                     String transcription = getTranscription(eMeaning);
                     boolean learned = isLearned(eMeaning);
+                    Integer countShown = countShown(eMeaning);
+                    Integer countAnswered = countAnswered(eMeaning);
                     String sound = getSound(eMeaning);
                     String translation = m.getCombineWords();
                     String exampleFromXml = m.getExample();
@@ -110,6 +115,8 @@ public class XmlCardReaderService {
                                     .exampleTranslation(exampleTranslation)
                                     .transcription(transcription)
                                     .learned(learned)
+                                    .countShown(countShown)
+                                    .countAnswered(countAnswered)
                                     .sound(sound)
                                     .dictionary(dictionary)
                                     .build()
@@ -148,11 +155,29 @@ public class XmlCardReaderService {
         boolean learned = false;
         try {
             Element eStatistics = eMeaning.element(STATISTICS);
-            int indicator = Integer.parseInt(eStatistics.attributeValue(STATUS));
-            learned = indicator == LEARNED_MARK;
+            String indicator = eStatistics.attributeValue(STATUS);
+            learned = indicator.equals(LEARNED_MARK);
         } catch (Exception e) {
         }
         return learned;
+    }
+    private Integer countShown(Element eMeaning) {
+        Integer count = null;
+        try {
+            Element eStatistics = eMeaning.element(STATISTICS);
+            count = Integer.parseInt(eStatistics.attributeValue(SHOWN));
+        } catch (Exception e) {
+        }
+        return count;
+    }
+    private Integer countAnswered(Element eMeaning) {
+        Integer count = null;
+        try {
+            Element eStatistics = eMeaning.element(STATISTICS);
+            count = Integer.parseInt(eStatistics.attributeValue(ANSWERED));
+        } catch (Exception e) {
+        }
+        return count;
     }
 
     private String getTranscription(Element meaning) {

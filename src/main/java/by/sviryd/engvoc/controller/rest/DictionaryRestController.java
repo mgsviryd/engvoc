@@ -1,12 +1,12 @@
 package by.sviryd.engvoc.controller.rest;
 
-import by.sviryd.engvoc.config.DictionaryConfig;
-import by.sviryd.engvoc.domain.Card;
+import by.sviryd.engvoc.domain.*;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.Views;
+import by.sviryd.engvoc.provider.AuthProvider;
 import by.sviryd.engvoc.service.CardService;
 import by.sviryd.engvoc.service.DictionaryService;
 import by.sviryd.engvoc.service.PictureMediaService;
+import by.sviryd.engvoc.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -16,6 +16,8 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +35,10 @@ public class DictionaryRestController {
     private PictureMediaService pictureMediaService;
     @Autowired
     private CardService cardService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private AuthProvider authProvider;
 
     @DeleteMapping("{id}")
     public void delete(
@@ -43,11 +49,13 @@ public class DictionaryRestController {
     }
 
     @GetMapping("{id}")
+    @JsonView({Views.Dictionary.class})
     public Dictionary get(@PathVariable("id") Dictionary dictionary) {
         return dictionary;
     }
 
     @PostMapping()
+    @JsonView({Views.Dictionary.class})
     public Dictionary save(
             @RequestBody Dictionary dictionary
     ) {
@@ -56,6 +64,7 @@ public class DictionaryRestController {
 
 
     @PutMapping("{id}")
+    @JsonView({Views.Dictionary.class})
     public Dictionary update(@RequestBody Dictionary dictionary, @PathVariable("id") Dictionary dictionaryDb) {
         BeanUtils.copyProperties(dictionary, dictionaryDb, "id");
         return dictionaryService.save(dictionaryDb);
@@ -67,28 +76,32 @@ public class DictionaryRestController {
         return dictionaryService.findAll();
     }
 
-    @GetMapping("/findDictionariesAndCards")
+    @PostMapping(value = "/findDictionariesAndCards")
     @JsonView({Views.DictionaryCard.class})
-    public HashMap<Object, Object> findDictionariesAndCards() {
-        List<Dictionary> dictionaries = dictionaryService.findAll();
-        List<Card> cards = cardService.findAll();
+    public HashMap<Object, Object> findDictionariesAndCards(
+            @AuthenticationPrincipal User user,
+            @RequestBody LangLocalePair pair
+    ){
+        List<Dictionary> dictionaries = dictionaryService.findAllByAuthorAndPair(user, pair);
+        List<Card> cards = cardService.findAllByClientAndPair(user, pair);
         HashMap<Object, Object> data = new HashMap<>();
         data.put("dictionaries", dictionaries);
         data.put("cards", cards);
         return data;
     }
 
-    @PostMapping("/saveUnique")
-    public HashMap<Object, Object> saveUnique(
+    @PostMapping("/saveUnrepeated")
+    @JsonView({Views.Dictionary.class})
+    public HashMap<Object, Object> saveUnrepeated(
             @RequestBody Dictionary dictionary
     ) {
-        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnique(dictionary.getName(), dictionary.isUnique());
+        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnrepeated(dictionary.getName(), dictionary.isUnrepeated());
         Dictionary saved = null;
         HashMap<Object, Object> errors = new HashMap<>();
         if (!dictionaryDbOpt.isPresent()) {
             saved = dictionaryService.save(dictionary);
         } else {
-            errors.put("notUniqueDictionaryError", "error");
+            errors.put("notUnrepeatedDictionaryError", "error");
         }
         HashMap<Object, Object> data = new HashMap<>();
         data.put("saved", saved);
@@ -96,13 +109,14 @@ public class DictionaryRestController {
         return data;
     }
 
-    @PostMapping(value = "/saveUniqueWithPicture", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/saveUnrepeatedWithPicture", consumes = {"multipart/form-data"})
+    @JsonView({Views.Dictionary.class})
     public HashMap<Object, Object> addWithPicture(
             @RequestPart("file") MultipartFile file,
             @RequestPart("dictionary") String dictionaryJson
     ) throws IOException {
         Dictionary dictionary = new ObjectMapper().readValue(dictionaryJson, Dictionary.class);
-        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnique(dictionary.getName(), dictionary.isUnique());
+        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnrepeated(dictionary.getName(), dictionary.isUnrepeated());
         Dictionary saved = null;
         HashMap<Object, Object> errors = new HashMap<>();
         if (!dictionaryDbOpt.isPresent()) {
@@ -110,7 +124,7 @@ public class DictionaryRestController {
             dictionary.setPicture(picture);
             saved = dictionaryService.save(dictionary);
         } else {
-            errors.put("notUniqueDictionaryError", "error");
+            errors.put("notUnrepeatedDictionaryError", "error");
         }
         HashMap<Object, Object> data = new HashMap<>();
         data.put("saved", saved);
@@ -136,13 +150,25 @@ public class DictionaryRestController {
         dictionaryService.deleteByIdIn(dictionariesDb.stream().map(Dictionary::getId).collect(Collectors.toList()));
     }
 
-    @DeleteMapping(value = "/deleteByUnique", consumes = {"application/json"})
-    public void deleteByUnique(
+    @DeleteMapping(value = "/deleteByUnrepeated", consumes = {"application/json"})
+    public void deleteByUnrepeated(
             @RequestBody String json
     ) {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
-        boolean unique = obj.get("unique").getAsBoolean();
-        dictionaryService.deleteByUnique(unique);
+        boolean unrepeated = obj.get("unrepeated").getAsBoolean();
+        dictionaryService.deleteByUnrepeated(unrepeated);
+    }
+
+    @PostMapping(value = "/saveNewUnrepeated")
+    @JsonView({Views.Dictionary.class})
+    public Dictionary saveNewUnrepeated(
+            @AuthenticationPrincipal User user,
+            @RequestBody LangLocalePair pair
+    ){
+        user.addPair(pair);
+        User save = userService.save(user);
+        authProvider.refreshContext(save);
+        return dictionaryService.findNewUnrepeatedIfAbsentSave(user, pair);
     }
 }

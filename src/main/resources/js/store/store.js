@@ -13,17 +13,19 @@ import compare from "../util/compare"
 import documentJS from "../util/document"
 import {loadLanguageAsync} from "../setup/i18n-setup"
 import * as _ from "lodash"
-import localforage from 'localforage'
+import storeMethods from "./storeMethods";
 
 Vue.use(Vuex)
 
 let AsyncLock = require('async-lock');
 let lock = new AsyncLock();
 
+
 const persist = new VuexPersistence(
     {
         key: 'root',
-        storage: localforage,
+        storage: window.localStorage,
+        // storage: localforage,
         reducer: (state) => (
             {
                 authentication: state.authentication,
@@ -53,34 +55,43 @@ export default new Vuex.Store(
                 id: 0,
                 errors: {},
             },
-            vocabulary:{
-                id: 0,
-            },
             dictionaries: [],
             cards: [],
             cardsNotSaved: [],
-
             authentication: {
                 id: 0,
                 users: [],
                 user: null,
             },
+
             frontend: {},
             pictureMedia: {},
-
             lang: {
                 id: 0,
-                lang: {lang: "en", country: "US", locale: "en_US"},
+                lang: {lang: "en", country: "US", locale: "en_US", "id": "1033"},
                 langs: [],
-                map: {}
+                map: {},
             },
-            props:{
-                download:{
-                    lang:{
-                        source: {lang: "en", country: "US", locale: "en_US"},
-                        destin: {lang: "en", country: "US", locale: "en_US"},
+
+            vocabulary: {
+                id: 0,
+                lang: {},
+                langs: [],
+            },
+
+            props: {
+                download: {
+                    lang: {
+                        source: {lang: "en", country: "US", locale: "en_US", "id": "1033"},
+                        target: {lang: "en", country: "US", locale: "en_US", "id": "1033"},
                     }
-                }
+                },
+                upload: {
+                    lang: {
+                        source: {lang: "en", country: "US", locale: "en_US", "id": "1033"},
+                        target: {lang: "en", country: "US", locale: "en_US", "id": "1033"},
+                    }
+                },
             }
         },
         getters: {
@@ -89,8 +100,8 @@ export default new Vuex.Store(
             getLangId: state => () => state.lang.id,
             getVocabularyId: state => () => state.vocabulary.id,
 
-            isDictionaryUnique: (state,getters) => (id) => {
-                return getters.getDictionaryById(id).unique
+            isDictionaryUnrepeated: (state, getters) => (id) => {
+                return getters.getDictionaryById(id).unrepeated
             },
             getCardsByDictionaryInx: state => i => {
                 if (state.dictionaries.length <= i) return []
@@ -105,40 +116,44 @@ export default new Vuex.Store(
             getDictionaryInx: state => (id) => {
                 return state.dictionaries.findIndex(d => d.id === id)
             },
+            getNewDictionaryInxByUnrepeated: state => (unrepeated) => {
+                return state.dictionaries.findIndex(d => d.name === "new" && d.unrepeated === unrepeated)
+            },
             getDictionaryById: (state, getters) => (id) => {
                 return state.dictionaries[getters.getDictionaryInx(id)]
             },
             getCountCardsInDictionaryById: (state, getters) => (id) => state.cards[getters.getDictionaryInx(id)].length,
-            getUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === true),
-            getNonUniqueDictionaries: (state) => () => state.dictionaries.filter(d => d.unique === false),
-            getDictionariesInxsByUnique: (state) => (unique) => {
+            getUnrepeatedDictionaries: (state) => () => state.dictionaries.filter(d => d.unrepeated === true),
+            getNonUnrepeatedDictionaries: (state) => () => state.dictionaries.filter(d => d.unrepeated === false),
+            getDictionaryIdsByUnrepeated: (state) => (unrepeated) => state.dictionaries.filter(d => d.unrepeated === unrepeated).map(d => d.id),
+            getDictionariesInxsByUnrepeated: (state) => (unrepeated) => {
                 const inxs = []
                 state.dictionaries.forEach((d, i) => {
-                    if (d.unique === unique) inxs.push(i)
+                    if (d.unrepeated === unrepeated) inxs.push(i)
                 })
                 return inxs;
             },
-            getNonUniqueDictionariesInxs: (state) => () => {
+            getNonUnrepeatedDictionariesInxs: (state) => () => {
                 const inxs = []
                 state.dictionaries.forEach((d, i) => {
-                    if (d.unique === false) inxs.push(i)
+                    if (d.unrepeated === false) inxs.push(i)
                 })
-                return inxs;
+                return inxs
             },
-            getUniqueDictionariesUniquePropertyValues: (state, getters) => (property) => {
-                return [...new Set(getters.getUniqueDictionaries.map(d => d[property]))]
+            getUnrepeatedDictionariesUnrepeatedPropertyValues: (state, getters) => (property) => {
+                return [...new Set(getters.getUnrepeatedDictionaries.map(d => d[property]))]
             },
-            getUniqueDictionariesPropertyValues: (state, getters) => (property) => {
-                return getters.getUniqueDictionaries.map(d => d[property])
+            getUnrepeatedDictionariesPropertyValues: (state, getters) => (property) => {
+                return getters.getUnrepeatedDictionaries.map(d => d[property])
             },
-            getNonUniqueDictionariesUniquePropertyValues: (state, getters) => (property) => {
-                return [...new Set(getters.getNonUniqueDictionaries().map(d => d[property]))]
+            getNonUnrepeatedDictionariesUnrepeatedPropertyValues: (state, getters) => (property) => {
+                return [...new Set(getters.getNonUnrepeatedDictionaries().map(d => d[property]))]
             },
-            getNonUniqueDictionariesPropertyValues: (state, getters) => (property) => {
-                return getters.getNonUniqueDictionaries().map(d => d[property])
+            getNonUnrepeatedDictionariesPropertyValues: (state, getters) => (property) => {
+                return getters.getNonUnrepeatedDictionaries().map(d => d[property])
             },
-            isNeedCheckDictionaryUnique: (state, getters) => (sourceId, destId) => {
-                return !getters.getDictionaryById(sourceId).unique && getters.getDictionaryById(destId).unique
+            isNeedCheckDictionaryUnrepeated: (state, getters) => (sourceId, destId) => {
+                return !getters.getDictionaryById(sourceId).unrepeated && getters.getDictionaryById(destId).unrepeated
             },
             sortArrayByStringProperty: (state) => (dictionaries, property) => dictionaries.sort((a, b) => compare.compareStringNaturalByProperty(a, b, property)),
             getUrl: state => part => decodeURI(encodeURI(state.frontend.config.url)).concat(part),
@@ -166,6 +181,10 @@ export default new Vuex.Store(
             isNoUsers: (state) => {
                 return _.isNil(state.authentication.users) || _.isEmpty(state.authentication.users)
             },
+            isVocabularyLangPresent: (state) => !_.isNil(state.vocabulary.lang) && !_.isEmpty(state.vocabulary.lang),
+            getVocabularyLangsInx: (state) => (lang) => {
+                return state.vocabulary.langs.indexOf(lang)
+            }
         },
         mutations: {
             addAndSetUserMutation(state, payload) {
@@ -322,6 +341,40 @@ export default new Vuex.Store(
             },
 
             // upload dictionaries and cards
+            saveNewUnrepeatedCards(state, payload) {
+                let inx = this.getters.getNewDictionaryInxByUnrepeated(true);
+                if (inx < 0) this.saveDictionary({dictionary: payload.saveNewUnrepeatedDictionary})
+                inx = this.getters.getNewDictionaryInxByUnrepeated(true);
+                state.cards[inx] = [
+                    ...state.cards[inx],
+                    ...payload.saveNewUnrepeatedCards
+                ]
+            },
+            saveDictionary(state, payload) {
+                state.dictionaries = [
+                    ...state.dictionaries,
+                    payload.dictionary,
+                ]
+                state.cards = [
+                    ...state.cards,
+                    [],
+                ]
+                state.vocabulary.id = date.getUTCMilliseconds(new Date())
+            },
+            updateCardsMutation(state, payload) {
+                const updatedCards = payload.updateLearnedStatusUnrepeatedCards
+                const countDictionaries = state.dictionaries.length
+                for (let i = 0; i < countDictionaries; i++) {
+                    const dictionary = state.dictionaries[i]
+                    const dictionaryUpdatedCards = updatedCards.filter(c => c.dictionary.id === dictionary.id)
+                    for (let j = 0; j < state.cards[i].length; j++) {
+                        if (!_.isNil(dictionaryUpdatedCards) && !_.isEmpty(dictionaryUpdatedCards)) {
+                            const inx = dictionaryUpdatedCards.findIndex(c => c.id === state.cards[i][j].id)
+                            state.cards[i].splice(j, 1, dictionaryUpdatedCards[inx])
+                        }
+                    }
+                }
+            },
             uploadNewDictionariesAndCardsMutation(state, payload) {
                 state.dictionaries = [
                     ...state.dictionaries,
@@ -371,12 +424,12 @@ export default new Vuex.Store(
                     state.cards[inx] = []
                 }
             },
-            deleteDictionariesByUniqueAndCascadeCardsMutation(state, payload) {
-                const inxs = this.getters.getDictionariesInxsByUnique(payload.unique)
+            deleteDictionariesByUnrepeatedAndCascadeCardsMutation(state, payload) {
+                const inxs = this.getters.getDictionariesInxsByUnrepeated(payload.unrepeated)
                 for (let i = state.dictionaries.length - 1; i >= 0; i--) {
                     if (inxs.indexOf(i) >= 0) state.cards.splice(i, 1)
                 }
-                state.dictionaries = state.dictionaries.filter(d => d.unique !== payload.unique)
+                state.dictionaries = state.dictionaries.filter(d => d.unrepeated !== payload.unrepeated)
             },
 
             setDictionariesMutation(state, payload) {
@@ -439,12 +492,38 @@ export default new Vuex.Store(
                 state.authentication = payload
                 state.authentication.id = date.getUTCMilliseconds(new Date())
             },
-            changePropsDownloadLang(state, payload){
+            changePropsDownloadLangMutation(state, payload) {
                 state.props.download.lang.source = payload.source
-                state.props.download.lang.destin = payload.destin
-                console.info(state.props.download.lang)
+                state.props.download.lang.target = payload.target
             },
-
+            changePropsUploadLangMutation(state, payload) {
+                state.props.upload.lang.source = payload.source
+                state.props.upload.lang.target = payload.target
+            },
+            changeVocabularyLangMutation(state, payload) {
+                state.vocabulary.lang.source = payload.source
+                state.vocabulary.lang.target = payload.target
+            },
+            setDefaultVocabularyLangMutation(state, payload) {
+                state.vocabulary.lang = {}
+                if (!_.isNil() && !_.isEmpty(payload)) {
+                    this.deleteLangFromVocabularyLangs(payload)
+                }
+            },
+            deleteLangFromVocabularyLangs(state, payload) {
+                const i = this.getters.getVocabularyLangsInx(payload)
+                if (i >= 0) {
+                    state.vocabulary.langs = [
+                        ...state.vocabulary.langs.slice(0, i),
+                        ...state.vocabulary.langs.slice(i + 1)
+                    ]
+                }
+            },
+            createVocabularyDatabaseMutation(state, payload) {
+                state.dictionaries = [payload.dictionary]
+                state.cards = [[]]
+                state.vocabulary.id = date.getUTCMilliseconds(new Date())
+            },
         },
         actions: {
             async updateFrontendAction({commit}, payload) {
@@ -523,11 +602,26 @@ export default new Vuex.Store(
             // cards
             async uploadCardsByExcelFilesAction({commit}, payload) {
                 const formData = payload.formData
+                formData.append('pair',
+                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('options',
+                    new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadExcelFiles(formData)
                 const data = await result.data
                 lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('uploadNewDictionariesAndCardsMutation', data)
+                        if (payload.options.updateLearnedStatusUnrepeatedCards) {
+                            commit('updateCardsMutation', data)
+                        }
+                        if (payload.options.saveNewUnrepeatedCards) {
+                            commit('saveNewUnrepeatedCards', data)
+                        }
+                        if (payload.options.saveAllUploadCards) {
+                            commit('uploadNewDictionariesAndCardsMutation', data)
+                        }
+                        if (payload.options.updateCardsWithAbsentSound) {
+                            commit('updateCardsMutation', data)
+                        }
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
@@ -535,11 +629,26 @@ export default new Vuex.Store(
             },
             async uploadCardsByXmlFilesAction({commit}, payload) {
                 const formData = payload.formData
+                formData.append('pair',
+                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('options',
+                    new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadXmlFiles(formData)
                 const data = await result.data
                 lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('uploadNewDictionariesAndCardsMutation', data)
+                        if (payload.options.updateLearnedStatusUnrepeatedCards) {
+                            commit('updateCardsMutation', data)
+                        }
+                        if (payload.options.saveNewUnrepeatedCards) {
+                            commit('saveNewUnrepeatedCards', data)
+                        }
+                        if (payload.options.saveAllUploadCards) {
+                            commit('uploadNewDictionariesAndCardsMutation', data)
+                        }
+                        if (payload.options.updateCardsWithAbsentSound) {
+                            commit('updateCardsMutation', data)
+                        }
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
@@ -547,11 +656,27 @@ export default new Vuex.Store(
             },
             async uploadCardsByExcelFileAction({commit}, payload) {
                 const formData = payload.formData
+                formData.append('pair',
+                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('options',
+                    new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadExcelFile(formData)
                 const data = await result.data
                 lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('uploadNewDictionariesAndCardsMutation', data)
+                        if (payload.options.updateLearnedStatusUnrepeatedCards) {
+                            commit('updateCardsMutation', data)
+                        }
+                        if (payload.options.saveNewUnrepeatedCards) {
+                            commit('saveNewUnrepeatedCards', data)
+                        }
+                        if (payload.options.saveAllUploadCards) {
+                            commit('uploadNewDictionariesAndCardsMutation', data)
+                        }
+                        if (payload.options.updateCardsWithAbsentSound) {
+                            commit('updateCardsMutation', data)
+                        }
+
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
@@ -559,11 +684,26 @@ export default new Vuex.Store(
             },
             async uploadCardsByXmlFileAction({commit}, payload) {
                 const formData = payload.formData
+                formData.append('pair',
+                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('options',
+                    new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadXmlFile(formData)
                 const data = await result.data
                 lock.acquire('uploadCards', () => {
                     if (result.ok) {
-                        commit('uploadNewDictionariesAndCardsMutation', data)
+                        if (payload.options.updateLearnedStatusUnrepeatedCards) {
+                            commit('updateCardsMutation', data)
+                        }
+                        if (payload.options.saveNewUnrepeatedCards) {
+                            commit('saveNewUnrepeatedCards', data)
+                        }
+                        if (payload.options.saveAllUploadCards) {
+                            commit('uploadNewDictionariesAndCardsMutation', data)
+                        }
+                        if (payload.options.updateCardsWithAbsentSound) {
+                            commit('updateCardsMutation', data)
+                        }
                     }
                 }).catch((err) => {
                     console.log(err) // output: error
@@ -624,11 +764,15 @@ export default new Vuex.Store(
                     }
                 }
             },
-            async findDictionariesAndCards({commit}) {
-                const result = await dictionaryApi.findDictionariesAndCards()
+            async findDictionariesAndCardsAction({commit, dispatch}, payload) {
+                const result = await dictionaryApi.findDictionariesAndCards(payload)
                 const data = await result.data
                 if (result.ok) {
-                    commit('setDictionariesAndCardsMutation', {dictionaries: data.dictionaries, cards: data.cards})
+                    if (_.isEmpty(data.dictionaries)) {
+                        commit('setDefaultVocabularyLangMutation', payload)
+                    } else {
+                        commit('setDictionariesAndCardsMutation', {dictionaries: data.dictionaries, cards: data.cards})
+                    }
                 }
             },
             async findDictionaries({commit}) {
@@ -661,7 +805,7 @@ export default new Vuex.Store(
 
             // dictionary
             async addDictionaryAction({commit}, payload) {
-                const result = await dictionaryApi.saveUnique(payload.dictionary)
+                const result = await dictionaryApi.saveUnrepeated(payload.dictionary)
                 const data = await result.data
                 if (result.ok) {
                     commit('addDictionaryMutation', {dictionary: data.saved})
@@ -673,9 +817,9 @@ export default new Vuex.Store(
                 if (payload.formData) {
                     payload.formData.append('dictionary',
                         new Blob([JSON.stringify(payload.dictionary)], {type: "application/json"}))
-                    result = await dictionaryApi.saveUniqueWithPicture(payload.formData)
+                    result = await dictionaryApi.saveUnrepeatedWithPicture(payload.formData)
                 } else {
-                    result = await dictionaryApi.saveUnique(payload.dictionary)
+                    result = await dictionaryApi.saveUnrepeated(payload.dictionary)
                 }
                 const data = await result.data
                 if (result.ok) {
@@ -706,10 +850,10 @@ export default new Vuex.Store(
                 }
             },
 
-            async deleteDictionariesByUniqueAndCascadeCardsAction({commit}, payload) {
-                const result = await dictionaryApi.deleteByUnique({unique: payload.unique})
+            async deleteDictionariesByUnrepeatedAndCascadeCardsAction({commit}, payload) {
+                const result = await dictionaryApi.deleteByUnrepeated({unrepeated: payload.unrepeated})
                 if (result.ok) {
-                    commit('deleteDictionariesByUniqueAndCascadeCardsMutation', payload)
+                    commit('deleteDictionariesByUnrepeatedAndCascadeCardsMutation', payload)
                     commit('setActionMutation', {id: payload.actionId, errors: []})
                 }
             },
@@ -749,7 +893,7 @@ export default new Vuex.Store(
                     return data.errors
                 }
             },
-            async enterUserAction({commit}, payload) {
+            async signInAction({commit}, payload) {
                 let result = await signApi.in(payload)
                 const data = await result.data
                 if (result.ok) {
@@ -770,10 +914,11 @@ export default new Vuex.Store(
                 let result = await cardApi.downloadExcelFile(payload.dictionary.id)
                 const data = await result.data
                 if (result.ok) {
-                    let blob = new Blob([data], { type: result.headers['content-type'] })
+                    let blob = new Blob([result.blob()], {type: result.headers['content-type']})
                     let link = document.createElement('a')
                     link.href = window.URL.createObjectURL(blob)
-                    link.download = payload.dictionary.name + '.xlsx'
+                    const pair = storeMethods.getCapitalizeLangPair(payload.dictionary)
+                    link.download = payload.dictionary.name + pair + '.xlsx'
                     link.click();
                 }
             },
@@ -781,15 +926,43 @@ export default new Vuex.Store(
                 let result = await cardApi.downloadXmlFile(payload.dictionary.id)
                 const data = await result.data
                 if (result.ok) {
-                    let blob = new Blob([data], { type: result.headers['content-type'] })
+                    let blob = new Blob([data], {type: result.headers['content-type']})
                     let link = document.createElement('a')
                     link.href = window.URL.createObjectURL(blob)
-                    link.download = payload.dictionary.name + '.xml'
+                    const pair = storeMethods.getCapitalizeLangPair(payload.dictionary)
+                    link.download = payload.dictionary.name + pair + '.xml'
                     link.click();
                 }
             },
-            async changePropsDownloadLang({commit}, payload){
-                commit('changePropsDownloadLang', payload)
+            async changePropsDownloadLangAction({commit}, payload) {
+                commit('changePropsDownloadLangMutation', payload)
+            },
+            async changePropsUploadLangAction({commit}, payload) {
+                commit('changePropsUploadLangMutation', payload)
+            },
+            async changeVocabularyDatabaseAction({commit, dispatch}, payload) {
+                commit('changeVocabularyLangMutation', payload)
+                dispatch('findDictionariesAndCardsAction', payload)
+            },
+            async createVocabularyDatabaseAction({commit, dispatch}, payload) {
+                commit('changeVocabularyLangMutation', payload)
+                let result = await dictionaryApi.saveNewUnrepeated(payload)
+                const data = await result.data
+                if (result.ok) {
+                    commit('createVocabularyDatabaseMutation', {dictionary: data})
+                }
+
+            },
+            async downloadDictionaryXmlFilesByIdsAction({commit}, payload) {
+                let result = await cardApi.downloadXmlFiles(payload.ids)
+                const data = await result.data
+                if (result.ok) {
+                    let blob = new Blob([data], {type: result.headers['content-type']})
+                    let link = document.createElement('a')
+                    link.href = window.URL.createObjectURL(blob)
+                    link.download = 'dictionaries' + '.zip'
+                    link.click();
+                }
             }
         },
     }

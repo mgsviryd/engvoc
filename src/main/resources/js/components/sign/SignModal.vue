@@ -267,8 +267,8 @@ export default {
     hideModal() {
       this.$refs.sign.hide()
     },
-    switchModal(bool) {
-      if (bool) {
+    switchModal(show) {
+      if (show) {
         this.showModal()
       } else {
         this.hideModal()

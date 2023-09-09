@@ -51,7 +51,7 @@ const messages = {
   exampleTranslation: 'перевод примера',
   learned: 'выучено',
   picture: 'изображение',
-  notUniqueDictionaryError: 'Словарь уже существует. Измените имя или родителя.',
+  notUnrepeatedDictionaryError: 'Словарь уже существует. Измените имя или родителя.',
   addDictionary: 'добавить словарь',
   addCard: 'добавить карточку',
   tableSettings: 'свойства таблицы',
@@ -123,6 +123,16 @@ const messages = {
   otherAccount: 'другой аккаунт',
   currentAccount: 'текущий аккаунт',
   absent: 'отсутствует',
-  chooseDictionary: 'выберите словарь, чтобы увидеть его содержимое'
+  chooseDictionary: 'выберите словарь, чтобы увидеть его содержимое',
+  sourceLang: 'язык исходный',
+  targetLang: 'язык перевода',
+  options: 'опции',
+  saveNewUnrepeatedCards: 'сохранить новые уникальные',
+  saveAllUploadCards: 'сохранить все загруженные',
+  updateLearnedStatusUnrepeatedCards: 'обновить статус выучено уникальных',
+  updateCardsWithAbsentSound: 'обновить карточки с отсутствующим звуком',
+  selectOption: 'выберите опцию',
+  createDb: 'создать базу данных',
+  create: 'создать',
 }
 module.exports = messages

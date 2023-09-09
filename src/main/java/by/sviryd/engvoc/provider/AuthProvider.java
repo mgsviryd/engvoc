@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -39,5 +40,10 @@ public class AuthProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> arg) {
         return true;
+    }
+
+    public void refreshContext(User user){
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

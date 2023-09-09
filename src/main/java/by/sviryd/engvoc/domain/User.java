@@ -2,36 +2,53 @@ package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
 import by.sviryd.engvoc.type.Role;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-@ToString(of = {"id", "username", "password", "email", "active"})
-@EqualsAndHashCode(of = {"id"})
+@NamedEntityGraph(
+        name = "post-entity-graph",
+        attributeNodes = {
+                @NamedAttributeNode("pairs"),
+        }
+)
+
+@ToString(of = {"id", "username", "email", "social", "active"})
+@EqualsAndHashCode(of = {"username", "email", "social", "active"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@JsonIgnoreProperties(value = {"authorCards", "clientCards", "dictionaries"})
 @Entity
-@Table(name = "usr")
+@Table(name = "usr", uniqueConstraints = @UniqueConstraint(columnNames = {"username"}))
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User implements UserDetails, Serializable {
-    public static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonView(Views.Id.class)
     private Long id;
 
-    @Column(length = 100, unique = true)
+    @Length (max = 100)
+    @NotBlank
+    @NonNull
+    @Column(length = 100)
+    @JsonView(Views.Username.class)
     private String username;
 
     private String password;
@@ -40,21 +57,26 @@ public class User implements UserDetails, Serializable {
     @JsonView(Views.Active.class)
     private boolean active;
 
-    @Column(length = 20, unique = true)
+    @Column(length = 20)
+    @JsonView(Views.Social.class)
     private String social;
 
     @Column(length = 255)
+    @JsonView(Views.Sub.class)
     private String sub;
 
     @UpdateTimestamp
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
+    @JsonView(Views.LastModifiedLDT.class)
     private LocalDateTime lastModifiedLDT;
 
-    @Column(length = 320)
     @Length(max = 320)
+    @Column(length = 320)
+    @JsonView(Views.Email.class)
     private String email;
 
     @Column(length = 255)
+    @JsonView(Views.Token.class)
     private String token;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
@@ -62,11 +84,24 @@ public class User implements UserDetails, Serializable {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
-//    @OneToMany(mappedBy = "authorCard", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    private List<Card> cards = new ArrayList<>();
-//
-//    @OneToMany(mappedBy = "authorDictionary", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    private List<Dictionary> dictionaries = new ArrayList<>();
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Card> authorCards = new ArrayList<>();
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Card> clientCards = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Dictionary> dictionaries = new ArrayList<>();
+
+
+    @ElementCollection(targetClass = LangLocalePair.class, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_pair",
+            joinColumns = @JoinColumn(name = "user_id"))
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @CollectionId(columns = {@Column(name = "pair_id")}, generator = "uuid2", type = @Type(type = "uuid-char"))
+    @JsonView(Views.LangLocalePairs.class)
+    private List<LangLocalePair> pairs = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -109,5 +144,9 @@ public class User implements UserDetails, Serializable {
     @Override
     public boolean isEnabled() {
         return active;
+    }
+
+    public boolean addPair(LangLocalePair pair) {
+        return pairs.add(pair);
     }
 }

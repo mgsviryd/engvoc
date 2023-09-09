@@ -29,7 +29,7 @@ export default {
   computed: {
     ...mapState([
       'lang',
-        'frontend',
+      'frontend',
     ]),
     main(){
       return document.getElementById("main")

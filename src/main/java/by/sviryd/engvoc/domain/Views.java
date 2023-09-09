@@ -2,8 +2,11 @@ package by.sviryd.engvoc.domain;
 
 public final class Views {
 
-    public interface Active{}
-    public interface CountCard{}
+    public interface Active {
+    }
+
+    public interface CountCard {
+    }
 
     public interface Id {
     }
@@ -20,10 +23,16 @@ public final class Views {
     public interface Invisible {
     }
 
-    public interface Unique {
+    public interface Unrepeated {
     }
 
-    public interface Lang {
+    public interface LangLocale {
+    }
+
+    public interface LangLocalePairs extends LangLocalePair {
+
+    }
+    public interface LangLocalePair extends LangLocale, Name, Active {
     }
 
     public interface Name {
@@ -59,13 +68,19 @@ public final class Views {
     public interface CountForgot {
     }
 
+    public interface CountShown {
+    }
+
+    public interface CountAnswered {
+    }
+
     public interface Learned {
     }
 
     public interface Dictionary extends
             Id,
-            Unique,
-            Lang,
+            Unrepeated,
+            LangLocalePair,
             Name,
             CreationLDT,
             Parent,
@@ -76,8 +91,8 @@ public final class Views {
 
     public interface Card extends
             Id,
-            Unique,
-            Lang,
+            Unrepeated,
+            LangLocalePair,
             Word,
             Translation,
             Example,
@@ -89,11 +104,36 @@ public final class Views {
             Learned,
             ForgotLDT,
             CountForgot,
+            CountShown,
+            CountAnswered,
             Picture,
             Dictionary {
     }
 
     public interface DictionaryCard extends Dictionary, Card {
+    }
+
+    public interface LastModifiedLDT {
+    }
+
+    public interface Social {
+    }
+
+    public interface Sub {
+    }
+
+    public interface Token {
+
+    }
+
+    public interface Email {
+
+    }
+
+    public interface Username {
+    }
+
+    public interface User extends Id, Email, LastModifiedLDT, LangLocalePairs, Social, Sub, Token, Username {
     }
 
 }

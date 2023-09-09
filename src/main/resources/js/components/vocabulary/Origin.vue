@@ -74,10 +74,7 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-4 col-sm-3 border-right border-muted px-0">
-              <div class="container-fluid">
                 <upload-files :drop-zone-props="propsDropZoneXml"></upload-files>
-<!--                <drop-zone :props="propsDropZoneXml"></drop-zone>-->
-              </div>
             </div>
           </div>
         </div>
@@ -88,9 +85,7 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-4 col-sm-3 border-right border-muted px-0">
-              <div class="container-fluid">
-                <drop-zone :props="propsDropZoneExcel"></drop-zone>
-              </div>
+              <upload-files :drop-zone-props="propsDropZoneExcel"></upload-files>
             </div>
           </div>
         </div>
@@ -116,12 +111,14 @@ export default {
       propsDropZoneExcel: {
         accept: '.xlsx',
         size: '10MB',
-        storeAction: 'uploadCardsByExcelFileAction'
+        fileStoreAction: 'uploadCardsByExcelFileAction',
+        filesStoreAction: 'uploadCardsByExcelFilesAction',
       },
       propsDropZoneXml: {
         accept: '.xml',
         size: '10MB',
-        storeAction: 'uploadCardsByXmlFileAction'
+        fileStoreAction: 'uploadCardsByXmlFileAction',
+        filesStoreAction: 'uploadCardsByXmlFilesAction',
       },
       isButtonActive1: false,
       isButtonActive2: false,

@@ -16,8 +16,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@Table
 public class VerificationToken implements Serializable {
-    public static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     @Id
     @Column(length = 16)

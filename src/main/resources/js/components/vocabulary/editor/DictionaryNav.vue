@@ -1,42 +1,51 @@
 <template>
   <div v-if="show" class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block" style="width: 100%">
-    <button class="btn btn-primary text-left rounded-0  border-1 border-secondary"
-            data-toggle="collapse"
-            :href="'#'+getUniqueDictionariesElemId()"
-            :id="'button'+getUniqueDictionariesElemId()"
-            role="button"
+    <button :id="'button'+getUnrepeatedDictionariesElemId()"
+            :aria-controls="getUnrepeatedDictionariesElemId()"
+            :href="'#'+getUnrepeatedDictionariesElemId()"
             aria-expanded="false"
-            :aria-controls="getUniqueDictionariesElemId()"
-            @contextmenu.prevent="$refs.uniqueDictionaries.open"
+            class="btn btn-primary text-left rounded-0  border-1 border-secondary"
+            data-toggle="collapse"
+            role="button"
+            @contextmenu.prevent="$refs.unrepeatedDictionaries.open"
     >
-      <context-menu ref="uniqueDictionaries">
-        <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(true)">
+      <context-menu ref="unrepeatedDictionaries">
+        <b-button-group class="d-block" size="sm" vertical>
+          <b-button
+              variant="outline-danger"
+              @click="deleteDictionariesByUnrepeated(true)">
             {{ getUpperCaseLang('delete') }}
-          </button>
-        </div>
+          </b-button>
+          <b-button
+              variant="outline-success"
+              @click="downloadDictionariesXmlFilesByUnrepeated(true)">
+            <span>{{ getCapitalizeLang('downloadTo') + ' ' }}
+            <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
+              </span>
+          </b-button>
+        </b-button-group>
       </context-menu>
       <span class="st-text-shift">{{ getLang('db') }}</span>
-      <span class="st-right badge badge-light bg-white badge-pill">{{ getUniqueDictionaries().length }}</span>
+      <span class="st-right badge badge-light bg-white badge-pill">{{ getUnrepeatedDictionaries().length }}</span>
     </button>
     <button class="btn  btn-outline-success d-flex justify-content-center align-items-center"
-            @click="$refs[id.addDictionaryUniqueModal].showModal()"
+            @click="$refs[id.addDictionaryUnrepeatedModal].showModal()"
     >
       <i class="fas fa-plus"></i>
     </button>
-    <div class="collapse" :id="getUniqueDictionariesElemId()">
+    <div :id="getUnrepeatedDictionariesElemId()" class="collapse">
       <div class="btn-group-vertical btn-group-sm d-block">
-        <button v-for="(d,i) in uniqueDictionaries"
-                :key="d.id"
+        <button v-for="(d,i) in unrepeatedDictionaries"
                 :id="getDictionaryElemId(d.id)"
-                class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
+                :key="d.id"
+                class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" draggable="true"
+                role="button"
                 @mousedown.prevent.stop="mousedown(d.id)"
                 @mouseup.prevent.stop="mouseup(d.id)"
-                draggable="true"
                 @click.prevent.stop="parentLoadDictionary(d)"
-                @contextmenu.prevent="openUniqueDictionaryContextMenu(i)"
+                @contextmenu.prevent="openUnrepeatedDictionaryContextMenu(i)"
         >
-          <context-menu ref="uniqueDictionaryContextMenu">
+          <context-menu ref="unrepeatedDictionaryContextMenu">
             <div class="btn-group-vertical btn-group-sm d-block">
               <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">
                 {{ getUpperCaseLang('delete') }}
@@ -51,57 +60,67 @@
       </div>
     </div>
 
-    <button class="btn  btn-primary text-left rounded-0 m-0  border-1 border-secondary" data-toggle="collapse"
-            :href="'#'+getNonUniqueDictionariesElemId()"
-            :id="'button'+getNonUniqueDictionariesElemId()"
-            role="button"
+    <button :id="'button'+getNonUnrepeatedDictionariesElemId()" :aria-controls="getNonUnrepeatedDictionariesElemId()"
+            :href="'#'+getNonUnrepeatedDictionariesElemId()"
             aria-expanded="false"
-            :aria-controls="getNonUniqueDictionariesElemId()"
-            @contextmenu.prevent="$refs.nonUniqueDictionaries.open"
+            class="btn  btn-primary text-left rounded-0 m-0  border-1 border-secondary"
+            data-toggle="collapse"
+            role="button"
+            @contextmenu.prevent="$refs.nonUnrepeatedDictionaries.open"
     >
-      <context-menu ref="nonUniqueDictionaries">
-        <div class="btn-group-vertical btn-group-sm d-block">
-          <button class="btn btn-outline-danger" @click="deleteDictionariesByUnique(false)">
+      <context-menu ref="nonUnrepeatedDictionaries">
+        <b-button-group class="d-block" size="sm" vertical>
+          <b-button
+              variant="outline-danger"
+              @click="deleteDictionariesByUnrepeated(false)">
             {{ getUpperCaseLang('delete') }}
-          </button>
-        </div>
+          </b-button>
+          <b-button
+              variant="outline-success"
+              @click="downloadDictionariesXmlFilesByUnrepeated(false)">
+          <span>
+          {{ getCapitalizeLang('downloadTo') + ' ' }}
+          <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
+            </span>
+          </b-button>
+        </b-button-group>
       </context-menu>
       <span class="st-text-shift">{{ getLang('upload') }}</span>
-      <span class="st-right badge badge-light badge-pill">{{ nonUniqueDictionaries.length }}</span>
+      <span class="st-right badge badge-light badge-pill">{{ nonUnrepeatedDictionaries.length }}</span>
     </button>
     <b-button
-        variant="outline-success"
         class="d-flex justify-content-center align-items-center"
-        @click="$refs[id.addDictionaryNonUniqueModal].showModal()"
+        variant="outline-success"
+        @click="$refs[id.addDictionaryNonUnrepeatedModal].showModal()"
     >
       <i class="fas fa-plus"></i>
     </b-button>
-    <div class="collapse" :id="getNonUniqueDictionariesElemId()">
-      <div v-for="(ldt,i) in nonUniqueShortLDTs"
+    <div :id="getNonUnrepeatedDictionariesElemId()" class="collapse">
+      <div v-for="(ldt,i) in nonUnrepeatedShortLDTs"
            :key="ldt"
            class="btn-group-vertical btn-group-sm d-block">
-        <button class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
-                data-toggle="collapse"
-                :href="'#'+getNonUniqueDictionariesCreationShortLDTElemId(i)"
-                role="button"
+        <button :aria-controls="getNonUnrepeatedDictionariesCreationShortLDTElemId(i)"
+                :href="'#'+getNonUnrepeatedDictionariesCreationShortLDTElemId(i)"
                 aria-expanded="false"
-                :aria-controls="getNonUniqueDictionariesCreationShortLDTElemId(i)">
+                class="btn  btn-warning mr-sm-1 text-left rounded-0 m-0  border-1 border-secondary"
+                data-toggle="collapse"
+                role="button">
           <span class="st-text-shift">{{ ldt }}</span>
           <span class="st-right badge badge-light badge-pill">{{ getCountUploadDictionaries(ldt) }}</span>
         </button>
-        <div class="collapse" :id="getNonUniqueDictionariesCreationShortLDTElemId(i)">
+        <div :id="getNonUnrepeatedDictionariesCreationShortLDTElemId(i)" class="collapse">
           <div class="btn-group-vertical btn-group-sm d-block">
             <button v-for="(d,ii) in getUploadDictionaries(ldt)"
-                    :key="d.id"
                     :id="getDictionaryElemId(d.id)"
-                    class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" role="button"
-                    draggable="true"
+                    :key="d.id"
+                    class="btn  btn-outline-secondary text-left rounded-0  border-1 border-secondary" draggable="true"
+                    role="button"
                     @mousedown.prevent.stop="mousedown(d.id)"
                     @mouseup.prevent.stop="mouseup(d.id)"
                     @click.prevent.stop="parentLoadDictionary(d)"
-                    @contextmenu.prevent="openNonUniqueDictionaryContextMenu(i)"
+                    @contextmenu.prevent="openNonUnrepeatedDictionaryContextMenu(i)"
             >
-              <context-menu ref="nonUniqueDictionaryContextMenu">
+              <context-menu ref="nonUnrepeatedDictionaryContextMenu">
                 <div class="btn-group-vertical btn-group-sm d-block">
                   <button class="btn btn-outline-danger" @click="deleteDictionaryById(d.id)">
                     {{ getUpperCaseLang('delete') }}
@@ -120,16 +139,16 @@
       </div>
     </div>
     <add-dictionary-modal
-        :id="id.addDictionaryUniqueModal"
-        :ref="id.addDictionaryUniqueModal"
+        :id="id.addDictionaryUnrepeatedModal"
+        :ref="id.addDictionaryUnrepeatedModal"
         :closable="true"
-        :unique="true"
+        :unrepeated="true"
     ></add-dictionary-modal>
     <add-dictionary-modal
-        :id="id.addDictionaryNonUniqueModal"
-        :ref="id.addDictionaryNonUniqueModal"
+        :id="id.addDictionaryNonUnrepeatedModal"
+        :ref="id.addDictionaryNonUnrepeatedModal"
         :closable="true"
-        :unique="false"
+        :unrepeated="false"
     ></add-dictionary-modal>
     <GlobalEvents @mouseup="mouseupOutside()"/>
   </div>
@@ -161,17 +180,22 @@ export default {
       this.fetchData()
     })
     this.$store.watch(this.$store.getters.getVocabularyId, vocabularyId => {
-          this.$forceNextTick(() => {
-            this.goToDictionary()
-          })
+      this.$forceNextTick(() => {
+        this.goToDictionary()
+      })
     })
   },
   watch: {
     $route: [
       'fetchData',
     ],
-    dictionaries() {
-      this.fetchData()
+    dictionaries: {
+      handler: function () {
+        this.$forceNextTick(() => {
+          this.fetchData()
+        })
+      },
+      deep: true
     },
     dictionary() {
     }
@@ -182,13 +206,14 @@ export default {
       'lang',
     ]),
     ...mapGetters([
-      'getUniqueDictionaries',
-      'getNonUniqueDictionaries',
+      'getDictionaryIdsByUnrepeated',
+      'getUnrepeatedDictionaries',
+      'getNonUnrepeatedDictionaries',
       'getCardsByDictionaryId',
-      'getNonUniqueDictionariesPropertyValues',
+      'getNonUnrepeatedDictionariesPropertyValues',
       'getCountCardsInDictionaryById',
       'sortArrayByStringProperty',
-      'isDictionaryUnique',
+      'isDictionaryUnrepeated',
     ]),
     prefixId() {
       return this.name + "-" + this.instance.instanceMark + "-"
@@ -197,14 +222,14 @@ export default {
   data() {
     return {
       id: {
-        addDictionaryUniqueModal: this.prefixId + 'add-dictionary-unique-modal',
-        addDictionaryNonUniqueModal: this.prefixId + 'add-dictionary-non-unique-modal',
+        addDictionaryUnrepeatedModal: this.prefixId + 'add-dictionary-unrepeated-modal',
+        addDictionaryNonUnrepeatedModal: this.prefixId + 'add-dictionary-non-repeated-modal',
       },
       name: "dictionaryNav",
       show: true,
-      uniqueDictionaries: [],
-      nonUniqueDictionaries: [],
-      nonUniqueShortLDTs: [],
+      unrepeatedDictionaries: [],
+      nonUnrepeatedDictionaries: [],
+      nonUnrepeatedShortLDTs: [],
       activeDictionaryElemId: null,
 
       groups: ["cardsChangeDictionary"],
@@ -217,13 +242,13 @@ export default {
   methods: {
     fetchData() {
       this.show = false
-      const uniqueDictionaries = this.getUniqueDictionaries()
-      this.sortArrayByStringProperty(uniqueDictionaries, "name")
-      this.uniqueDictionaries = uniqueDictionaries
-      const nonUniqueDictionaries = this.getNonUniqueDictionaries()
-      this.sortArrayByStringProperty(nonUniqueDictionaries, "name")
-      this.nonUniqueDictionaries = nonUniqueDictionaries
-      this.nonUniqueShortLDTs = this.getNonUniqueShortLDTs()
+      const unrepeatedDictionaries = this.getUnrepeatedDictionaries()
+      this.sortArrayByStringProperty(unrepeatedDictionaries, "name")
+      this.unrepeatedDictionaries = unrepeatedDictionaries
+      const nonUnrepeatedDictionaries = this.getNonUnrepeatedDictionaries()
+      this.sortArrayByStringProperty(nonUnrepeatedDictionaries, "name")
+      this.nonUnrepeatedDictionaries = nonUnrepeatedDictionaries
+      this.nonUnrepeatedShortLDTs = this.getNonUnrepeatedShortLDTs()
       this.show = true
     },
     getLang(key) {
@@ -235,8 +260,8 @@ export default {
     getUpperCaseLang(key) {
       return _.upperCase(this.getLang(key))
     },
-    getNonUniqueShortLDTs() {
-      return [...new Set(this.getNonUniqueDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]
+    getNonUnrepeatedShortLDTs() {
+      return [...new Set(this.getNonUnrepeatedDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]
     },
     getDictionaryElemId(id) {
       return this.prefixId + "dictionary" + id
@@ -255,16 +280,16 @@ export default {
       return this.getUploadDictionaries(shortLDT).length
     },
     getUploadDictionaries(shortLDT) {
-      return this.nonUniqueDictionaries.filter(d => this.getShortLDT(d.creationLDT) === shortLDT)
+      return this.nonUnrepeatedDictionaries.filter(d => this.getShortLDT(d.creationLDT) === shortLDT)
     },
-    getUniqueDictionariesElemId() {
-      return this.prefixId + "uniqueDictionaries"
+    getUnrepeatedDictionariesElemId() {
+      return this.prefixId + "unrepeatedDictionaries"
     },
-    getNonUniqueDictionariesElemId() {
-      return this.prefixId + "nonUniqueDictionaries"
+    getNonUnrepeatedDictionariesElemId() {
+      return this.prefixId + "nonUnrepeatedDictionaries"
     },
-    getNonUniqueDictionariesCreationShortLDTElemId(i) {
-      return this.prefixId + "nonUniqueDictionariesCreationLDT" + i
+    getNonUnrepeatedDictionariesCreationShortLDTElemId(i) {
+      return this.prefixId + "nonUnrepeatedDictionariesCreationLDT" + i
     },
     parentLoadDictionary(d) {
       this.updateActiveDictionaryElemId(d.id)
@@ -280,17 +305,17 @@ export default {
       })
     },
 
-    deleteDictionariesByUnique(unique) {
-      this.$store.dispatch('deleteDictionariesByUniqueAndCascadeCardsAction', {unique: unique})
+    deleteDictionariesByUnrepeated(unrepeated) {
+      this.$store.dispatch('deleteDictionariesByUnrepeatedAndCascadeCardsAction', {unrepeated: unrepeated})
     },
     deleteDictionaryById(id) {
       this.$store.dispatch('deleteDictionaryByIdAction', {id: id})
     },
-    openUniqueDictionaryContextMenu(i) {
-      this.$refs.uniqueDictionaryContextMenu[i].open()
+    openUnrepeatedDictionaryContextMenu(i) {
+      this.$refs.unrepeatedDictionaryContextMenu[i].open()
     },
-    openNonUniqueDictionaryContextMenu(i) {
-      this.$refs.nonUniqueDictionaryContextMenu[i].open()
+    openNonUnrepeatedDictionaryContextMenu(i) {
+      this.$refs.nonUnrepeatedDictionaryContextMenu[i].open()
     },
 
     mousedown(id) {
@@ -375,18 +400,22 @@ export default {
     goToDictionary() {
       if (this.instance) {
         if (this.instance.dictionary) {
-          if (this.instance.dictionary.unique) {
-            $('#' + 'button' + this.getUniqueDictionariesElemId()).click()
+          if (this.instance.dictionary.unrepeated) {
+            $('#' + 'button' + this.getUnrepeatedDictionariesElemId()).click()
             this.updateActiveDictionaryElemId(this.instance.dictionary.id)
           } else {
-            $('#' + 'button' + this.getNonUniqueDictionariesElemId()).click()
+            $('#' + 'button' + this.getNonUnrepeatedDictionariesElemId()).click()
             // console.info(this.getShortLDT(this.instance.dictionary.creationLDT))
-            // $('#' + this.getNonUniqueDictionariesCreationShortLDTElemId(this.getShortLDT(this.instance.dictionary["creationLDT"]))).collapse('show')
+            // $('#' + this.getNonUnrepeatedDictionariesCreationShortLDTElemId(this.getShortLDT(this.instance.dictionary["creationLDT"]))).collapse('show')
             this.updateActiveDictionaryElemId(this.instance.dictionary.id)
           }
         }
       }
     },
+    downloadDictionariesXmlFilesByUnrepeated(unrepeated) {
+      const ids = this.getDictionaryIdsByUnrepeated(unrepeated)
+      this.$store.dispatch('downloadDictionaryXmlFilesByIdsAction', {ids: ids})
+    }
   },
 }
 </script>

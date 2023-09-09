@@ -1,4 +1,4 @@
-import Vue from "vue";
+import Vue from "vue"
 
 const configMultipartJson = {headers: {"Content-Type": "multipart/form-data", "Accept": "application/json"}}
 const configUndefinedJson = {headers: {"Content-Type": "undefined", "Accept": "application/json"}}
@@ -11,7 +11,8 @@ export default {
     uploadExcelFiles: (formData) => Vue.http.post("/json/card/upload/excel/files", formData, configMultipartJson),
 
     downloadXmlFile: dictionaryId => Vue.http.get("/json/card/download/xml", {params: {dictionaryId}}),
-    downloadExcelFile: dictionaryId => Vue.http.get("/json/card/download/excel", {params: {dictionaryId}}),
+    downloadXmlFiles: (ids) => Vue.http.post("/json/card/download/xmls", ids, {responseType: 'arraybuffer'}),
+    downloadExcelFile: dictionaryId => Vue.http.get("/json/card/download/excel", {params: {dictionaryId}, responseType: 'arraybuffer'}),
 
     add: card => cards.save({}, card),
     update: card => cards.update({id: card.id}, card),
@@ -21,12 +22,6 @@ export default {
     findAll: () => Vue.http.get("/json/card" + "/findAll"),
     deleteByIdIn: (body) => Vue.http.delete("/json/card/deleteByIdIn", {body: body}),
     deleteByDictionary: (body) => Vue.http.delete("/json/card/deleteByDictionary", {body: body}),
-
-    saveUnique: card => Vue.http.post("/json/card/saveUnique", card),
-    updateUnique: card => Vue.http.post("/json/card/updateUnique", card),
-
-    saveAllUnique: (cards) => Vue.http.post("/json/card/saveAllUnique", cards),
-    updateAllUnique: (cards) => Vue.http.post("/json/card/updateAllUnique", cards),
 
     saveWithPicture: (formData) => Vue.http.post("/json/card/saveWithPicture", formData, configUndefinedJson),
     saveWithoutPicture: card => Vue.http.post("/json/card/saveWithoutPicture", card),

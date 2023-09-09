@@ -1,4 +1,4 @@
-import Vue from "vue";
+import Vue from "vue"
 
 const configUrlencoded = {headers: {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}}
 export default {
@@ -6,5 +6,5 @@ export default {
     getUsers: (tokens) => Vue.http.post("/json/sign/users", {tokens}),
     up: (body) => Vue.http.post("/json/sign/up", body),
     logout: () => Vue.http.get("/json/sign/logout"),
-    sendVerificationToken: ()=>Vue.http.get("/sign/sendVerificationToken"),
+    sendVerificationToken: () => Vue.http.get("/sign/sendVerificationToken"),
 }

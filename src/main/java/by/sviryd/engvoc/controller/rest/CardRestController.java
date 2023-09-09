@@ -2,10 +2,11 @@ package by.sviryd.engvoc.controller.rest;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
 import by.sviryd.engvoc.service.CardService;
-import by.sviryd.engvoc.service.CardUniqueService;
+import by.sviryd.engvoc.service.CardUnrepeatedService;
 import by.sviryd.engvoc.service.DictionaryService;
 import by.sviryd.engvoc.service.PictureMediaService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -19,6 +20,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,7 +29,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @RestController
@@ -38,7 +39,7 @@ public class CardRestController {
     @Autowired
     private DictionaryService dictionaryService;
     @Autowired
-    private CardUniqueService cardUniqueService;
+    private CardUnrepeatedService cardUnrepeatedService;
     @Autowired
     private PictureMediaService pictureMediaService;
 
@@ -50,17 +51,24 @@ public class CardRestController {
     }
 
     @GetMapping("{id}")
+    @JsonView({Views.Card.class})
     public Card get(@PathVariable("id") Card card) {
         return card;
     }
 
     @PostMapping()
-    public Card save(@RequestBody Card card) {
+    @JsonView({Views.Card.class})
+    public Card save(
+            @RequestBody Card card
+    ) {
         return cardService.save(card);
     }
 
     @PutMapping("{id}")
-    public Card update(@RequestBody Card card, @PathVariable("id") Card cardDb) {
+    @JsonView({Views.Card.class})
+    public Card update(
+            @RequestBody Card card,
+            @PathVariable("id") Card cardDb) {
         if (cardDb == null) {
             return card;
         } else {
@@ -70,13 +78,15 @@ public class CardRestController {
     }
 
     @PostMapping("/saveWithoutPicture")
+    @JsonView({Views.Card.class})
     public HashMap<Object, Object> saveWithoutPicture(
+            @AuthenticationPrincipal User user,
             @RequestBody Card card
     ) {
         HashMap<Object, Object> errors = new HashMap<>();
         Card saved = null;
-        if (card.isUnique() && cardService.findDistinctByWordAndTranslationWithUniqueTrue(card) != null) {
-            errors.put("notUniqueCardError", "error");
+        if (card.isUnrepeated() && cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(card, user) != null) {
+            errors.put("notUnrepeatedCardError", "error");
         } else {
             Optional<Dictionary> dictionaryOpt = dictionaryService.findById(card.getDictionary().getId());
             card.setDictionary(dictionaryOpt.get());
@@ -89,15 +99,17 @@ public class CardRestController {
     }
 
     @PostMapping(value = "/saveWithPicture", consumes = {"multipart/form-data"})
+    @JsonView({Views.Card.class})
     public HashMap<Object, Object> saveWithPicture(
+            @AuthenticationPrincipal User user,
             @RequestPart("file") MultipartFile file,
             @RequestPart("card") String cardJson
     ) throws IOException {
         Card card = new ObjectMapper().readValue(cardJson, Card.class);
         HashMap<Object, Object> errors = new HashMap<>();
         Card saved = null;
-        if (card.isUnique() && cardService.findDistinctByWordAndTranslationWithUniqueTrue(card) != null) {
-            errors.put("notUniqueCardError", "error");
+        if (card.isUnrepeated() && cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(card, user) != null) {
+            errors.put("notUnrepeatedCardError", "error");
         } else {
             String picture = pictureMediaService.savePictureOrRollback(file);
             Optional<Dictionary> dictionaryOpt = dictionaryService.findById(card.getDictionary().getId());
@@ -108,39 +120,6 @@ public class CardRestController {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("saved", saved);
         data.put("errors", errors);
-        return data;
-    }
-
-    @PostMapping("/saveUnique")
-    public Map<Object, Object> saveUnique(@RequestBody Card card) {
-        Card unique = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card);
-        Card saved = null;
-        Card notSaved = null;
-        if (unique == null) {
-            saved = cardService.save(card);
-        } else {
-            notSaved = card;
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", notSaved);
-        return data;
-    }
-
-    @PostMapping("/updateUnique")
-    public Map<Object, Object> updateUnique(@RequestBody Card card) {
-        Card cardDb = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card);
-        Card saved = null;
-        Card notSaved = null;
-        if (cardDb != null) {
-            BeanUtils.copyProperties(card, cardDb, "id");
-            saved = cardService.save(cardDb);
-        } else {
-            notSaved = card;
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", notSaved);
         return data;
     }
 
@@ -166,7 +145,7 @@ public class CardRestController {
             @PathVariable("id") Dictionary dictionary
     ) {
         String name = dictionary.getName(); // remove lazy
-        return cardService.getCardsByDictionary(dictionary);
+        return cardService.findAllByDictionary(dictionary);
     }
 
     @GetMapping("/findAll")
@@ -199,50 +178,7 @@ public class CardRestController {
         JsonObject obj = parser.parse(json).getAsJsonObject();
         UUID id = UUID.fromString(obj.get("id").getAsString());
         Optional<Dictionary> dictionaryOpt = dictionaryService.findById(id);
-        if (dictionaryOpt.isPresent()) {
-            cardService.deleteByDictionary(dictionaryOpt.get());
-        }
-    }
-
-    @PostMapping("/saveAllUnique")
-    public Map<Object, Object> saveAllUnique(
-            @RequestBody List<Card> cards
-    ) {
-        List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
-        cards.removeAll(repeatedInList);
-        List<Card> unique = cardService.findDistinctByWordAndTranslationWithUniqueTrue(cards);
-        List<Card> repeatedInDb = cardUniqueService.getRepeatedByWordAndTranslation(cards, unique);
-        cards.removeAll(repeatedInDb);
-        repeatedInDb.addAll(repeatedInList);
-        List<Card> saved = new ArrayList<>();
-        if (!cards.isEmpty()) {
-            saved = cardService.saveAll(cards);
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", repeatedInDb);
-        return data;
-    }
-
-    @PostMapping("/updateAllUnique")
-    public Map<Object, Object> updateAllUnique(
-            @RequestBody List<Card> cards
-    ) {
-        List<Card> repeatedInList = cardUniqueService.getRepeatedByWordAndTranslation(cards);
-        cards.removeAll(repeatedInList);
-        List<Card> alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(cards);
-        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
-        IntStream.range(0, repeated.size()).forEach((x) -> BeanUtils.copyProperties(repeated.get(x), alreadyIn.get(x), getNullPropertyNames(repeated.get(x))));
-        cards.removeAll(repeated);
-        cards.addAll(repeatedInList);
-        List<Card> saved = new ArrayList<>();
-        if (!alreadyIn.isEmpty()) {
-            saved = cardService.saveAll(alreadyIn);
-        }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
-        data.put("notSaved", cards);
-        return data;
+        dictionaryOpt.ifPresent(dictionary -> cardService.deleteByDictionary(dictionary));
     }
 
     private HashMap<Object, Object> convertToMap(Object saved, Object notSaved) {
@@ -252,23 +188,25 @@ public class CardRestController {
         return data;
     }
 
-    private boolean isNeedCheckUnique(Card card, Dictionary dictionary) {
-        return !card.isUnique() && dictionary.isUnique();
+    private boolean isNeedCheckUnrepeated(Card card, Dictionary dictionary) {
+        return !card.isUnrepeated() && dictionary.isUnrepeated();
     }
 
     @PostMapping("/changeDictionary")
+    @JsonView({Views.Card.class})
     public Map<Object, Object> changeDictionary(
+            @AuthenticationPrincipal User user,
             @RequestBody Card card,
             @RequestParam("id") Dictionary dictionary
     ) {
-        if (isNeedCheckUnique(card, dictionary)) {
-            Card alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(card);
+        if (isNeedCheckUnrepeated(card, dictionary)) {
+            Card alreadyIn = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(card, user);
             if (alreadyIn != null) return convertToMap(null, card);
         }
         try {
-            cardService.updateDictionaryAndUniqueById(card.getId(), dictionary, dictionary.isUnique());
+            cardService.updateDictionaryAndUnrepeatedById(card.getId(), dictionary, dictionary.isUnrepeated());
             card.setDictionary(dictionary);
-            card.setUnique(dictionary.isUnique());
+            card.setUnrepeated(dictionary.isUnrepeated());
             return convertToMap(card, null);
         } catch (UpdateAllOrNothingException e) {
             return convertToMap(null, card);
@@ -277,20 +215,23 @@ public class CardRestController {
     }
 
     @PostMapping("/changeDictionaries")
+    @JsonView({Views.Card.class})
     public Map<Object, Object> changeDictionaries(
+            @AuthenticationPrincipal User user,
             @RequestBody List<Card> cards,
             @RequestParam("id") Dictionary dictionary
     ) {
-        List<Card> checkCards = cards.stream().filter(c -> isNeedCheckUnique(c, dictionary)).collect(Collectors.toList());
-        List<Card> alreadyIn = cardService.findDistinctByWordAndTranslationWithUniqueTrue(checkCards);
-        List<Card> repeated = cardUniqueService.getRepeatedByWordAndTranslation(cards, alreadyIn);
-        List<Card> forUpdate = cardUniqueService.getNotRepeatedByWordAndTranslation(cards, repeated);
-        List<UUID> forUpdateIds = forUpdate.stream().map(by.sviryd.engvoc.domain.Card::getId).collect(Collectors.toList());
+        cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
+        List<Card> checkCards = cards.stream().filter(c -> isNeedCheckUnrepeated(c, dictionary)).collect(Collectors.toList());
+        List<Card> alreadyIn = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(checkCards, user);
+        List<Card> repeated = cardUnrepeatedService.getRepeatedByWordAndTranslation(cards, alreadyIn);
+        List<Card> forUpdate = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards, repeated);
+        List<UUID> forUpdateIds = forUpdate.stream().map(Card::getId).collect(Collectors.toList());
         try {
-            cardService.updateDictionaryAndUniqueByIdIn(forUpdateIds, dictionary, dictionary.isUnique());
+            cardService.updateDictionaryAndUnrepeatedByIdIn(forUpdateIds, dictionary, dictionary.isUnrepeated());
             forUpdate.forEach(c -> {
                 c.setDictionary(dictionary);
-                c.setUnique(dictionary.isUnique());
+                c.setUnrepeated(dictionary.isUnrepeated());
             });
             return convertToMap(forUpdate, repeated);
         } catch (UpdateAllOrNothingException e) {

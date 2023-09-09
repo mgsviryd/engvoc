@@ -1,7 +1,6 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
-import by.sviryd.engvoc.type.LangLocale;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -25,42 +24,47 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@ToString(of = {"id", "name", "unique", "creationLDT"})
-@EqualsAndHashCode(of = {"name", "unique", "creationLDT"})
+@ToString(of = {"id", "name", "unrepeated", "creationLDT"})
+@EqualsAndHashCode(of = {"name", "unrepeated", "creationLDT"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
+@JsonIgnoreProperties(value = {"user", "cards"})
 @Entity
-@JsonIgnoreProperties(value = {"cards"})
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name", "unrepeated", "creationLDT"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"author_id", "name", "unrepeated", "creationLDT"}))
 public class Dictionary implements Serializable {
-    public static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+
+    @DocumentId
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     @Type(type = "uuid-char")
-    @DocumentId
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     @JsonView(Views.Id.class)
     private UUID id;
 
-    @Column(name = "unrepeated", nullable = false, columnDefinition = "BIT", length = 1)
-    @JsonView(Views.Unique.class)
-    private boolean unique;
 
-    @Enumerated(EnumType.STRING)
-    @JsonView(Views.Lang.class)
-    private LangLocale source;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    @JsonView(Views.User.class)
+    private User author;
 
-    @Enumerated(EnumType.STRING)
-    @JsonView(Views.Lang.class)
-    private LangLocale destin;
+    @Embedded
+    @JsonView(Views.LangLocalePair.class)
+    private LangLocalePair pair;
 
-    @Column(length = 100)
+    @Column(nullable = false, columnDefinition = "BIT", length = 1)
+    @JsonView(Views.Unrepeated.class)
+    private boolean unrepeated;
+
+
     @Length(max = 100)
     @NotBlank
     @NonNull
+    @Column(length = 100)
     @JsonView(Views.Name.class)
     private String name;
 
@@ -78,16 +82,12 @@ public class Dictionary implements Serializable {
     @Column(nullable = false, columnDefinition = "BIT", length = 1)
     private boolean invisible;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "user_id")
-//    private User authorDictionary;
-
     @CreationTimestamp
     @Convert(converter = LocalDateTimeToTimestampConverter.class)
     @JsonView(Views.CreationLDT.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime creationLDT;
+    private LocalDateTime creationLDT = LocalDateTime.now();
 
     @JsonView(Views.CountCard.class)
     @Formula("(select count(*) from Card p where p.dictionary_id = id)")

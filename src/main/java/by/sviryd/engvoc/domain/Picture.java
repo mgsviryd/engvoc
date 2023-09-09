@@ -16,8 +16,10 @@ import java.net.URL;
 @Getter
 @Setter
 @Entity
+@Table
 public class Picture implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;

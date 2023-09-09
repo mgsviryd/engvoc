@@ -1,6 +1,8 @@
 package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.DictionaryRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -43,8 +45,8 @@ public class DictionaryService {
         return dictionaryRepo.findByName(name);
     }
 
-    public Optional<Dictionary> findByNameAndUnique(String name, Boolean unique) {
-        return dictionaryRepo.findByNameAndUnique(name, unique);
+    public Optional<Dictionary> findByNameAndUnrepeated(String name, Boolean unrepeated) {
+        return dictionaryRepo.findByNameAndUnrepeated(name, unrepeated);
     }
 
     public Optional<Dictionary> findByNameAndParent(String name, Long parent) {
@@ -73,8 +75,8 @@ public class DictionaryService {
         dictionaryRepo.deleteByIdIn(ids);
     }
 
-    public void deleteByUnique(boolean unique) {
-        dictionaryRepo.deleteByUnique(unique);
+    public void deleteByUnrepeated(boolean unrepeated) {
+        dictionaryRepo.deleteByUnrepeated(unrepeated);
     }
 
     public List<Dictionary> findAllById(List<UUID> ids) {
@@ -83,5 +85,31 @@ public class DictionaryService {
 
     public Optional<Dictionary> findById(UUID id) {
         return dictionaryRepo.findById(id);
+    }
+
+    public Dictionary findByAuthorAndPairAndUnrepeatedAndName(User author, LangLocalePair pair, boolean unrepeated, String name) {
+        return dictionaryRepo.findByAuthorAndPairAndUnrepeatedAndName(author, pair, unrepeated, name);
+    }
+
+    public Dictionary findNewUnrepeatedIfAbsentSave(User author, LangLocalePair pair) {
+        Dictionary newDictionary = findByAuthorAndPairAndUnrepeatedAndName(author, pair, true, "new");
+        if (newDictionary == null) {
+            newDictionary = saveNewUnrepeated(author, pair);
+        }
+        return newDictionary;
+    }
+
+    public List<Dictionary> findAllByAuthorAndPair(User author, LangLocalePair pair) {
+        return dictionaryRepo.findAllByAuthorAndPair(author, pair);
+    }
+
+    public Dictionary saveNewUnrepeated(User author, LangLocalePair pair) {
+        Dictionary newDictionary = Dictionary.builder()
+                .author(author)
+                .pair(pair)
+                .unrepeated(true)
+                .name("new")
+                .build();
+        return save(newDictionary);
     }
 }

@@ -1,12 +1,12 @@
 export default {
-    getUniqueByProperties(array, ...property) {
+    getUnrepeatedByProperties(array, ...property) {
         let arr = array
         for (let i = 0; i < property.length; i++) {
-            arr = this.getUniqueByProperty(array, property[i])
+            arr = this.getUnrepeatedByProperty(array, property[i])
         }
         return arr
     },
-    getUniqueByProperty(array, property) {
+    getUnrepeatedByProperty(array, property) {
         const lookup = {}
         let arr = []
         for (let i = 0; i < array.length; i++) {

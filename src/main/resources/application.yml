@@ -43,7 +43,6 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
-
 # server path
 server:
   language: en
@@ -78,7 +77,6 @@ logging:
         config: DEBUG
         service: ERROR
     root: ON
-
 
 #https://developers.facebook.com/apps/542929309886002/fb-login/settings/
 #https://theonetechnologies.com/blog/post/how-to-get-facebook-application-id-and-secret-key

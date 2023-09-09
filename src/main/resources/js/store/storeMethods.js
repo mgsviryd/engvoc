@@ -1,3 +1,4 @@
+import * as _ from "lodash"
 export default {
     multiply(price, count, decimals) {
         if (!(price || count)) {
@@ -11,5 +12,8 @@ export default {
     },
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    },
+    getCapitalizeLangPair(dictionary){
+        return _.capitalize(dictionary.pair.source.lang) + _.capitalize(dictionary.pair.target.lang)
+    },
 }

@@ -1,4 +1,4 @@
-import Vue from "vue";
+import Vue from "vue"
 
 const configMultipartJson = { headers: { "Content-Type": "multipart/form-data", "Accept": "application/json" } }
 const configUndefinedJson = { headers: { "Content-Type": "undefined", "Accept": "application/json" } }
@@ -13,10 +13,11 @@ export default {
 
     findAll: () => Vue.http.get("/json/dictionary/findAll"),
     deleteByIdIn: (body) => Vue.http.delete("/json/dictionary/deleteByIdIn",{body:  body}),
-    deleteByUnique: (body) => Vue.http.delete("/json/dictionary/deleteByUnique", {body: body}),
+    deleteByUnrepeated: (body) => Vue.http.delete("/json/dictionary/deleteByUnrepeated", {body: body}),
 
-    saveUniqueWithPicture: (formData) => Vue.http.post("/json/dictionary/saveUniqueWithPicture", formData, configUndefinedJson),
-    saveUnique: (dictionary) => Vue.http.post("/json/dictionary/saveUnique", dictionary),
+    saveUnrepeatedWithPicture: (formData) => Vue.http.post("/json/dictionary/saveUnrepeatedWithPicture", formData, configUndefinedJson),
+    saveUnrepeated: (dictionary) => Vue.http.post("/json/dictionary/saveUnrepeated", dictionary),
 
-    findDictionariesAndCards: () => Vue.http.get("/json/dictionary/findDictionariesAndCards")
+    findDictionariesAndCards: (pair) => Vue.http.post("/json/dictionary/findDictionariesAndCards", pair),
+    saveNewUnrepeated: (pair) => Vue.http.post("/json/dictionary/saveNewUnrepeated", pair),
 }

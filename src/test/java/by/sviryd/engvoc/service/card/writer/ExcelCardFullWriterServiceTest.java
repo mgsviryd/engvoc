@@ -2,6 +2,7 @@ package by.sviryd.engvoc.service.card.writer;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.service.card.reader.ExcelCardFullReaderService;
+import by.sviryd.engvoc.service.card.reader.ExcelCardShortReaderService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +21,7 @@ public class ExcelCardFullWriterServiceTest {
     @Autowired
     private ExcelCardFullWriterService writerService;
     @Autowired
-    private ExcelCardFullReaderService readerService;
+    private ExcelCardShortReaderService readerService;
 
     @Test
     public void write() throws Exception {

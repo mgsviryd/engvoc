@@ -2,35 +2,47 @@ package by.sviryd.engvoc.repos;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public interface CardRepo extends JpaRepository<Card, UUID>, CardCustomRepo {
+public interface CardRepo extends JpaRepository<Card, UUID>, PagingAndSortingRepository<Card, UUID>, CardCustomRepo {
 
-    @Query("select d from Card d where d.dictionary = :dictionary")
-    Page<Card> getCardsByDictionary(@Param("dictionary") Dictionary dictionary, Pageable pageable);
+    Page<Card> findAllByDictionary(Dictionary dictionary, Pageable pageable);
+    List<Card> findByClientAndPair(User client, LangLocalePair pair);
 
-    @Query("select d from Card d where d.dictionary = :dictionary")
-    List<Card> getCardsByDictionary(@Param("dictionary") Dictionary dictionary);
+    @Query("select d from Card d where d.dictionary.id in :ids")
+    List<Card> getCardsByDictionaryIdIn(List<UUID> ids);
 
-    @Modifying
-    @Query("update Card c set c.unique = :unique, c.dictionary = :dictionary where c.id = :id")
-    int updateDictionaryAndUniqueById(UUID id, Dictionary dictionary, boolean unique);
 
     @Modifying
-    @Query("update Card c set c.unique = :unique, c.dictionary= :dictionary where c.id in :ids")
-    int updateDictionaryAndUniqueByIdIn(List<UUID> ids, Dictionary dictionary, boolean unique);
+    @Query("update Card c set c.unrepeated = :unrepeated, c.dictionary = :dictionary where c.id = :id")
+    int updateDictionaryAndUnrepeatedById(UUID id, Dictionary dictionary, boolean unrepeated);
+
+    @Modifying
+    @Query("update Card c set c.learned = :learned, c.learnedLDT= :learnedLDT where c.id in :ids")
+    int updateLearnedAndLearnedLDTByIdIn(List<UUID> ids, boolean learned, LocalDateTime learnedLDT);
+
+    @Modifying
+    @Query("update Card c set c.unrepeated = :unrepeated, c.dictionary= :dictionary where c.id in :ids")
+    int updateDictionaryAndUnrepeatedByIdIn(List<UUID> ids, Dictionary dictionary, boolean unrepeated);
 
     void deleteByDictionary(Dictionary dictionary);
 
     void deleteByDictionaryIn(List<Dictionary> dictionaries);
 
     void deleteByIdIn(List<UUID> ids);
+
+    List<Card> findAllByClientAndPair(User client, LangLocalePair pair);
+
+    List<Card> findAllByDictionary(Dictionary dictionary);
 }
