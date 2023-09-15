@@ -82,9 +82,10 @@ public class Card implements Serializable {
     @JsonView(Views.User.class)
     private User client;
 
-    @JsonView(Views.LangLocalePair.class)
-    @Embedded
-    private LangLocalePair pair;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vocabulary_id")
+    @JsonView(Views.Vocabulary.class)
+    private Vocabulary vocabulary;
 
     @Column(nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Unrepeated.class)

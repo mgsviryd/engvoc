@@ -181,6 +181,7 @@ export default {
     })
     this.$store.watch(this.$store.getters.getVocabularyId, vocabularyId => {
       this.$forceNextTick(() => {
+        this.fetchData()
         this.goToDictionary()
       })
     })

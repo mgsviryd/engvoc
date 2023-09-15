@@ -73,12 +73,12 @@ public class XmlCardWriterService {
         Element rootElement = doc.createElement("dictionary");
         rootElement.setAttribute("formatVersion", "5");
         rootElement.setAttribute("title", dictionary.getName());
-        rootElement.setAttribute("sourceLanguageId", dictionary.getPair().getSource().getId());
-        rootElement.setAttribute("destinationLanguageId", dictionary.getPair().getTarget().getId());
+        rootElement.setAttribute("sourceLanguageId", dictionary.getVocabulary().getSource().getId());
+        rootElement.setAttribute("destinationLanguageId", dictionary.getVocabulary().getTarget().getId());
         doc.appendChild(rootElement);
         rootElement.setAttribute("nextWordId", String.valueOf(cards.size()));
         rootElement.setAttribute("targetNamespace", "http://www.abbyy.com/TutorDictionary");
-        rootElement.setAttribute("soundfile", dictionary.getName() + dictionary.getPair().getCapitalizeLangPair());
+        rootElement.setAttribute("soundfile", dictionary.getName() + dictionary.getVocabulary().getCapitalizeLangPair());
 
         Element s = doc.createElement("statistics");
         long countLearned = cards.stream().filter(Card::isLearned).count();
@@ -97,7 +97,7 @@ public class XmlCardWriterService {
                 meaning.setAttribute("transcription", c.getTranscription());
             }
             if (StringConverterUtil.isNotNullOrEmpty(c.getSound())){
-                meaning.setAttribute("soundfile", "Sound" + StringUtils.capitalize(dictionary.getPair().getSource().getLang()));
+                meaning.setAttribute("soundfile", "Sound" + StringUtils.capitalize(dictionary.getVocabulary().getSource().getLang()));
             }
             Element s1 = doc.createElement("statistics");
             if (c.isLearned()){

@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.repos;
 
 import by.sviryd.engvoc.domain.Card;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 
 import java.util.List;
@@ -11,5 +11,5 @@ public interface CardCustomRepo {
 
     List<Card> findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(List<Card> cards, User client);
 
-    List<Card> findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, LangLocalePair pair);
+    List<Card> findDistinctByClientAndVocabularyAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, Vocabulary vocabulary);
 }

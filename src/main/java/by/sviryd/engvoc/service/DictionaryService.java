@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.DictionaryRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,26 +87,26 @@ public class DictionaryService {
         return dictionaryRepo.findById(id);
     }
 
-    public Dictionary findByAuthorAndPairAndUnrepeatedAndName(User author, LangLocalePair pair, boolean unrepeated, String name) {
-        return dictionaryRepo.findByAuthorAndPairAndUnrepeatedAndName(author, pair, unrepeated, name);
+    public Dictionary findByAuthorAndVocabularyAndUnrepeatedAndName(User author, Vocabulary vocabulary, boolean unrepeated, String name) {
+        return dictionaryRepo.findByAuthorAndVocabularyAndUnrepeatedAndName(author, vocabulary, unrepeated, name);
     }
 
-    public Dictionary findNewUnrepeatedIfAbsentSave(User author, LangLocalePair pair) {
-        Dictionary newDictionary = findByAuthorAndPairAndUnrepeatedAndName(author, pair, true, "new");
+    public Dictionary findIfAbsentSaveNewUnrepeated(User author, Vocabulary vocabulary) {
+        Dictionary newDictionary = findByAuthorAndVocabularyAndUnrepeatedAndName(author, vocabulary, true, "new");
         if (newDictionary == null) {
-            newDictionary = saveNewUnrepeated(author, pair);
+            newDictionary = saveNewUnrepeated(author, vocabulary);
         }
         return newDictionary;
     }
 
-    public List<Dictionary> findAllByAuthorAndPair(User author, LangLocalePair pair) {
-        return dictionaryRepo.findAllByAuthorAndPair(author, pair);
+    public List<Dictionary> findAllByAuthorAndVocabulary(User author, Vocabulary vocabulary) {
+        return dictionaryRepo.findAllByAuthorAndVocabulary(author, vocabulary);
     }
 
-    public Dictionary saveNewUnrepeated(User author, LangLocalePair pair) {
+    public Dictionary saveNewUnrepeated(User author, Vocabulary vocabulary) {
         Dictionary newDictionary = Dictionary.builder()
                 .author(author)
-                .pair(pair)
+                .vocabulary(vocabulary)
                 .unrepeated(true)
                 .name("new")
                 .build();

@@ -29,7 +29,8 @@
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from "vuex"
+import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
 
 export default {

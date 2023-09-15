@@ -2,7 +2,7 @@ package by.sviryd.engvoc.repos;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,7 @@ import java.util.UUID;
 public interface CardRepo extends JpaRepository<Card, UUID>, PagingAndSortingRepository<Card, UUID>, CardCustomRepo {
 
     Page<Card> findAllByDictionary(Dictionary dictionary, Pageable pageable);
-    List<Card> findByClientAndPair(User client, LangLocalePair pair);
+    List<Card> findByClientAndVocabulary(User client, Vocabulary vocabulary);
 
     @Query("select d from Card d where d.dictionary.id in :ids")
     List<Card> getCardsByDictionaryIdIn(List<UUID> ids);
@@ -42,7 +42,7 @@ public interface CardRepo extends JpaRepository<Card, UUID>, PagingAndSortingRep
 
     void deleteByIdIn(List<UUID> ids);
 
-    List<Card> findAllByClientAndPair(User client, LangLocalePair pair);
+    List<Card> findAllByClientAndVocabulary(User client, Vocabulary vocabulary);
 
     List<Card> findAllByDictionary(Dictionary dictionary);
 }

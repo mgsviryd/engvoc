@@ -3,10 +3,7 @@ package by.sviryd.engvoc.controller.rest;
 import by.sviryd.engvoc.domain.*;
 import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.provider.AuthProvider;
-import by.sviryd.engvoc.service.CardService;
-import by.sviryd.engvoc.service.DictionaryService;
-import by.sviryd.engvoc.service.PictureMediaService;
-import by.sviryd.engvoc.service.UserService;
+import by.sviryd.engvoc.service.*;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -17,7 +14,6 @@ import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +35,8 @@ public class DictionaryRestController {
     private UserService userService;
     @Autowired
     private AuthProvider authProvider;
+    @Autowired
+    private VocabularyService vocabularyService;
 
     @DeleteMapping("{id}")
     public void delete(
@@ -80,10 +78,10 @@ public class DictionaryRestController {
     @JsonView({Views.DictionaryCard.class})
     public HashMap<Object, Object> findDictionariesAndCards(
             @AuthenticationPrincipal User user,
-            @RequestBody LangLocalePair pair
+            @RequestBody Vocabulary vocabulary
     ){
-        List<Dictionary> dictionaries = dictionaryService.findAllByAuthorAndPair(user, pair);
-        List<Card> cards = cardService.findAllByClientAndPair(user, pair);
+        List<Dictionary> dictionaries = dictionaryService.findAllByAuthorAndVocabulary(user, vocabulary);
+        List<Card> cards = cardService.findAllByClientAndVocabulary(user, vocabulary);
         HashMap<Object, Object> data = new HashMap<>();
         data.put("dictionaries", dictionaries);
         data.put("cards", cards);
@@ -164,11 +162,16 @@ public class DictionaryRestController {
     @JsonView({Views.Dictionary.class})
     public Dictionary saveNewUnrepeated(
             @AuthenticationPrincipal User user,
-            @RequestBody LangLocalePair pair
+            @RequestBody Vocabulary vocabulary
     ){
-        user.addPair(pair);
-        User save = userService.save(user);
-        authProvider.refreshContext(save);
-        return dictionaryService.findNewUnrepeatedIfAbsentSave(user, pair);
+        if(user.getVocabularies().contains(vocabulary)){
+            return null;
+        }else{
+            vocabulary.setAuthor(user);
+            vocabulary = vocabularyService.save(vocabulary);
+            user.addVocabulary(vocabulary);
+            authProvider.refreshContext(user);
+            return dictionaryService.findIfAbsentSaveNewUnrepeated(user, vocabulary);
+        }
     }
 }

@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.repos.impl;
 
 import by.sviryd.engvoc.domain.Card;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.CardCustomRepo;
 import by.sviryd.engvoc.service.JPAUtilService;
@@ -70,19 +70,19 @@ class CardCustomRepoImpl implements CardCustomRepo {
         return query.getResultList();
     }
 
-    public List<Card> findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, LangLocalePair pair) {
+    public List<Card> findDistinctByClientAndVocabularyAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, Vocabulary vocabulary) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Card> cq = cb.createQuery(Card.class);
         Root<Card> root = cq.from(Card.class);
         List<Predicate> predicatesOR = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
             Predicate pClient = cb.equal(root.get("client"), client);
-            Predicate pPair = cb.equal(root.get("pair"), pair);
+            Predicate pVocabulary = cb.equal(root.get("vocabulary"), vocabulary);
             Predicate pWord = cb.equal(root.get("word"), cards.get(i).getWord());
             Predicate pTranslation = cb.equal(root.get("translation"), cards.get(i).getTranslation());
             Predicate pUnrepeatedTrue = cb.equal(root.get("unrepeated"), true);
             Predicate pLearnedFalse = cb.equal(root.get("learned"), false);
-            Predicate and = cb.and(pClient, pPair, pWord, pTranslation, pUnrepeatedTrue, pLearnedFalse);
+            Predicate and = cb.and(pClient, pVocabulary, pWord, pTranslation, pUnrepeatedTrue, pLearnedFalse);
             predicatesOR.add(and);
         }
         Predicate or = cb.or(predicatesOR.toArray(new Predicate[predicatesOR.size()]));

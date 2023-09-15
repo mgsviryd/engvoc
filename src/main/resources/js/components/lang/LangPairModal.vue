@@ -22,7 +22,7 @@
       <b-col sm="2" class="d-flex align-items-center justify-content-end">
         <multiselect
             :tabindex="-1"
-            v-model="source"
+            v-model="vocabulary.source"
             :options="options"
             track-by="lang"
             :multiple="false"
@@ -54,7 +54,7 @@
       <b-col sm="2" class="d-flex align-items-center justify-content-end">
         <multiselect
             :tabindex="-1"
-            v-model="target"
+            v-model="vocabulary.target"
             :options="options"
             track-by="lang"
             :multiple="false"
@@ -82,7 +82,7 @@
       </b-col>
     </b-row>
 
-    <b-button class="my-3" variant="outline-success" block @click="createVocabularyDatabase">
+    <b-button class="my-3" variant="outline-success" block @click="saveVocabulary">
       {{getCapitalizeLang('create')}}
     </b-button>
   </div>
@@ -90,7 +90,8 @@
 </template>
 
 <script>
-import {mapState} from "vuex"
+import {mapState, mapGetters} from "vuex"
+import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
 import CloseRow from "../close/CloseRow.vue"
 
@@ -115,9 +116,12 @@ export default {
   computed: {
     ...mapState([
       'lang',
-      'vocabulary',
+      'authentication',
       'props',
     ]),
+    ...mapGetters([
+        'isVocabularyPresent',
+    ])
   },
 
   watch: {
@@ -143,8 +147,10 @@ export default {
   },
   data() {
     return {
-      source: null,
-      target: null,
+      vocabulary: {
+        source: null,
+        target: null,
+      },
       options: [],
     }
   },
@@ -166,26 +172,21 @@ export default {
       this.$refs.langPair.hide()
     },
     fetchData() {
-      if(this.vocabulary.lang.source){
-        this.source = this.vocabulary.lang.source
+      if(this.isVocabularyPresent){
+        this.vocabulary = this.authentication.user.vocabulary
       }else{
-        this.source = this.lang.lang
-      }
-      if(this.vocabulary.lang.target){
-        this.target = this.vocabulary.lang.target
-      }else{
-        this.target = this.lang.lang
+        this.vocabulary = {source: this.lang.lang, target: this.lang.lang}
       }
       this.options = this.lang.langs
     },
     onSelectSource(lang) {
-      this.source = lang
+      this.vocabulary.source = lang
     },
     onSelectTarget(lang) {
-      this.target = lang
+      this.vocabulary.target = lang
     },
-    createVocabularyDatabase(){
-      this.$store.dispatch("createVocabularyDatabaseAction", {source: this.source, target: this.target})
+    saveVocabulary(){
+      this.$store.dispatch("saveVocabularyAction", this.vocabulary)
       this.closeModal()
     },
     getLanguageByLangAndCountry(lang) {

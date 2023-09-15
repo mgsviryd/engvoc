@@ -1,6 +1,5 @@
 package by.sviryd.engvoc.controller.rest;
 
-import by.sviryd.engvoc.domain.LangLocalePair;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.gson.GsonExcludeStrategies;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletException;
@@ -55,17 +53,13 @@ public class SignRestController {
 
     @PostMapping(value = "/success")
     @JsonView({Views.User.class})
-    public String success(
+    public HashMap<Object, Object> success(
             @AuthenticationPrincipal User user
     ) {
-        Gson gson = new Gson();
-        List<LangLocalePair> pairs = userService.getPairs(user);
-        pairs.size();
         HashMap<Object, Object> data = new HashMap<>();
         data.put("user", user);
         data.put("errors", Collections.emptyList());
-        gson = new GsonBuilder().addSerializationExclusionStrategy(gsonExcludeStrategies.getUserOnlyInfo()).create();
-        return gson.toJson(data);
+        return data;
     }
 
     @GetMapping("/sendVerificationToken")
@@ -76,7 +70,7 @@ public class SignRestController {
 
     @PostMapping("/users")
     @JsonView({Views.User.class})
-    public String getUsers(Principal principal,
+    public HashMap<Object, Object> getUsers(Principal principal,
                            @AuthenticationPrincipal User user,
                            @RequestBody String json
     ) {
@@ -87,7 +81,7 @@ public class SignRestController {
         Type stringType = new TypeToken<ArrayList<String>>() {
         }.getType();
         List<String> tokens = gson.fromJson(tokensArray, stringType);
-        Map<String, Object> frontendData = new HashMap<>();
+        HashMap<Object, Object> frontendData = new HashMap<>();
         List<User> users;
         if (user != null) {
             frontendData.put("user", user);
@@ -112,17 +106,8 @@ public class SignRestController {
                 users.add(user);
             }
         }
-        User byUsername = userService.findByUsername("mgsviryd@gmail.com");
-        if (byUsername != null){
-            List<LangLocalePair> pairs = byUsername.getPairs();
-            pairs.size();
-            pairs.forEach(System.out::println);
-        }
-        List<LangLocalePair> pairs = userService.getPairs(user);
-        pairs.size();
         frontendData.put("users", users);
-        gson = new GsonBuilder().addSerializationExclusionStrategy(gsonExcludeStrategies.getUserOnlyInfo()).create();
-        return gson.toJson(frontendData);
+        return frontendData;
     }
 
     @PostMapping("/up")

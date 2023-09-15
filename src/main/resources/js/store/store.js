@@ -75,8 +75,7 @@ export default new Vuex.Store(
 
             vocabulary: {
                 id: 0,
-                lang: {},
-                langs: [],
+                vocabulary: {},
             },
 
             props: {
@@ -181,10 +180,7 @@ export default new Vuex.Store(
             isNoUsers: (state) => {
                 return _.isNil(state.authentication.users) || _.isEmpty(state.authentication.users)
             },
-            isVocabularyLangPresent: (state) => !_.isNil(state.vocabulary.lang) && !_.isEmpty(state.vocabulary.lang),
-            getVocabularyLangsInx: (state) => (lang) => {
-                return state.vocabulary.langs.indexOf(lang)
-            }
+            isVocabularyPresent: (state, getters) => !getters.isNoUser && !_.isNil(state.authentication.user.vocabulary) && !_.isEmpty(state.authentication.user.vocabulary),
         },
         mutations: {
             addAndSetUserMutation(state, payload) {
@@ -500,26 +496,15 @@ export default new Vuex.Store(
                 state.props.upload.lang.source = payload.source
                 state.props.upload.lang.target = payload.target
             },
-            changeVocabularyLangMutation(state, payload) {
-                state.vocabulary.lang.source = payload.source
-                state.vocabulary.lang.target = payload.target
-            },
-            setDefaultVocabularyLangMutation(state, payload) {
-                state.vocabulary.lang = {}
-                if (!_.isNil() && !_.isEmpty(payload)) {
-                    this.deleteLangFromVocabularyLangs(payload)
+            setNewVocabularyMutation(state, payload) {
+                state.authentication.user.vocabulary = payload
+                state.authentication.user.vocabularies = {
+                    ...state.authentication.user.vocabularies,
+                    payload
                 }
             },
-            deleteLangFromVocabularyLangs(state, payload) {
-                const i = this.getters.getVocabularyLangsInx(payload)
-                if (i >= 0) {
-                    state.vocabulary.langs = [
-                        ...state.vocabulary.langs.slice(0, i),
-                        ...state.vocabulary.langs.slice(i + 1)
-                    ]
-                }
-            },
-            createVocabularyDatabaseMutation(state, payload) {
+            
+            dropDatabaseAndSaveNewUnrepeatedDictionaryMutation(state, payload) {
                 state.dictionaries = [payload.dictionary]
                 state.cards = [[]]
                 state.vocabulary.id = date.getUTCMilliseconds(new Date())
@@ -602,8 +587,8 @@ export default new Vuex.Store(
             // cards
             async uploadCardsByExcelFilesAction({commit}, payload) {
                 const formData = payload.formData
-                formData.append('pair',
-                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('vocabulary',
+                    new Blob([JSON.stringify(payload.vocabulary)], {type: "application/json"}))
                 formData.append('options',
                     new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadExcelFiles(formData)
@@ -629,8 +614,8 @@ export default new Vuex.Store(
             },
             async uploadCardsByXmlFilesAction({commit}, payload) {
                 const formData = payload.formData
-                formData.append('pair',
-                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('vocabulary',
+                    new Blob([JSON.stringify(payload.vocabulary)], {type: "application/json"}))
                 formData.append('options',
                     new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadXmlFiles(formData)
@@ -656,8 +641,8 @@ export default new Vuex.Store(
             },
             async uploadCardsByExcelFileAction({commit}, payload) {
                 const formData = payload.formData
-                formData.append('pair',
-                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('vocabulary',
+                    new Blob([JSON.stringify(payload.vocabulary)], {type: "application/json"}))
                 formData.append('options',
                     new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadExcelFile(formData)
@@ -684,8 +669,8 @@ export default new Vuex.Store(
             },
             async uploadCardsByXmlFileAction({commit}, payload) {
                 const formData = payload.formData
-                formData.append('pair',
-                    new Blob([JSON.stringify(payload.pair)], {type: "application/json"}))
+                formData.append('vocabulary',
+                    new Blob([JSON.stringify(payload.vocabulary)], {type: "application/json"}))
                 formData.append('options',
                     new Blob([JSON.stringify(payload.options)], {type: "application/json"}))
                 const result = await cardApi.uploadXmlFile(formData)
@@ -768,11 +753,7 @@ export default new Vuex.Store(
                 const result = await dictionaryApi.findDictionariesAndCards(payload)
                 const data = await result.data
                 if (result.ok) {
-                    if (_.isEmpty(data.dictionaries)) {
-                        commit('setDefaultVocabularyLangMutation', payload)
-                    } else {
-                        commit('setDictionariesAndCardsMutation', {dictionaries: data.dictionaries, cards: data.cards})
-                    }
+                    commit('setDictionariesAndCardsMutation', {dictionaries: data.dictionaries, cards: data.cards})
                 }
             },
             async findDictionaries({commit}) {
@@ -917,8 +898,8 @@ export default new Vuex.Store(
                     let blob = new Blob([result.blob()], {type: result.headers['content-type']})
                     let link = document.createElement('a')
                     link.href = window.URL.createObjectURL(blob)
-                    const pair = storeMethods.getCapitalizeLangPair(payload.dictionary)
-                    link.download = payload.dictionary.name + pair + '.xlsx'
+                    const vocabulary = storeMethods.getCapitalizeLangVocabulary(payload.dictionary)
+                    link.download = payload.dictionary.name + vocabulary + '.xlsx'
                     link.click();
                 }
             },
@@ -929,8 +910,8 @@ export default new Vuex.Store(
                     let blob = new Blob([data], {type: result.headers['content-type']})
                     let link = document.createElement('a')
                     link.href = window.URL.createObjectURL(blob)
-                    const pair = storeMethods.getCapitalizeLangPair(payload.dictionary)
-                    link.download = payload.dictionary.name + pair + '.xml'
+                    const vocabulary = storeMethods.getCapitalizeLangVocabulary(payload.dictionary)
+                    link.download = payload.dictionary.name + vocabulary + '.xml'
                     link.click();
                 }
             },
@@ -940,18 +921,16 @@ export default new Vuex.Store(
             async changePropsUploadLangAction({commit}, payload) {
                 commit('changePropsUploadLangMutation', payload)
             },
-            async changeVocabularyDatabaseAction({commit, dispatch}, payload) {
-                commit('changeVocabularyLangMutation', payload)
-                dispatch('findDictionariesAndCardsAction', payload)
-            },
-            async createVocabularyDatabaseAction({commit, dispatch}, payload) {
-                commit('changeVocabularyLangMutation', payload)
+
+            async saveVocabularyAction({commit, dispatch}, payload) {
                 let result = await dictionaryApi.saveNewUnrepeated(payload)
                 const data = await result.data
                 if (result.ok) {
-                    commit('createVocabularyDatabaseMutation', {dictionary: data})
+                    if(!_.isNil(data.dictionary)){
+                        commit('setNewVocabularyMutation', payload)
+                        commit('dropDatabaseAndSaveNewUnrepeatedDictionaryMutation', {dictionary: data})   
+                    }
                 }
-
             },
             async downloadDictionaryXmlFilesByIdsAction({commit}, payload) {
                 let result = await cardApi.downloadXmlFiles(payload.ids)

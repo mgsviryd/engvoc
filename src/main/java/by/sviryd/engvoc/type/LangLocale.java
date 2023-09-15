@@ -1,8 +1,10 @@
 package by.sviryd.engvoc.type;
 
+import by.sviryd.engvoc.domain.Views;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StringUtils;
 
@@ -11,6 +13,7 @@ import java.util.Locale;
 
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@JsonView(value = Views.LangLocale.class)
 public enum LangLocale {
     en_US("en", "US", "en_US", "1033"),
     ru_RU("ru", "RU", "ru_RU", "1049");

@@ -2,7 +2,7 @@ package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.repos.CardRepo;
 import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
@@ -67,11 +67,11 @@ public class CardService {
         return cardRepo.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards, client);
     }
 
-    public List<Card> findByClientAndPair(User client, LangLocalePair pair) {
-        return cardRepo.findByClientAndPair(client, pair);
+    public List<Card> findByClientAndVocabulary(User client, Vocabulary vocabulary) {
+        return cardRepo.findByClientAndVocabulary(client, vocabulary);
     }
-    public List<Card> findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, LangLocalePair pair) {
-        return cardRepo.findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(cards, client, pair);
+    public List<Card> findDistinctByClientAndVocabularyAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(List<Card> cards, User client, Vocabulary vocabulary) {
+        return cardRepo.findDistinctByClientAndVocabularyAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(cards, client, vocabulary);
     }
 
     public Card findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(Card card, User client) {
@@ -94,8 +94,8 @@ public class CardService {
         return cardRepo.findAllById(ids);
     }
 
-    public List<Card> findAllByClientAndPair(User client, LangLocalePair pair) {
-        return cardRepo.findAllByClientAndPair(client, pair);
+    public List<Card> findAllByClientAndVocabulary(User client, Vocabulary vocabulary) {
+        return cardRepo.findAllByClientAndVocabulary(client, vocabulary);
     }
 
     public Optional<Card> findById(UUID id) {

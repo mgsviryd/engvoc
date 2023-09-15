@@ -1,8 +1,7 @@
 package by.sviryd.engvoc.service;
 
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
-import by.sviryd.engvoc.provider.AuthProvider;
 import by.sviryd.engvoc.repos.UserRepo;
 import by.sviryd.engvoc.type.Role;
 import org.hibernate.Hibernate;
@@ -11,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -106,9 +104,9 @@ public class UserService implements UserDetailsService {
         return userRepo.findByEmail(email);
     }
 
-    public List<LangLocalePair> getPairs(User user){
-        if (Objects.isNull(user)) return Collections.emptyList();
-        Hibernate.initialize(user);
-        return user.getPairs();
-    }
+//    public List<Vocabulary> getVocabularies(User user){
+//        if (Objects.isNull(user)) return Collections.emptyList();
+//        Hibernate.initialize(user);
+//        return user.getVocabularies();
+//    }
 }

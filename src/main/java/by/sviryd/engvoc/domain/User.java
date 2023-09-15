@@ -19,13 +19,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@NamedEntityGraph(
-        name = "post-entity-graph",
-        attributeNodes = {
-                @NamedAttributeNode("pairs"),
-        }
-)
-
 @ToString(of = {"id", "username", "email", "social", "active"})
 @EqualsAndHashCode(of = {"username", "email", "social", "active"})
 @AllArgsConstructor
@@ -79,6 +72,10 @@ public class User implements UserDetails, Serializable {
     @JsonView(Views.Token.class)
     private String token;
 
+    @OneToOne
+    @JsonView(Views.Vocabulary.class)
+    private Vocabulary vocabulary;
+
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
@@ -93,15 +90,9 @@ public class User implements UserDetails, Serializable {
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Dictionary> dictionaries = new ArrayList<>();
 
-
-    @ElementCollection(targetClass = LangLocalePair.class, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_pair",
-            joinColumns = @JoinColumn(name = "user_id"))
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @CollectionId(columns = {@Column(name = "pair_id")}, generator = "uuid2", type = @Type(type = "uuid-char"))
-    @JsonView(Views.LangLocalePairs.class)
-    private List<LangLocalePair> pairs = new ArrayList<>();
+    @JsonView(Views.Vocabulary.class)
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Vocabulary> vocabularies = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -146,7 +137,8 @@ public class User implements UserDetails, Serializable {
         return active;
     }
 
-    public boolean addPair(LangLocalePair pair) {
-        return pairs.add(pair);
+    public boolean addVocabulary(Vocabulary vocabulary) {
+        setVocabulary(vocabulary);
+        return vocabularies.add(vocabulary);
     }
 }

@@ -63,8 +63,9 @@
 </template>
 
 <script>
-import * as _ from "lodash";
-import {mapState} from "vuex";
+
+import {mapState} from "vuex"
+import * as _ from "lodash"
 
 export default {
   props: ['prefixId'],

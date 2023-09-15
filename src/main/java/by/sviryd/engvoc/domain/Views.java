@@ -29,10 +29,8 @@ public final class Views {
     public interface LangLocale {
     }
 
-    public interface LangLocalePairs extends LangLocalePair {
+    public interface Vocabularies extends Vocabulary {
 
-    }
-    public interface LangLocalePair extends LangLocale, Name, Active {
     }
 
     public interface Name {
@@ -80,7 +78,7 @@ public final class Views {
     public interface Dictionary extends
             Id,
             Unrepeated,
-            LangLocalePair,
+            Vocabulary,
             Name,
             CreationLDT,
             Parent,
@@ -92,7 +90,7 @@ public final class Views {
     public interface Card extends
             Id,
             Unrepeated,
-            LangLocalePair,
+            Vocabulary,
             Word,
             Translation,
             Example,
@@ -133,7 +131,11 @@ public final class Views {
     public interface Username {
     }
 
-    public interface User extends Id, Email, LastModifiedLDT, LangLocalePairs, Social, Sub, Token, Username {
+    public interface User extends Id, Email, LastModifiedLDT, Vocabularies, Social, Sub, Token, Username {
+    }
+    public interface Source{}
+    public interface Target{}
+    public interface Vocabulary extends Id, Source, Target{
     }
 
 }

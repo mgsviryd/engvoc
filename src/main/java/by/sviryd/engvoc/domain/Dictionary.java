@@ -52,14 +52,14 @@ public class Dictionary implements Serializable {
     @JsonView(Views.User.class)
     private User author;
 
-    @Embedded
-    @JsonView(Views.LangLocalePair.class)
-    private LangLocalePair pair;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vocabulary_id")
+    @JsonView(Views.Vocabulary.class)
+    private Vocabulary vocabulary;
 
     @Column(nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Unrepeated.class)
     private boolean unrepeated;
-
 
     @Length(max = 100)
     @NotBlank

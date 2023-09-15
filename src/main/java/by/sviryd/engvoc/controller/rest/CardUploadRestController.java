@@ -1,7 +1,7 @@
 package by.sviryd.engvoc.controller.rest;
 
 import by.sviryd.engvoc.domain.Card;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.service.CardService;
@@ -45,12 +45,12 @@ public class CardUploadRestController {
     public HashMap<Object, Object> excelFile(
             @AuthenticationPrincipal User user,
             @RequestPart("file") MultipartFile file,
-            @RequestPart("pair") String pairJson,
+            @RequestPart("vocabulary") String vocabularyJson,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = excelCardShortReaderService.extract(file);
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, pairJson, optionsJson, cards);
+        return getData(user, vocabularyJson, optionsJson, cards);
     }
 
     @PostMapping(value = "upload/xml/file", consumes = {"multipart/form-data"})
@@ -58,12 +58,12 @@ public class CardUploadRestController {
     public HashMap<Object, Object> xmlFile(
             @AuthenticationPrincipal User user,
             @RequestPart("file") MultipartFile file,
-            @RequestPart("pair") String pairJson,
+            @RequestPart("vocabulary") String vocabularyJson,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = xmlCardReaderService.extract(file);
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, pairJson, optionsJson, cards);
+        return getData(user, vocabularyJson, optionsJson, cards);
     }
 
     @PostMapping(value = "/upload/excel/files", consumes = {"multipart/form-data"})
@@ -71,7 +71,7 @@ public class CardUploadRestController {
     public HashMap<Object, Object> excelFiles(
             @AuthenticationPrincipal User user,
             @RequestPart("files") MultipartFile[] files,
-            @RequestPart("pair") String pairJson,
+            @RequestPart("vocabulary") String vocabularyJson,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = Arrays.stream(files)
@@ -79,7 +79,7 @@ public class CardUploadRestController {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, pairJson, optionsJson, cards);
+        return getData(user, vocabularyJson, optionsJson, cards);
     }
 
     @PostMapping(value = "/upload/xml/files", consumes = {"multipart/form-data"})
@@ -87,7 +87,7 @@ public class CardUploadRestController {
     public HashMap<Object, Object> xmlFiles(
             @AuthenticationPrincipal User user,
             @RequestPart("files") MultipartFile[] files,
-            @RequestPart("pair") String pairJson,
+            @RequestPart("vocabulary") String vocabularyJson,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = Arrays.stream(files)
@@ -95,14 +95,14 @@ public class CardUploadRestController {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, pairJson, optionsJson, cards);
+        return getData(user, vocabularyJson, optionsJson, cards);
     }
 
-    private HashMap<Object, Object> getData(@AuthenticationPrincipal User user, @RequestPart("pair")String pairJson, @RequestPart("options") String optionsJson, List<Card> cards) throws IOException {
-        LangLocalePair pair = new ObjectMapper().readValue(pairJson, LangLocalePair.class);
+    private HashMap<Object, Object> getData(@AuthenticationPrincipal User user, @RequestPart("vocabulary")String vocabularyJson, @RequestPart("options") String optionsJson, List<Card> cards) throws IOException {
+        Vocabulary vocabulary = new ObjectMapper().readValue(vocabularyJson, Vocabulary.class);
         cards.forEach(c -> {
             c.setClient(user);
-            c.setPair(pair);
+            c.setVocabulary(vocabulary);
         });
         TypeReference<HashMap<String, Boolean>> typeRef = new TypeReference<HashMap<String, Boolean>>() {};
         HashMap<String, Boolean> options = new ObjectMapper().readValue(optionsJson, typeRef);
@@ -112,16 +112,16 @@ public class CardUploadRestController {
         Boolean updateCardsWithAbsentSound = options.get("updateCardsWithAbsentSound");
         HashMap<Object, Object> data = new HashMap<>();
         if (updateLearnedStatusUnrepeatedCards) {
-            data.putAll(cardUploadService.updateLearnedStatusUnrepeatedCards(user, cards, pair));
+            data.putAll(cardUploadService.updateLearnedStatusUnrepeatedCards(user, cards, vocabulary));
         }
         if (saveNewUnrepeatedCards) {
-            data.putAll(cardUploadService.saveNewUnrepeatedCards(user, cards, pair));
+            data.putAll(cardUploadService.saveNewUnrepeatedCards(user, cards, vocabulary));
         }
         if (saveAllUploadCards){
-            data.putAll(cardUploadService.saveNewDictionariesAndCards(user, cards, pair));
+            data.putAll(cardUploadService.saveNewDictionariesAndCards(user, cards, vocabulary));
         }
         if(updateCardsWithAbsentSound){
-            data.putAll(cardUploadService.updateCardsWithAbsentSound(user, cards, pair));
+            data.putAll(cardUploadService.updateCardsWithAbsentSound(user, cards, vocabulary));
         }
         return data;
     }

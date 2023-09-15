@@ -18,6 +18,6 @@ export default {
     saveUnrepeatedWithPicture: (formData) => Vue.http.post("/json/dictionary/saveUnrepeatedWithPicture", formData, configUndefinedJson),
     saveUnrepeated: (dictionary) => Vue.http.post("/json/dictionary/saveUnrepeated", dictionary),
 
-    findDictionariesAndCards: (pair) => Vue.http.post("/json/dictionary/findDictionariesAndCards", pair),
-    saveNewUnrepeated: (pair) => Vue.http.post("/json/dictionary/saveNewUnrepeated", pair),
+    findDictionariesAndCards: (vocabulary) => Vue.http.post("/json/dictionary/findDictionariesAndCards", vocabulary),
+    saveNewUnrepeated: (vocabulary) => Vue.http.post("/json/dictionary/saveNewUnrepeated", vocabulary),
 }

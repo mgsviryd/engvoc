@@ -42,7 +42,7 @@ public class CardDownloadRestController {
             @RequestParam("dictionaryId") Dictionary dictionary
     ) throws Exception {
         List<Card> cards = cardService.findAllByDictionary(dictionary);
-        String pair = dictionary.getPair().getCapitalizeLangPair();
+        String pair = dictionary.getVocabulary().getCapitalizeLangPair();
         ByteArrayInputStream inp = excelCardFullWriterService.dateToExcel(cards, dictionary.getName() + pair);
         InputStreamResource resource = new InputStreamResource(inp);
         return ResponseEntity.ok()
@@ -59,7 +59,7 @@ public class CardDownloadRestController {
         ByteArrayInputStream inp = xmlCardWriterService.dataToXml(cards, dictionary);
         InputStreamResource resource = new InputStreamResource(inp);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + dictionary.getName() + dictionary.getPair().getCapitalizeLangPair() + ".xml")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + dictionary.getName() + dictionary.getVocabulary().getCapitalizeLangPair() + ".xml")
                 .contentType(MediaType.APPLICATION_XML)
                 .body(resource);
     }
@@ -84,7 +84,7 @@ public class CardDownloadRestController {
         ) {
             for (Dictionary dictionary : dictionaries) {
                 ByteArrayInputStream is = xmlCardWriterService.dataToXml(collect.get(dictionary), dictionary);
-                String name = dictionary.getName() + dictionary.getPair().getCapitalizeLangPair();
+                String name = dictionary.getName() + dictionary.getVocabulary().getCapitalizeLangPair();
                 String ext = ".xml";
                 String filename = name + ext;
                 ZipEntry entry = new ZipEntry(filename);

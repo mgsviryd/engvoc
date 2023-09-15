@@ -2,7 +2,7 @@ package by.sviryd.engvoc.service;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.LangLocalePair;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class CardUploadService {
     @Autowired
     private CardUnrepeatedService cardUnrepeatedService;
 
-    public HashMap<Object, Object> saveNewDictionariesAndCards(User client, List<Card> cards, LangLocalePair pair) {
+    public HashMap<Object, Object> saveNewDictionariesAndCards(User client, List<Card> cards, Vocabulary vocabulary) {
         if (cards.isEmpty()) {
             HashMap<Object, Object> data = new HashMap<>();
             data.put("cards", Collections.emptyList());
@@ -30,7 +30,7 @@ public class CardUploadService {
         Set<Dictionary> dictionaries = cards.stream().map(Card::getDictionary).filter(Objects::nonNull).collect(Collectors.toSet());
         LocalDateTime now = LocalDateTime.now();
         dictionaries.forEach(d -> {
-            d.setPair(pair);
+            d.setVocabulary(vocabulary);
             d.setUnrepeated(false);
             d.setCreationLDT(now);
         });
@@ -48,14 +48,14 @@ public class CardUploadService {
         return data;
     }
 
-    public HashMap<Object, Object> updateLearnedStatusUnrepeatedCards(User user, List<Card> cards, LangLocalePair pair) {
+    public HashMap<Object, Object> updateLearnedStatusUnrepeatedCards(User user, List<Card> cards, Vocabulary vocabulary) {
         if (cards.isEmpty()) {
             HashMap<Object, Object> data = new HashMap<>();
             data.put("updateLearnedStatusUnrepeatedCards", Collections.emptyList());
             return data;
         }
         List<Card> cardsLearned = cards.stream().filter(Card::isLearned).collect(Collectors.toList());
-        List<Card> cardsForUpdate = cardService.findDistinctByClientAndPairAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(cardsLearned, user, pair);
+        List<Card> cardsForUpdate = cardService.findDistinctByClientAndVocabularyAndWordAndTranslationWithUnrepeatedTrueAndLearnedFalse(cardsLearned, user, vocabulary);
         cardsForUpdate.forEach(Card::makeLearned);
         List<Card> updateLearnedStatusUnrepeatedCards = cardService.saveAll(cardsForUpdate);
         HashMap<Object, Object> data = new HashMap<>();
@@ -63,14 +63,13 @@ public class CardUploadService {
         return data;
     }
 
-    public HashMap<Object, Object> saveNewUnrepeatedCards(User user, List<Card> cards, LangLocalePair pair) {
+    public HashMap<Object, Object> saveNewUnrepeatedCards(User user, List<Card> cards, Vocabulary vocabulary) {
         if (cards.isEmpty()) {
             HashMap<Object, Object> data = new HashMap<>();
             data.put("updateLearnedStatusUnrepeatedCards", Collections.emptyList());
             return data;
         }
-        Dictionary newDictionary = dictionaryService.findNewUnrepeatedIfAbsentSave(user, pair);
-        if (newDictionary == null) dictionaryService.saveNewUnrepeated(user, pair);
+        Dictionary newDictionary = dictionaryService.findIfAbsentSaveNewUnrepeated(user, vocabulary);
         cards.forEach(c -> {
             c.setDictionary(newDictionary);
         });
@@ -86,7 +85,7 @@ public class CardUploadService {
         return data;
     }
 
-    public HashMap<Object, Object> updateCardsWithAbsentSound(User user, List<Card> cards, LangLocalePair pair) {
+    public HashMap<Object, Object> updateCardsWithAbsentSound(User user, List<Card> cards, Vocabulary vocabulary) {
         if (cards.isEmpty()) {
             HashMap<Object, Object> data = new HashMap<>();
             data.put("updateCardsWithAbsentSound", Collections.emptyList());
@@ -94,7 +93,7 @@ public class CardUploadService {
         }
         List<Card> cardsSound = cards.stream().filter(c -> !Objects.isNull(c.getSound())).collect(Collectors.toList());
         cardsSound = cardUnrepeatedService.getUnrepeatedByWord(cardsSound);
-        List<Card> cardsForUpdate = cardService.findByClientAndPair(user, pair);
+        List<Card> cardsForUpdate = cardService.findByClientAndVocabulary(user, vocabulary);
         cardsForUpdate = cardsForUpdate.stream().filter(c -> Objects.isNull(c.getSound())).collect(Collectors.toList());
         List<Card> finalCardsSound = cardsSound;
         cardsForUpdate.forEach(c -> {
