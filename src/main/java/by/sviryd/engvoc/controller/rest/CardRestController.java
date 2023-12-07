@@ -5,10 +5,8 @@ import by.sviryd.engvoc.domain.Dictionary;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
-import by.sviryd.engvoc.service.CardService;
-import by.sviryd.engvoc.service.CardUnrepeatedService;
-import by.sviryd.engvoc.service.DictionaryService;
-import by.sviryd.engvoc.service.PictureMediaService;
+import by.sviryd.engvoc.service.*;
+import by.sviryd.engvoc.util.LocaleExceptionMessage;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -42,6 +40,8 @@ public class CardRestController {
     private CardUnrepeatedService cardUnrepeatedService;
     @Autowired
     private PictureMediaService pictureMediaService;
+    @Autowired
+    private MessageI18nService messageI18nService;
 
 
     @DeleteMapping("{id}")
@@ -78,22 +78,30 @@ public class CardRestController {
     }
 
     @PostMapping("/saveWithoutPicture")
-    @JsonView({Views.Card.class})
+    @JsonView({Views.CardAndLocaleExceptionMessage.class})
     public HashMap<Object, Object> saveWithoutPicture(
             @AuthenticationPrincipal User user,
+            Locale locale,
             @RequestBody Card card
     ) {
-        HashMap<Object, Object> errors = new HashMap<>();
+        List<LocaleExceptionMessage> errors = new ArrayList<>();
         Card saved = null;
         if (card.isUnrepeated() && cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(card, user) != null) {
-            errors.put("notUnrepeatedCardError", "error");
+            String code = "cardNotUniqueError";
+            String message = messageI18nService.getMessage(code, null, locale);
+            LocaleExceptionMessage error = new LocaleExceptionMessage(code, "translation", message);
+            errors.add(error);
         } else {
             Optional<Dictionary> dictionaryOpt = dictionaryService.findById(card.getDictionary().getId());
-            card.setDictionary(dictionaryOpt.get());
+            Dictionary d = dictionaryOpt.get();
+            card.setDictionary(d);
+            card.setVocabulary(d.getVocabulary());
+            card.setAuthor(user);
+            card.setClient(user);
             saved = cardService.save(card);
         }
         HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
+        data.put("card", saved);
         data.put("errors", errors);
         return data;
     }
@@ -102,23 +110,31 @@ public class CardRestController {
     @JsonView({Views.Card.class})
     public HashMap<Object, Object> saveWithPicture(
             @AuthenticationPrincipal User user,
+            Locale locale,
             @RequestPart("file") MultipartFile file,
             @RequestPart("card") String cardJson
     ) throws IOException {
         Card card = new ObjectMapper().readValue(cardJson, Card.class);
-        HashMap<Object, Object> errors = new HashMap<>();
+        List<LocaleExceptionMessage> errors = new ArrayList<>();
         Card saved = null;
         if (card.isUnrepeated() && cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(card, user) != null) {
-            errors.put("notUnrepeatedCardError", "error");
+            String code = "cardNotUniqueError";
+            String message = messageI18nService.getMessage(code, null, locale);
+            LocaleExceptionMessage error = new LocaleExceptionMessage(code, "name", message);
+            errors.add(error);
         } else {
             String picture = pictureMediaService.savePictureOrRollback(file);
             Optional<Dictionary> dictionaryOpt = dictionaryService.findById(card.getDictionary().getId());
-            card.setDictionary(dictionaryOpt.get());
+            Dictionary d = dictionaryOpt.get();
+            card.setDictionary(d);
+            card.setVocabulary(d.getVocabulary());
+            card.setAuthor(user);
+            card.setClient(user);
             card.setPicture(picture);
             saved = cardService.save(card);
         }
         HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
+        data.put("card", saved);
         data.put("errors", errors);
         return data;
     }

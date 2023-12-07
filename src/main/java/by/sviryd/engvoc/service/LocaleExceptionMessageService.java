@@ -14,6 +14,6 @@ public class LocaleExceptionMessageService {
 
     public LocaleExceptionMessage getLEM(LocaleException localeException, Locale locale) {
         String message = messageI18nService.getMessage(localeException.getCode(), localeException.getArgs(), locale);
-        return new LocaleExceptionMessage(localeException.getCode(), localeException.getAttrName(), message);
+        return new LocaleExceptionMessage(localeException.getCode(), localeException.getAttribute(), message);
     }
 }

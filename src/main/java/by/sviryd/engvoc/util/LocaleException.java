@@ -14,19 +14,19 @@ public class LocaleException {
     @JsonIgnore
     private Object[] args;
     private String code;
-    private String attrName;
+    private String attribute;
 
     public LocaleException(Exception exception, Object... args) {
         this.exception = exception;
         this.args = args;
         this.code = exception.getClass().getName();
-        this.attrName = exception.getClass().getSimpleName();
+        this.attribute = exception.getClass().getSimpleName();
     }
 
-    public LocaleException(Exception exception, String message, String attrName, Object... args) {
+    public LocaleException(Exception exception, String message, String attribute, Object... args) {
         this.exception = exception;
         this.args = args;
         this.code = exception.getClass().getName();
-        this.attrName = attrName;
+        this.attribute = attribute;
     }
 }

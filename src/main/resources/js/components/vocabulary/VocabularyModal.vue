@@ -4,8 +4,8 @@
       :id="id"
       :ref="id"
       :body-class="'py-1'"
-      :header-class="'p-3'"
       :footer-class="''"
+      :header-class="'p-3'"
       :no-close-on-backdrop="!closable"
       :no-close-on-esc="!closable"
       no-fade
@@ -14,7 +14,7 @@
     <template #modal-header="{ close }">
       <b-container class="px-1" fluid>
         <close-row v-if="closable"
-                   :title="getCapitalizeLang('addDictionary')"
+                   :title="getCapitalizeLang('addVocabulary')"
                    @close="reject()"
         ></close-row>
       </b-container>
@@ -34,7 +34,7 @@
           <b-form-input
               :id="properties.name.inputId"
               :ref="properties.name.inputId"
-              v-model="dictionary.name"
+              v-model="vocabulary.name"
               :class="{'border-success':showBorderProperty('name')}"
               :state="stateName()"
               class="rounded-sm"
@@ -69,7 +69,7 @@
                     size="sm"
                     tabindex="-1"
                     variant="outline-secondary"
-                    @click.prevent.stop="copy(dictionary.name, properties.name.inputId, 'name')"
+                    @click.prevent.stop="copy(vocabulary.name, properties.name.inputId, 'name')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
@@ -84,8 +84,109 @@
       </b-col>
     </b-row>
 
-    <span>{{ getCapitalizeLang('picture') + ':' }}</span>
-    <single-picture-drop-zone></single-picture-drop-zone>
+    <b-row>
+      <b-col class="" sm="10">
+        <b-form-group
+            :label="getCapitalizeLang('sourceLang') + ':'"
+            :label-for="ids.multiselectSource"
+            content-cols-lg="7"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
+        >
+          <multiselect
+              :id="ids.multiselectSource"
+              :ref="ids.multiselectSource"
+              v-model="source"
+              track-by="lang"
+              :allow-empty="false"
+              :clear-on-select="true"
+              :close-on-select="true"
+              :hide-selected="false"
+              :multiple="false"
+              :option-height="100"
+              :options="options"
+              :searchable="false"
+              :show-no-results="false"
+              :showLabels="false"
+              :limit="15"
+              :tabindex="-1"
+              @select="onSelectSource"
+          >
+            <template slot="singleLabel"
+                      slot-scope="props">
+              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
+              <small>
+                <span>{{ getUpperCase(props.option.lang) }}</span>
+                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
+              </small>
+            </template>
+
+            <template slot="option"
+                      slot-scope="props">
+              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
+              <small>
+                <span>{{ getUpperCase(props.option.lang) }}</span>
+                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
+              </small>
+            </template>
+          </multiselect>
+        </b-form-group>
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col class="" sm="10">
+        <b-form-group
+            :label="getCapitalizeLang('targetLang') + ':'"
+            :label-for="ids.multiselectTarget"
+            content-cols-lg="7"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
+        >
+          <multiselect
+              :id="ids.multiselectTarget"
+              :ref="ids.multiselectTarget"
+              v-model="target"
+              track-by="lang"
+              :allow-empty="false"
+              :clear-on-select="true"
+              :close-on-select="true"
+              :hide-selected="false"
+              :multiple="false"
+              :option-height="100"
+              :options="options"
+              :searchable="false"
+              :show-no-results="false"
+              :showLabels="false"
+              :limit="15"
+              :tabindex="-1"
+              @select="onSelectTarget"
+          >
+            <template slot="singleLabel"
+                      slot-scope="props">
+              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
+              <small>
+                <span>{{ getUpperCase(props.option.lang) }}</span>
+                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
+              </small>
+            </template>
+
+            <template slot="option"
+                      slot-scope="props">
+              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
+              <small>
+                <span>{{ getUpperCase(props.option.lang) }}</span>
+                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
+              </small>
+            </template>
+          </multiselect>
+        </b-form-group>
+      </b-col>
+    </b-row>
+
 
     <template #modal-footer>
       <b-button variant="secondary"
@@ -104,32 +205,26 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
-import SinglePictureDropZone from './SinglePictureDropZone.vue'
-import CloseRow from '../../close/CloseRow.vue'
-import * as _ from 'lodash'
+import {mapState} from "vuex"
+import * as _ from "lodash"
+import LocaleJS from "../../util/locale"
+import CloseRow from "../close/CloseRow.vue"
 
 export default {
   props: [
     'id',
-    'unrepeated',
-    'parent',
     'closable',
   ],
   created() {
     Object.assign(this.properties, this.defaultProperties)
-    this.$root.$on('getPictureFormData', payload => {
-      this.formData = payload.formData
-    })
+    this.fetchData()
   },
   components: {
-    SinglePictureDropZone,
     CloseRow,
   },
   computed: {
     ...mapState([
       'lang',
-      'vocabulary',
     ]),
     defaultProperties() {
       return {
@@ -142,32 +237,63 @@ export default {
         },
       }
     },
+    ids() {
+      return {
+        id: this.prefixId(),
+        multiselectSource: this.prefixId() + 'multiselect-source-id',
+        multiselectTarget: this.prefixId() + 'multiselect-target-id',
+      }
+    }
   },
   watch: {
     $route: [
       'fetchData',
     ],
+    lang: {
+      handler: function () {
+        this.$forceNextTick(() => {
+          this.fetchData()
+        })
+      },
+      deep: true
+    },
+    props: {
+      handler: function () {
+        this.$forceNextTick(() => {
+          this.fetchData()
+        })
+      },
+      deep: true
+    },
   },
   data() {
     return {
       show: true,
-      name: "AddDictionaryModal",
-      dictionary: {
+      name: 'VocabularyModal',
+      source: null,
+      target: null,
+      options: [],
+      vocabulary: {
         name: '',
-        parent: this.parent,
-        unrepeated: this.unrepeated,
-        picture: null,
       },
-      formData: null,
       properties: {},
       errors: [],
     }
   },
   methods: {
-    fetchData() {
-    },
     prefixId() {
-      return this.id + '-'
+      return this.name + '-' + this.id + '-'
+    },
+    fetchData() {
+      this.show = false
+      this.source = this.lang.lang
+      this.target = this.lang.lang
+      this.options = this.lang.langs
+      this.show = true
+    },
+    onSelectSource() {
+    },
+    onSelectTarget() {
     },
     focusName() {
       this.$refs[this.properties.name.inputId].focus()
@@ -180,21 +306,16 @@ export default {
     },
     confirm() {
       if (this.stateTrue()) {
-        this.$store.dispatch(
-            'addDictionaryWithPictureAction',
-            {
-              formData: this.formData,
-              dictionary: this.dictionary,
-              vocabulary: this.vocabulary.vocabulary,
-            }
-        ).then((errors) => {
-          if (errors.length === 0) {
-            this.closeModal()
-          } else {
-            this.errors = errors
-            this.showErrors()
-          }
-        })
+        this.$store.dispatch("saveVocabularyAction",
+            {name: this.vocabulary.name, source: this.source, target: this.target})
+            .then((errors) => {
+              if (errors.length === 0) {
+                this.closeModal()
+              } else {
+                this.errors = errors
+                this.showErrors()
+              }
+            })
       }
     },
     closeModal() {
@@ -208,18 +329,19 @@ export default {
     setDataToDefault() {
       this.hideErrorsAndFlush()
       this.errors = []
-      this.dictionary = {
+      this.source = this.lang.lang
+      this.target = this.lang.lang
+      this.vocabulary = {
         name: '',
-        parent: this.parent,
-        unrepeated: this.unrepeated,
-        picture: null,
       }
-      this.formData = null
-      this.$root.$emit('setDefaultDropZone')
+      this.options = this.lang.langs
     },
     cancel(ref, property) {
-      this.dictionary[property] = ''
+      this.vocabulary[property] = ''
       this.$refs[ref].focus();
+    },
+    getLanguageByLangAndCountry(lang) {
+      return LocaleJS.getLanguageByLangAndCountry(lang)
     },
     copy(text, ref, property) {
       this.$refs[ref].focus();
@@ -230,18 +352,12 @@ export default {
           this.properties[property].timeoutCopyTooltip)
       navigator.clipboard.writeText(text)
     },
-    getCapitalizeLang(key) {
-      return _.capitalize(this.getLang(key))
-    },
-    getLang(key) {
-      return this.$t(key)
-    },
     nameError() {
-      if (this.isBlank(this.dictionary.name)) return ''
+      if (this.isBlank(this.vocabulary.name)) return ''
       return ''
     },
     stateName() {
-      return !this.isBlank(this.dictionary.name)
+      return !this.isBlank(this.vocabulary.name)
     },
     inputProperty(event, property) {
       this.properties[property].showError = false
@@ -256,7 +372,7 @@ export default {
       this.show = true
     },
     flush() {
-      this.dictionary.name = ''
+      this.vocabulary.name = ''
       Object.keys(this.properties).forEach(p => {
         this.properties[p].wasOutFocus = false
       })
@@ -303,8 +419,20 @@ export default {
     isBlank(str) {
       return _.isNil(str) || _.isEmpty(str)
     },
+    getLang(key) {
+      return this.$t(key)
+    },
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    getLowerCase(text) {
+      return _.lowerCase(text)
+    },
     upperFirst(text) {
       return _.upperFirst(text)
+    },
+    getUpperCase(text) {
+      return _.upperCase(text)
     },
   }
 }
@@ -313,6 +441,22 @@ export default {
 <style scoped>
 .cursor-not-allowed {
   cursor: not-allowed;
+}
+
+.multiselect {
+  width: fit-content;
+}
+
+.multiselect .multiselect__content-wrapper {
+  min-width: 100%;
+  width: auto;
+  border: none;
+  box-shadow: 4px 4px 10px 0 rgba(0, 0, 0, .1);
+  z-index: 1022;
+}
+
+.multiselect--active .multiselect__tags {
+  border-bottom: none;
 }
 
 </style>

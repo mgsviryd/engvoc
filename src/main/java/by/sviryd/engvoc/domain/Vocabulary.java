@@ -8,16 +8,18 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.DocumentId;
+import org.hibernate.validator.constraints.Length;
 import org.thymeleaf.util.StringUtils;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@ToString(of = {"id", "source", "target"})
-@EqualsAndHashCode(of = {"source", "target"})
+@ToString(of = {"id", "name", "source", "target"})
+@EqualsAndHashCode(of = {"name", "source", "target"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -38,6 +40,13 @@ public class Vocabulary implements Serializable {
     @JsonView(Views.Id.class)
     private UUID id;
 
+    @Length(max = 100)
+    @NotBlank
+    @NonNull
+    @Column(length = 100)
+    @JsonView(Views.Name.class)
+    private String name;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 10)
     @JsonView(Views.Source.class)
@@ -57,7 +66,6 @@ public class Vocabulary implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private User author;
-
 
     @JsonIgnore
     public String getCapitalizeLangPair() {

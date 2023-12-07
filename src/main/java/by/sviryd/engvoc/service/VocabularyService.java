@@ -19,4 +19,7 @@ public class VocabularyService {
     public Optional<Vocabulary> findById(UUID id){
         return vocabularyRepo.findById(id);
     }
+    public void delete(Vocabulary vocabulary){
+        vocabularyRepo.delete(vocabulary);
+    }
 }

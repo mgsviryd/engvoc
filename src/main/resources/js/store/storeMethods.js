@@ -13,7 +13,4 @@ export default {
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     },
-    getCapitalizeLangVocabulary(dictionary){
-        return _.capitalize(dictionary.pair.source.lang) + _.capitalize(dictionary.pair.target.lang)
-    },
 }

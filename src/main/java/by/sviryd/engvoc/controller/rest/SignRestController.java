@@ -13,6 +13,7 @@ import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,48 +69,6 @@ public class SignRestController {
         return true;
     }
 
-    @PostMapping("/users")
-    @JsonView({Views.User.class})
-    public HashMap<Object, Object> getUsers(Principal principal,
-                           @AuthenticationPrincipal User user,
-                           @RequestBody String json
-    ) {
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        JsonArray tokensArray = obj.get("tokens").getAsJsonArray();
-        Type stringType = new TypeToken<ArrayList<String>>() {
-        }.getType();
-        List<String> tokens = gson.fromJson(tokensArray, stringType);
-        HashMap<Object, Object> frontendData = new HashMap<>();
-        List<User> users;
-        if (user != null) {
-            frontendData.put("user", user);
-        } else {
-            try {
-                OAuth2Authentication auth2 = (OAuth2Authentication) principal;
-                String sub = ((HashMap<String, String>) (auth2.getUserAuthentication().getDetails())).get("sub");
-                user = userService.findBySub(sub);
-                frontendData.put("user", user);
-            } catch (Exception e) {
-                frontendData.put("user", null);
-            }
-        }
-        if (tokens.isEmpty()) {
-            users = new ArrayList<>(1);
-        } else {
-            users = IterableUtils.toList(userService.findAllByTokenIn(tokens));
-        }
-        if (user != null) {
-            Long id = user.getId();
-            if (users.stream().noneMatch(u -> u.getId().equals(id))) {
-                users.add(user);
-            }
-        }
-        frontendData.put("users", users);
-        return frontendData;
-    }
-
     @PostMapping("/up")
     public HashMap<Object, Object> up(
             @RequestBody String json,
@@ -138,7 +97,8 @@ public class SignRestController {
             Authentication authentication
     ) throws ServletException {
         if (authentication != null) {
-            request.getSession().invalidate();
+            SecurityContextHolder.clearContext();
+            request.getSession(false).invalidate();
             request.logout();
         }
     }

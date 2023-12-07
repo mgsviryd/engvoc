@@ -1,28 +1,13 @@
 <template>
-  <b-modal id="langPair"
-           ref="langPair"
-           :header-class="'p-3'"
-           :body-class="'py-0'"
-           no-fade
-           hide-footer
-           centered
-           :no-close-on-backdrop="!closable"
-           :no-close-on-esc="!closable"
-  >
-    <template #modal-title>
-            {{getCapitalizeLang('db')}}
-    </template>
-
-
-  <div class="container-fluid mt-2">
+  <div class="container-fluid">
     <b-row class="justify-content-between">
-      <b-col sm="4" class="d-flex align-items-center justify-content-start">
+      <b-col sm="7" class="px-0 d-flex align-items-center justify-content-start">
         {{ getCapitalizeLang('sourceLang') }}:
       </b-col>
-      <b-col sm="2" class="d-flex align-items-center justify-content-end">
+      <b-col sm="5" class="pl-2 pr-0 d-flex align-items-center justify-content-end">
         <multiselect
             :tabindex="-1"
-            v-model="vocabulary.source"
+            v-model="source"
             :options="options"
             track-by="lang"
             :multiple="false"
@@ -30,7 +15,7 @@
             :close-on-select="true"
             :show-no-results="true"
             :hide-selected="false"
-            :allow-empty="true"
+            :allow-empty="false"
             :option-height="100"
             :showLabels="false"
             :searchable="false"
@@ -48,13 +33,15 @@
           </template>
         </multiselect>
       </b-col>
-      <b-col sm="4" class="d-flex align-items-center justify-content-start">
+    </b-row>
+    <b-row>
+      <b-col sm="7" class="px-0 d-flex align-items-center justify-content-start">
         {{ getCapitalizeLang('targetLang') }}:
       </b-col>
-      <b-col sm="2" class="d-flex align-items-center justify-content-end">
+      <b-col sm="5" class="pl-2 pr-0 d-flex align-items-center justify-content-end">
         <multiselect
             :tabindex="-1"
-            v-model="vocabulary.target"
+            v-model="target"
             :options="options"
             track-by="lang"
             :multiple="false"
@@ -66,6 +53,7 @@
             :option-height="100"
             :showLabels="false"
             :searchable="false"
+            :limit="15"
             @select="onSelectTarget"
         >
           <template slot="singleLabel"
@@ -81,49 +69,28 @@
         </multiselect>
       </b-col>
     </b-row>
-
-    <b-button class="my-3" variant="outline-success" block @click="saveVocabulary">
-      {{getCapitalizeLang('create')}}
-    </b-button>
   </div>
-  </b-modal>
 </template>
 
 <script>
-import {mapState, mapGetters} from "vuex"
+import {mapState} from "vuex"
 import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
-import CloseRow from "../close/CloseRow.vue"
 
 export default {
-  props: [
-    'closable',
-    'show'
-  ],
-
-  components: {
-    CloseRow,
-  },
-
   mounted() {
-    this.switchModal(this.show)
-  },
 
+  },
   created() {
     this.fetchData()
   },
-
+  components: {},
   computed: {
     ...mapState([
       'lang',
-      'authentication',
       'props',
     ]),
-    ...mapGetters([
-        'isVocabularyPresent',
-    ])
   },
-
   watch: {
     $route: [
       'fetchData',
@@ -147,47 +114,22 @@ export default {
   },
   data() {
     return {
-      vocabulary: {
-        source: null,
-        target: null,
-      },
+      source: null,
+      target: null,
       options: [],
     }
   },
   methods: {
-    showModal() {
-      this.$refs.langPair.show()
-    },
-    hideModal() {
-      this.$refs.langPair.hide()
-    },
-    switchModal(show) {
-      if (show) {
-        this.showModal()
-      } else {
-        this.hideModal()
-      }
-    },
-    closeModal() {
-      this.$refs.langPair.hide()
-    },
     fetchData() {
-      if(this.isVocabularyPresent){
-        this.vocabulary = this.authentication.user.vocabulary
-      }else{
-        this.vocabulary = {source: this.lang.lang, target: this.lang.lang}
-      }
+      this.source = this.props.upload.lang.source
+      this.target = this.props.upload.lang.target
       this.options = this.lang.langs
     },
     onSelectSource(lang) {
-      this.vocabulary.source = lang
+      this.$store.dispatch("changePropsUploadLangAction", {source: lang, target: this.target})
     },
     onSelectTarget(lang) {
-      this.vocabulary.target = lang
-    },
-    saveVocabulary(){
-      this.$store.dispatch("saveVocabularyAction", this.vocabulary)
-      this.closeModal()
+      this.$store.dispatch("changePropsUploadLangAction", {source: this.source, target: lang})
     },
     getLanguageByLangAndCountry(lang) {
       return LocaleJS.getLanguageByLangAndCountry(lang)

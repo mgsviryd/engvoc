@@ -2,19 +2,15 @@ package by.sviryd.engvoc.service.card.writer;
 
 import by.sviryd.engvoc.domain.Card;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.service.card.reader.XmlCardReaderService;
 import by.sviryd.engvoc.type.LangLocale;
-import by.sviryd.engvoc.util.MultipartFileUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.List;
@@ -22,19 +18,20 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class XmlCardWriterServiceTest {
+    private final File source = new File("./src/main/resources/test/xml/dictionary/ClothesEnRu.xml");
+    private final File dest = new File("./src/main/resources/test/xml/dictionary/emptyEnRu.xml");
     @Autowired
     private XmlCardWriterService service;
     @Autowired
     private XmlCardReaderService readerService;
 
-    private final File source = new File("./src/main/resources/test/xml/dictionary/ClothesEnRu.xml");
-    private final File dest = new File("./src/main/resources/test/xml/dictionary/emptyEnRu.xml");
-    private final Dictionary dictionary = new Dictionary();
-
     @Test
     public void write() throws Exception {
-        dictionary.setSource(LangLocale.en_US);
-        dictionary.setTarget(LangLocale.ru_RU);
+        Vocabulary vocabulary = new Vocabulary();
+        vocabulary.setSource(LangLocale.en_US);
+        vocabulary.setTarget(LangLocale.ru_RU);
+        Dictionary dictionary = new Dictionary();
+        dictionary.setVocabulary(vocabulary);
         List<Card> cards = readerService.extract(source);
         int sizeRead = cards.size();
         service.write(dest, cards, dictionary);

@@ -1,5 +1,5 @@
 import Vue from "vue"
 
 export default {
-    getFrontend: (lang) => Vue.http.get("/json/frontend", {params: {lang}}),
+    getFrontend: (tokens, lang) => Vue.http.post("/json/frontend", {tokens}, {params: {lang}}),
 }

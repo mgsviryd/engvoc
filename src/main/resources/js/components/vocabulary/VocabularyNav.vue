@@ -4,17 +4,17 @@
         class="navbar navbar-expand-lg navbar-dark bg-dark py-1 mb-0 shadow border-bottom border-secondary"
         style="width:100%;"
     >
-      <b-button-group size="sm" class="btn-group-justified">
-        <b-button variant="light"
-                  class="mr-1"
-                  :class="{ active: card.activated}"
-                  href="#tab1"
-                  data-toggle="tab"
-                  role="tab"
+      <b-button-group class="btn-group-justified" size="sm">
+        <b-button :class="{ active: card.activated}"
                   aria-controls="tab1"
                   aria-selected="false"
-                  @click="activate('card')"
-                  style="width: 130px;">
+                  class="mr-1"
+                  data-toggle="tab"
+                  href="#tab1"
+                  role="tab"
+                  style="width: 130px;"
+                  variant="light"
+                  @click="activate('card')">
           <small>
             <b>
               {{ getCapitalizeLang('card') }}
@@ -22,16 +22,16 @@
           </small>
         </b-button>
 
-        <b-button variant="light"
-                  class="mr-1"
-                  :class="{ active: dictionary.activated}"
-                  href="#tab2"
-                  data-toggle="tab"
-                  role="tab"
+        <b-button :class="{ active: dictionary.activated}"
                   aria-controls="tab2"
                   aria-selected="false"
-                  @click="activate('dictionary')"
-                  style="width: 130px;">
+                  class="mr-1"
+                  data-toggle="tab"
+                  href="#tab2"
+                  role="tab"
+                  style="width: 130px;"
+                  variant="light"
+                  @click="activate('dictionary')">
           <small>
             <b>
               {{ getCapitalizeLang('dictionary') }}
@@ -39,16 +39,16 @@
           </small>
         </b-button>
 
-        <b-button variant="light"
-                  class="mr-sm-1"
-                  :class="{ active: editor.activated}"
-                  href="#tab3"
-                  data-toggle="tab"
-                  role="tab"
+        <b-button :class="{ active: editor.activated}"
                   aria-controls="tab3"
                   aria-selected="false"
-                  @click="activate('editor')"
-                  style="width: 130px;">
+                  class="mr-sm-1"
+                  data-toggle="tab"
+                  href="#tab3"
+                  role="tab"
+                  style="width: 130px;"
+                  variant="light"
+                  @click="activate('editor')">
           <small>
             <b>
               {{ getCapitalizeLang('editor') }}
@@ -56,16 +56,16 @@
           </small>
         </b-button>
 
-        <b-button variant="light"
-                  class="mr-sm-1"
-                  :class="{ active: origin.activated}"
-                  href="#tab4"
-                  data-toggle="tab"
-                  role="tab"
+        <b-button :class="{ active: origin.activated}"
                   aria-controls="tab4"
                   aria-selected="false"
-                  @click="activate('origin')"
-                  style="width: 130px;">
+                  class="mr-sm-1"
+                  data-toggle="tab"
+                  href="#tab4"
+                  role="tab"
+                  style="width: 130px;"
+                  variant="light"
+                  @click="activate('origin')">
           <small>
             <b>
               {{ getCapitalizeLang('origin') }}
@@ -73,16 +73,16 @@
           </small>
         </b-button>
 
-        <b-button variant="light"
-                  class="mr-1"
-                  :class="{ active: settings.activated}"
-                  href="#tab5"
-                  data-toggle="tab"
-                  role="tab"
+        <b-button :class="{ active: settings.activated}"
                   aria-controls="tab5"
                   aria-selected="false"
-                  @click="activate('settings')"
-                  style="width: 130px;">
+                  class="mr-1"
+                  data-toggle="tab"
+                  href="#tab5"
+                  role="tab"
+                  style="width: 130px;"
+                  variant="light"
+                  @click="activate('settings')">
           <small>
             <b>
               {{ getCapitalizeLang('settings') }}
@@ -92,31 +92,31 @@
       </b-button-group>
     </nav>
 
-    <div class="tab-content" id="tab-content-0 d-inline-block" style="width: 100%">
-      <div class="tab-pane fade bg-light border-1 border-secondary"
+    <div id="tab-content-0 d-inline-block" class="tab-content" style="width: 100%">
+      <div id="tab1"
            :class="{ active: card.activated, show: card.activated}"
-           id="tab1"
-           role="tabpanel"
            aria-labelledby="..."
+           class="tab-pane fade bg-light border-1 border-secondary"
+           role="tabpanel"
            style="width: 100%"
       >
         <card></card>
       </div>
 
-      <div class="tab-pane fade bg-light"
+      <div id="tab2"
            :class="{ active: dictionary.activated, show: dictionary.activated}"
-           id="tab2"
-           role="tabpanel" aria-labelledby="..."
+           aria-labelledby="..."
+           class="tab-pane fade bg-light" role="tabpanel"
            style="width: 100%"
       >
         <dictionary></dictionary>
       </div>
 
-      <div class="tab-pane fade bg-light"
+      <div id="tab3"
            :class="{ active: editor.activated, show: editor.activated}"
-           id="tab3"
-           role="tabpanel"
            aria-labelledby="..."
+           class="tab-pane fade bg-light"
+           role="tabpanel"
            style="width: 100%"
       >
         <editor
@@ -124,20 +124,20 @@
         ></editor>
       </div>
 
-      <div class="tab-pane fade bg-light"
-           id="tab4"
+      <div id="tab4"
            :class="{ active: origin.activated, show: origin.activated}"
-           role="tabpanel"
            aria-labelledby="..."
+           class="tab-pane fade bg-light"
+           role="tabpanel"
            style="width: 100%"
       >
         <origin></origin>
       </div>
-      <div class="tab-pane fade bg-light"
+      <div id="tab5"
            :class="{ active: settings.activated, show: settings.activated}"
-           id="tab5"
-           role="tabpanel"
            aria-labelledby="..."
+           class="tab-pane fade bg-light"
+           role="tabpanel"
            style="width: 100%"
       >
         <settings></settings>
@@ -147,13 +147,14 @@
 </template>
 
 <script>
+
 import {mapState, mapGetters} from 'vuex'
+import * as _ from 'lodash'
 import Card from './Card.vue'
 import Dictionary from './Dictionary.vue'
 import Editor from './editor/Editor.vue'
 import Origin from './Origin.vue'
 import Settings from './Settings.vue'
-import * as _ from 'lodash'
 
 export default {
   components: {
@@ -164,26 +165,19 @@ export default {
     Settings,
   },
   created() {
-    this.$store.watch(this.$store.getters.getVocabularyId, vocabularyId => {
-      this.activateDictionaries(this.left, this.right)
-    })
-    this.$watch(
-        () => this.$route.query,
-        (toQueries, previousQueries) => {
-          this.$forceNextTick(() => {
-            this.activateDictionaries(toQueries.left, toQueries.right)
-          })
-        }
-    )
   },
   watch: {
-    '$route.params.mark': {
-      handler: function (mark) {
+    '$route': {
+      handler: function (to, from) {
         this.$forceNextTick(() => {
-          this.activate(mark)
+          const tab = to.query.tab
+          if(tab){
+            if (tab === 'editor')
+            this.activate('editor')
             const left = this.$route.query.left
             const right = this.$route.query.right
             this.activateDictionaries(left, right)
+          }
         })
       },
       immediate: true
@@ -200,8 +194,6 @@ export default {
   },
   data() {
     return {
-      left: null,
-      right: null,
       show: true,
       card: {
         activated: false,
@@ -253,8 +245,6 @@ export default {
 
     activateDictionaries(left, right) {
       this.show = false
-      this.left = left
-      this.right = right
       this.$refs.editor.loadDictionary(left, "left")
       this.$refs.editor.loadDictionary(right, "right")
       this.show = true

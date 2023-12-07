@@ -4,17 +4,17 @@
       :id="id"
       :ref="id"
       :body-class="'py-1'"
-      :header-class="'p-3'"
       :footer-class="''"
+      :header-class="'p-3'"
       :no-close-on-backdrop="!closable"
       :no-close-on-esc="!closable"
       no-fade
-      @shown="focusName()"
+      @shown="focusInput()"
   >
     <template #modal-header="{ close }">
       <b-container class="px-1" fluid>
         <close-row v-if="closable"
-                   :title="getCapitalizeLang('addDictionary')"
+                   :title="getCapitalizeLang('deleteVocabulary')"
                    @close="reject()"
         ></close-row>
       </b-container>
@@ -23,8 +23,28 @@
     <b-row>
       <b-col class="" sm="10">
         <b-form-group
-            :label="getCapitalizeLang('name') + ':'"
-            :label-for="properties.name.inputId"
+            :label="getCapitalizeLang('vocabulary') + ':'"
+            :label-for="properties.vocabulary.id"
+            content-cols-lg="7"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
+        >
+          <div :id="properties.vocabulary.id" class="text-truncate">
+            <span :class="'fi fi-'+ getLowerCase(vocabulary.vocabulary.source.country)"></span>
+            <span :class="'fi fi-'+ getLowerCase(vocabulary.vocabulary.target.country)"></span>
+            <span>{{ vocabulary.vocabulary.name }}</span>
+          </div>
+        </b-form-group>
+      </b-col>
+    </b-row>
+
+    <b-row>
+      <b-col class="" sm="10">
+        <b-form-group
+            :label="''"
+            :label-for="properties.actual.id"
             content-cols-lg="7"
             content-cols-sm="7"
             label-class="py-0"
@@ -32,26 +52,27 @@
             label-cols-sm="3"
         >
           <b-form-input
-              :id="properties.name.inputId"
-              :ref="properties.name.inputId"
-              v-model="dictionary.name"
-              :class="{'border-success':showBorderProperty('name')}"
-              :state="stateName()"
+              :id="properties.actual.id"
+              :ref="properties.actual.id"
+              v-model="input.actual"
+              :class="{'border-success':showBorderProperty('actual')}"
+              :placeholder="getCapitalizeLang('enterVocabularyName')"
+              :state="stateInput()"
               class="rounded-sm"
               size="sm"
               trim
-              @input="inputProperty($event, 'name')"
+              @input="inputProperty($event, 'actual')"
               @keyup.enter="confirm()"
-              @focusin.prevent.stop="onFocusinProperty($event, properties.name.inputId, 'name')"
-              @focusout.prevent.stop="onFocusoutProperty($event, properties.name.inputId, 'name')"
+              @focusin.prevent.stop="onFocusinProperty($event, properties.actual.id, 'actual')"
+              @focusout.prevent.stop="onFocusoutProperty($event, properties.actual.id, 'actual')"
           >
           </b-form-input>
-          <div v-if="properties.name.wasOutFocus && nameError()" class="invalid-feedback my-0">
-            <small>{{ nameError() }}</small>
+          <div v-if="properties.actual.wasOutFocus && actualError()" class="invalid-feedback my-0">
+            <small>{{ actualError() }}</small>
           </div>
         </b-form-group>
-        <div v-if="properties.name.showError" class="my-0 text-danger">
-          <small v-for="(e,i) in getErrors('name')">{{ upperFirst(e.message) }}</small>
+        <div v-if="properties.actual.showError" class="my-0 text-danger">
+          <small v-for="(e,i) in getErrors('actual')">{{ upperFirst(e.message) }}</small>
         </div>
       </b-col>
       <b-col class="px-0" sm="2">
@@ -60,22 +81,22 @@
                     size="sm"
                     tabindex="-1"
                     variant="outline-secondary"
-                    @click.prevent.stop="cancel(properties.name.inputId, 'name')"
+                    @click.prevent.stop="cancel(properties.actual.id, 'actual')"
           >
             <i class="fa fa-close"></i>
           </b-button>
-          <b-button :id="'copy-'+properties.name.inputId"
+          <b-button :id="'copy-'+properties.actual.id"
                     class="shadow-none"
                     size="sm"
                     tabindex="-1"
                     variant="outline-secondary"
-                    @click.prevent.stop="copy(dictionary.name, properties.name.inputId, 'name')"
+                    @click.prevent.stop="copy(input.actual, properties.actual.id, 'actual')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
-          <b-tooltip :id="'tooltip-'+'copy-'+properties.name.inputId"
-                     :ref="'tooltip-'+'copy-'+properties.name.inputId"
-                     :target="'copy-'+properties.name.inputId"
+          <b-tooltip :id="'tooltip-'+'copy-'+properties.actual.id"
+                     :ref="'tooltip-'+'copy-'+properties.actual.id"
+                     :target="'copy-'+properties.actual.id"
                      :title="getCapitalizeLang('copied')"
                      triggers
                      variant="secondary"
@@ -83,9 +104,6 @@
         </b-button-group>
       </b-col>
     </b-row>
-
-    <span>{{ getCapitalizeLang('picture') + ':' }}</span>
-    <single-picture-drop-zone></single-picture-drop-zone>
 
     <template #modal-footer>
       <b-button variant="secondary"
@@ -104,89 +122,118 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
-import SinglePictureDropZone from './SinglePictureDropZone.vue'
-import CloseRow from '../../close/CloseRow.vue'
-import * as _ from 'lodash'
+import {mapState} from "vuex"
+import * as _ from "lodash"
+import LocaleJS from "../../util/locale"
+import CloseRow from "../close/CloseRow.vue"
 
 export default {
   props: [
     'id',
-    'unrepeated',
-    'parent',
     'closable',
   ],
   created() {
     Object.assign(this.properties, this.defaultProperties)
-    this.$root.$on('getPictureFormData', payload => {
-      this.formData = payload.formData
-    })
+    this.fetchData()
   },
   components: {
-    SinglePictureDropZone,
     CloseRow,
   },
   computed: {
-    ...mapState([
-      'lang',
-      'vocabulary',
-    ]),
+    ...mapState({
+      lang: 'lang',
+      vocabularyStore: 'vocabulary',
+    }),
     defaultProperties() {
       return {
-        name: {
-          inputId: this.prefixId() + "name-input-id",
+        actual: {
+          id: this.prefixId() + "actual-id",
           hasFocus: false,
           wasOutFocus: false,
           showError: false,
           timeoutCopyTooltip: 300,
         },
+        vocabulary: {
+          id: this.prefixId() + "vocabulary-id",
+        }
       }
     },
+    ids() {
+      return {
+        id: this.prefixId(),
+      }
+    }
   },
   watch: {
     $route: [
       'fetchData',
     ],
+    vocabularyStore: {
+      handler: function () {
+        this.show = false
+        this.$forceNextTick(() => {
+          this.fetchData()
+        })
+      },
+      deep: true
+    },
+    props: {
+      handler: function () {
+        this.show = false
+        this.$forceNextTick(() => {
+          this.fetchData()
+        })
+      },
+      deep: true
+    },
   },
   data() {
     return {
-      show: true,
-      name: "AddDictionaryModal",
-      dictionary: {
-        name: '',
-        parent: this.parent,
-        unrepeated: this.unrepeated,
-        picture: null,
+      show: false,
+      name: 'VocabularyModal',
+      input: {
+        actual: '',
+        expected: '',
       },
-      formData: null,
       properties: {},
       errors: [],
+      vocabulary: null,
     }
   },
   methods: {
-    fetchData() {
-    },
     prefixId() {
-      return this.id + '-'
+      return this.name + '-' + this.id + '-'
     },
-    focusName() {
-      this.$refs[this.properties.name.inputId].focus()
+    fetchData() {
+      this.show = false
+      if (!this.isBlank(this.vocabularyStore.vocabulary)) {
+        this.vocabulary = this.vocabularyStore
+        this.expected = this.vocabulary.vocabulary.name
+        this.show = true
+      }
+    },
+    onSelectSource() {
+    },
+    onSelectTarget() {
+    },
+    focusInput() {
+      this.$refs[this.properties.actual.id].focus()
     },
     showModal() {
-      this.$refs[this.id].show()
+      if (this.show) {
+        this.$refs[this.id].show()
+      }
     },
     hideModal() {
-      this.$refs[this.id].hide()
+      if (this.show) {
+        this.$refs[this.id].hide()
+      }
     },
     confirm() {
       if (this.stateTrue()) {
         this.$store.dispatch(
-            'addDictionaryWithPictureAction',
-            {
-              formData: this.formData,
-              dictionary: this.dictionary,
-              vocabulary: this.vocabulary.vocabulary,
-            }
+            'deleteVocabularyAction',
+            {vocabulary: this.vocabulary.vocabulary, actual: this.input.actual, expected: this.input.expected}
         ).then((errors) => {
           if (errors.length === 0) {
             this.closeModal()
@@ -208,18 +255,16 @@ export default {
     setDataToDefault() {
       this.hideErrorsAndFlush()
       this.errors = []
-      this.dictionary = {
-        name: '',
-        parent: this.parent,
-        unrepeated: this.unrepeated,
-        picture: null,
+      this.input = {
+        actual: '',
       }
-      this.formData = null
-      this.$root.$emit('setDefaultDropZone')
     },
     cancel(ref, property) {
-      this.dictionary[property] = ''
+      this.input[property] = ''
       this.$refs[ref].focus();
+    },
+    getLanguageByLangAndCountry(lang) {
+      return LocaleJS.getLanguageByLangAndCountry(lang)
     },
     copy(text, ref, property) {
       this.$refs[ref].focus();
@@ -230,18 +275,17 @@ export default {
           this.properties[property].timeoutCopyTooltip)
       navigator.clipboard.writeText(text)
     },
-    getCapitalizeLang(key) {
-      return _.capitalize(this.getLang(key))
-    },
-    getLang(key) {
-      return this.$t(key)
-    },
-    nameError() {
-      if (this.isBlank(this.dictionary.name)) return ''
+    actualError() {
+      if (this.isBlank(this.input.actual)) return ''
+      if (!this.isInputCoincide()) return this.getLang('incorrectInputError')
       return ''
     },
-    stateName() {
-      return !this.isBlank(this.dictionary.name)
+    isInputCoincide() {
+      return this.input.actual === this.input.expected
+    },
+    stateInput() {
+      return !this.isBlank(this.input.actual)
+          && this.isInputCoincide()
     },
     inputProperty(event, property) {
       this.properties[property].showError = false
@@ -256,7 +300,7 @@ export default {
       this.show = true
     },
     flush() {
-      this.dictionary.name = ''
+      this.input.actual = ''
       Object.keys(this.properties).forEach(p => {
         this.properties[p].wasOutFocus = false
       })
@@ -298,10 +342,19 @@ export default {
       return this.errors.filter(e => e.attribute === property)
     },
     stateTrue() {
-      return this.stateName() && !this.isAnyErrorsShow()
+      return this.stateInput() && !this.isAnyErrorsShow()
     },
-    isBlank(str) {
-      return _.isNil(str) || _.isEmpty(str)
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
+    },
+    getLang(key) {
+      return this.$t(key)
+    },
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    getLowerCase(text) {
+      return _.lowerCase(text)
     },
     upperFirst(text) {
       return _.upperFirst(text)
@@ -313,6 +366,22 @@ export default {
 <style scoped>
 .cursor-not-allowed {
   cursor: not-allowed;
+}
+
+.multiselect {
+  width: fit-content;
+}
+
+.multiselect .multiselect__content-wrapper {
+  min-width: 100%;
+  width: auto;
+  border: none;
+  box-shadow: 4px 4px 10px 0 rgba(0, 0, 0, .1);
+  z-index: 1022;
+}
+
+.multiselect--active .multiselect__tags {
+  border-bottom: none;
 }
 
 </style>

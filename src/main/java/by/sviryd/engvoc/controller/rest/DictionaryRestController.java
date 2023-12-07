@@ -1,9 +1,12 @@
 package by.sviryd.engvoc.controller.rest;
 
-import by.sviryd.engvoc.domain.*;
 import by.sviryd.engvoc.domain.Dictionary;
+import by.sviryd.engvoc.domain.User;
+import by.sviryd.engvoc.domain.Views;
+import by.sviryd.engvoc.domain.Vocabulary;
 import by.sviryd.engvoc.provider.AuthProvider;
 import by.sviryd.engvoc.service.*;
+import by.sviryd.engvoc.util.LocaleExceptionMessage;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -37,6 +40,8 @@ public class DictionaryRestController {
     private AuthProvider authProvider;
     @Autowired
     private VocabularyService vocabularyService;
+    @Autowired
+    private MessageI18nService messageI18nService;
 
     @DeleteMapping("{id}")
     public void delete(
@@ -74,58 +79,64 @@ public class DictionaryRestController {
         return dictionaryService.findAll();
     }
 
-    @PostMapping(value = "/findDictionariesAndCards")
-    @JsonView({Views.DictionaryCard.class})
-    public HashMap<Object, Object> findDictionariesAndCards(
+    @PostMapping("/saveWithoutPicture")
+    @JsonView({Views.DictionaryAndLocaleExceptionMessage.class})
+    public HashMap<Object, Object> saveWithoutPicture(
             @AuthenticationPrincipal User user,
-            @RequestBody Vocabulary vocabulary
-    ){
-        List<Dictionary> dictionaries = dictionaryService.findAllByAuthorAndVocabulary(user, vocabulary);
-        List<Card> cards = cardService.findAllByClientAndVocabulary(user, vocabulary);
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("dictionaries", dictionaries);
-        data.put("cards", cards);
-        return data;
-    }
-
-    @PostMapping("/saveUnrepeated")
-    @JsonView({Views.Dictionary.class})
-    public HashMap<Object, Object> saveUnrepeated(
-            @RequestBody Dictionary dictionary
-    ) {
+            Locale locale,
+            @RequestBody Map<String, String> json
+    ) throws IOException {
+        String dictionaryJson = json.get("dictionary");
+        String vocabularyId = json.get("vocabularyId");
+        Dictionary dictionary = new ObjectMapper().readValue(dictionaryJson, Dictionary.class);
+        Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
         Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnrepeated(dictionary.getName(), dictionary.isUnrepeated());
         Dictionary saved = null;
-        HashMap<Object, Object> errors = new HashMap<>();
-        if (!dictionaryDbOpt.isPresent()) {
+        HashMap<Object, Object> data = new HashMap<>();
+        List<LocaleExceptionMessage> errors = new ArrayList<>();
+        if (!dictionaryDbOpt.isPresent() && vocabularyOpt.isPresent()) {
+            dictionary.setVocabulary(vocabularyOpt.get());
+            dictionary.setAuthor(user);
             saved = dictionaryService.save(dictionary);
         } else {
-            errors.put("notUnrepeatedDictionaryError", "error");
+            String code = "dictionaryNotUniqueError";
+            String message = messageI18nService.getMessage(code, null, locale);
+            LocaleExceptionMessage error = new LocaleExceptionMessage(code, "name", message);
+            errors.add(error);
         }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
+        data.put("dictionary", saved);
         data.put("errors", errors);
         return data;
     }
 
-    @PostMapping(value = "/saveUnrepeatedWithPicture", consumes = {"multipart/form-data"})
-    @JsonView({Views.Dictionary.class})
-    public HashMap<Object, Object> addWithPicture(
+    @PostMapping(value = "/saveWithPicture", consumes = {"multipart/form-data"})
+    @JsonView({Views.DictionaryAndLocaleExceptionMessage.class})
+    public HashMap<Object, Object> saveWithPicture(
+            @AuthenticationPrincipal User user,
+            Locale locale,
             @RequestPart("file") MultipartFile file,
-            @RequestPart("dictionary") String dictionaryJson
+            @RequestPart("dictionary") String dictionaryJson,
+            @RequestPart("vocabularyId") String vocabularyId
     ) throws IOException {
         Dictionary dictionary = new ObjectMapper().readValue(dictionaryJson, Dictionary.class);
+        Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
         Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnrepeated(dictionary.getName(), dictionary.isUnrepeated());
         Dictionary saved = null;
-        HashMap<Object, Object> errors = new HashMap<>();
-        if (!dictionaryDbOpt.isPresent()) {
+        HashMap<Object, Object> data = new HashMap<>();
+        List<LocaleExceptionMessage> errors = new ArrayList<>();
+        if (!dictionaryDbOpt.isPresent() && vocabularyOpt.isPresent()) {
             String picture = pictureMediaService.savePictureOrRollback(file);
             dictionary.setPicture(picture);
+            dictionary.setVocabulary(vocabularyOpt.get());
+            dictionary.setAuthor(user);
             saved = dictionaryService.save(dictionary);
         } else {
-            errors.put("notUnrepeatedDictionaryError", "error");
+            String code = "dictionaryNotUniqueError";
+            String message = messageI18nService.getMessage(code, null, locale);
+            LocaleExceptionMessage error = new LocaleExceptionMessage(code, "name", message);
+            errors.add(error);
         }
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("saved", saved);
+        data.put("dictionary", saved);
         data.put("errors", errors);
         return data;
     }
@@ -148,30 +159,35 @@ public class DictionaryRestController {
         dictionaryService.deleteByIdIn(dictionariesDb.stream().map(Dictionary::getId).collect(Collectors.toList()));
     }
 
-    @DeleteMapping(value = "/deleteByUnrepeated", consumes = {"application/json"})
-    public void deleteByUnrepeated(
-            @RequestBody String json
-    ) {
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
-        boolean unrepeated = obj.get("unrepeated").getAsBoolean();
-        dictionaryService.deleteByUnrepeated(unrepeated);
-    }
-
-    @PostMapping(value = "/saveNewUnrepeated")
-    @JsonView({Views.Dictionary.class})
-    public Dictionary saveNewUnrepeated(
+    @PostMapping("/deleteByUnrepeated/danger")
+    @JsonView({Views.DictionaryAndLocaleExceptionMessage.class})
+    public HashMap<Object, Object> deleteByUnrepeatedDanger(
             @AuthenticationPrincipal User user,
-            @RequestBody Vocabulary vocabulary
-    ){
-        if(user.getVocabularies().contains(vocabulary)){
-            return null;
-        }else{
-            vocabulary.setAuthor(user);
-            vocabulary = vocabularyService.save(vocabulary);
-            user.addVocabulary(vocabulary);
-            authProvider.refreshContext(user);
-            return dictionaryService.findIfAbsentSaveNewUnrepeated(user, vocabulary);
+            Locale locale,
+            @RequestBody HashMap<String, String> json
+    ) throws IOException {
+        HashMap<Object, Object> data = new HashMap<>();
+        List<LocaleExceptionMessage> errors = new ArrayList<>();
+        String vocabularyJson = json.get("vocabulary");
+        Vocabulary vocabulary = new ObjectMapper().readValue(vocabularyJson, Vocabulary.class);
+        String actual = json.get("actual");
+        String expected = json.get("expected");
+        Dictionary dictionary = null;
+        if (actual.equals(expected)) {
+            boolean unrepeated = Boolean.parseBoolean(json.get("unrepeated"));
+            cardService.deleteByClientAndVocabularyAndUnrepeated(user, vocabulary, unrepeated);
+            dictionaryService.deleteByAuthorAndUnrepeated(user, unrepeated);
+            if (unrepeated) {
+                dictionary = dictionaryService.saveNewUnrepeated(user, vocabulary);
+            }
+        } else {
+            String code = "incorrectInputError";
+            String message = messageI18nService.getMessage(code, null, locale);
+            LocaleExceptionMessage error = new LocaleExceptionMessage(code, "actual", message);
+            errors.add(error);
         }
+        data.put("dictionary", dictionary);
+        data.put("errors", errors);
+        return data;
     }
 }

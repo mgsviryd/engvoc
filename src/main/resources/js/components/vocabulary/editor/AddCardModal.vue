@@ -3,15 +3,16 @@
       v-if="show"
       :id="id"
       :ref="id"
+      :body-class="'py-1'"
       :header-class="'p-3'"
-      :body-class="'py-0'"
-      no-fade
+      :footer-class="''"
       :no-close-on-backdrop="!closable"
       :no-close-on-esc="!closable"
+      no-fade
       @shown="focusWord()"
   >
     <template #modal-header="{ close }">
-      <b-container fluid class="px-1">
+      <b-container class="px-1" fluid>
         <close-row v-if="closable"
                    :title="getCapitalizeLang('addCard')"
                    @close="reject()"
@@ -23,239 +24,300 @@
     {{ dictionary.name }}
 
     <b-row>
-      <b-col sm="10" class="pr-1">
+      <b-col class="pr-1" sm="10">
         <b-form-group
-            label-class="py-0"
             :label="getCapitalizeLang('word') + ':'"
-            label-cols-sm="3"
-            label-cols-lg="3"
-            content-cols-sm="7"
+            :label-for="properties.word.inputId"
             content-cols-lg="7"
-            label-for="textarea-word"
-            :invalid-feedback="actionLocal.errors.cardWordError?actionLocal.errors.cardWordError:''"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
         >
           <b-form-input
-              id="textarea-word"
-              ref="textarea-word"
-              size="sm"
-              :state="card.word !== null && card.word !== ''"
-              trim
-              debounce="300"
-              :maxlength="properties.word.maxlength"
+              :id="properties.word.inputId"
+              :ref="properties.word.inputId"
               v-model="card.word"
+              :class="[{'border-success':showBorderProperty('word')}]"
+              :maxlength="properties.word.maxlength"
+              :state="stateWord()"
+              class="rounded-sm"
+              debounce="300"
+              size="sm"
+              trim
               @focus="$event.target.select()"
+              @input="inputProperty($event, 'word')"
+              @keyup.enter="confirm()"
               @keyup.native="insert($event,'word')"
+              @focusin.prevent.stop="onFocusinProperty($event, properties.word.inputId, 'word')"
+              @focusout.prevent.stop="onFocusoutProperty($event, properties.word.inputId, 'word')"
           >
           </b-form-input>
+          <div v-if="properties.word.wasOutFocus && wordError()" class="invalid-feedback my-0">
+            <small>{{ wordError() }}</small>
+          </div>
         </b-form-group>
+        <div v-if="properties.word.showError" class="my-0 text-danger">
+          <small v-for="(e,i) in getErrors('word')">{{ e.message }}</small>
+        </div>
       </b-col>
-      <b-col sm="2" class="px-0">
+      <b-col class="px-0" sm="2">
         <b-button-group>
-          <b-button variant="outline-danger"
+          <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="cancel('textarea-word', 'word')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="cancel(properties.word.inputId, 'word')"
           >
             <i class="fa fa-close"></i>
           </b-button>
-          <b-button variant="outline-primary"
-                    :id="'copy'+'textarea-word'"
+          <b-button :id="'copy-'+properties.word.inputId"
+                    class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="copy(card.word, 'textarea-word', 'word')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="copy(card.word, properties.word.inputId, 'word')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
-          <b-tooltip :show.sync="properties.word.showCopyTooltip" @shown="copyTooltipHideLater('word')"
-                     variant="secondary" :target="'copy'+'textarea-word'" triggers
-                     :title="getCapitalizeLang('copied')"></b-tooltip>
+          <b-tooltip :id="'tooltip-'+'copy-'+properties.word.inputId"
+                     :ref="'tooltip-'+'copy-'+properties.word.inputId"
+                     :target="'copy-'+properties.word.inputId"
+                     :title="getCapitalizeLang('copied')"
+                     triggers
+                     variant="secondary"
+          ></b-tooltip>
         </b-button-group>
       </b-col>
     </b-row>
 
     <b-row>
-      <b-col sm="10" class="pr-1">
+      <b-col class="pr-1" sm="10">
         <b-form-group
-            label-class="py-0"
             :label="getCapitalizeLang('translation') + ':'"
-            label-cols-sm="3"
-            label-cols-lg="3"
-            content-cols-sm="7"
+            :label-for="properties.translation.inputId"
             content-cols-lg="7"
-            label-for="textarea-translation"
-            :invalid-feedback="actionLocal.errors.cardTranslationError?actionLocal.errors.cardTranslationError:''"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
         >
           <b-form-input
-              id="textarea-translation"
-              ref="textarea-translation"
-              size="sm"
-              :state="card.translation !== null && card.translation !== ''"
-              trim
-              debounce="300"
-              :maxlength="properties.translation.maxlength"
+              :id="properties.translation.inputId"
+              :ref="properties.translation.inputId"
               v-model="card.translation"
+              :class="[{'border-success':showBorderProperty('translation')}]"
+              :maxlength="properties.translation.maxlength"
+              :state="stateTranslation()"
+              class="rounded-sm"
+              debounce="300"
+              size="sm"
+              trim
               @focus="$event.target.select()"
+              @input="inputProperty($event, 'translation')"
+              @keyup.enter="confirm()"
               @keyup.native="insert($event,'translation')"
+              @focusin.prevent.stop="onFocusinProperty($event, properties.translation.inputId, 'translation')"
+              @focusout.prevent.stop="onFocusoutProperty($event, properties.translation.inputId, 'translation')"
           >
           </b-form-input>
+          <div v-if="properties.translation.wasOutFocus && translationError()" class="invalid-feedback my-0">
+            <small>{{ translationError() }}</small>
+          </div>
         </b-form-group>
+        <div v-if="properties.translation.showError" class="my-0 text-danger">
+          <small v-for="(e,i) in getErrors('translation')">{{ e.message }}</small>
+        </div>
       </b-col>
-      <b-col sm="2" class="px-0">
+      <b-col class="px-0" sm="2">
         <b-button-group>
-          <b-button variant="outline-danger"
+          <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="cancel('textarea-translation', 'translation')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="cancel(properties.translation.inputId, 'translation')"
           >
             <i class="fa fa-close"></i>
           </b-button>
-          <b-button variant="outline-primary"
-                    :id="'copy'+'textarea-translation'"
+          <b-button :id="'copy-'+properties.translation.inputId"
+                    class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="copy(card.translation, 'textarea-translation', 'translation')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="copy(card.translation, properties.translation.inputId, 'translation')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
-          <b-tooltip :show.sync="properties.translation.showCopyTooltip" @shown="copyTooltipHideLater('translation')"
-                     variant="secondary" :target="'copy'+'textarea-translation'" triggers
-                     :title="getCapitalizeLang('copied')"></b-tooltip>
+          <b-tooltip :id="'tooltip-'+'copy-'+properties.translation.inputId"
+                     :ref="'tooltip-'+'copy-'+properties.translation.inputId"
+                     :target="'copy-'+properties.translation.inputId"
+                     :title="getCapitalizeLang('copied')"
+                     triggers
+                     variant="secondary"
+          ></b-tooltip>
         </b-button-group>
       </b-col>
     </b-row>
 
     <b-row>
-      <b-col sm="10" class="pr-1">
+      <b-col class="pr-1" sm="10">
         <b-form-group
-            label-class="py-0"
             :label="getCapitalizeLang('example') + ':'"
-            label-cols-sm="3"
-            label-cols-lg="3"
-            content-cols-sm="7"
+            :label-for="properties.example.inputId"
             content-cols-lg="7"
-            label-for="textarea-example"
-            :invalid-feedback="actionLocal.errors.cardExampleError?actionLocal.errors.cardExampleError:''"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
         >
           <b-form-textarea
-              id="textarea-example"
-              ref="textarea-example"
-              size="sm"
-              rows="2"
-              :trim="true"
-              debounce="300"
-              no-resize
+              :id="properties.example.inputId"
+              :ref="properties.example.inputId"
               v-model="card.example"
               :maxlength="properties.example.maxlength"
+              :trim="true"
+              debounce="300"
+              no-resize
+              rows="2"
+              size="sm"
               @focus="$event.target.select()"
+              @input="inputProperty($event, 'example')"
               @keyup.native="insert($event,'example')"
+              @keyup.enter="confirm()"
+              @focusin.prevent.stop="onFocusinProperty($event, properties.example.inputId, 'example')"
+              @focusout.prevent.stop="onFocusoutProperty($event, properties.example.inputId, 'example')"
           >
           </b-form-textarea>
+          <div v-if="properties.example.wasOutFocus && exampleError()" class="invalid-feedback my-0">
+            <small>{{ exampleError() }}</small>
+          </div>
         </b-form-group>
+        <div v-if="properties.example.showError" class="my-0 text-danger">
+          <small v-for="(e,i) in getErrors('example')">{{ e.message }}</small>
+        </div>
       </b-col>
-      <b-col sm="2" class="px-0">
+      <b-col class="px-0" sm="2">
         <b-button-group>
-          <b-button variant="outline-danger"
+          <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="cancel('textarea-example', 'example')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="cancel(properties.example.inputId, 'example')"
           >
             <i class="fa fa-close"></i>
           </b-button>
-          <b-button variant="outline-primary"
-                    :id="'copy'+'textarea-example'"
+          <b-button :id="'copy-'+properties.example.inputId"
+                    class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="copy(card.example, 'textarea-example', 'example')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="copy(card.example, properties.example.inputId, 'example')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
-          <b-tooltip :show.sync="properties.example.showCopyTooltip" @shown="copyTooltipHideLater('example')"
-                     variant="secondary" :target="'copy'+'textarea-example'" triggers
-                     :title="getCapitalizeLang('copied')"></b-tooltip>
+          <b-tooltip :id="'tooltip-'+'copy-'+properties.example.inputId"
+                     :ref="'tooltip-'+'copy-'+properties.example.inputId"
+                     :target="'copy-'+properties.example.inputId"
+                     :title="getCapitalizeLang('copied')"
+                     triggers
+                     variant="secondary"
+          ></b-tooltip>
         </b-button-group>
       </b-col>
     </b-row>
 
     <b-row>
-      <b-col sm="10" class="pr-1">
+      <b-col class="pr-1" sm="10">
         <b-form-group
-            label-class="py-0"
             :label="getCapitalizeLang('exampleTranslation') + ':'"
-            label-cols-sm="3"
-            label-cols-lg="3"
-            content-cols-sm="7"
+            :label-for="properties.exampleTranslation.inputId"
             content-cols-lg="7"
-            label-for="textarea-exampleTranslation"
-            :invalid-feedback="actionLocal.errors.cardExampleTranslationError?actionLocal.errors.cardExampleTranslationError:''"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
         >
           <b-form-textarea
-              id="textarea-exampleTranslation"
-              ref="textarea-exampleTranslation"
-              size="sm"
-              rows="2"
+              :id="properties.exampleTranslation.inputId"
+              :ref="properties.exampleTranslation.inputId"
+              v-model="card.exampleTranslation"
+              :maxlength="properties.exampleTranslation.maxlength"
               :trim="true"
               debounce="300"
               no-resize
-              :maxlength="properties.exampleTranslation.maxlength"
-              v-model="card.exampleTranslation"
+              rows="2"
+              size="sm"
               @focus="$event.target.select()"
-              @keyup.native="insert($event,'translation')"
+              @input="inputProperty($event, 'exampleTranslation')"
+              @keyup.native="insert($event,'exampleTranslation')"
+              @keyup.enter="confirm()"
+              @focusin.prevent.stop="onFocusinProperty($event, properties.exampleTranslation.inputId, 'exampleTranslation')"
+              @focusout.prevent.stop="onFocusoutProperty($event, properties.exampleTranslation.inputId, 'exampleTranslation')"
           >
           </b-form-textarea>
+          <div v-if="properties.exampleTranslation.wasOutFocus && exampleTranslationError()"
+               class="invalid-feedback my-0">
+            <small>{{ exampleTranslationError() }}</small>
+          </div>
         </b-form-group>
+        <div v-if="properties.exampleTranslation.showError" class="my-0 text-danger">
+          <small v-for="(e,i) in getErrors('exampleTranslation')">{{ e.message }}</small>
+        </div>
       </b-col>
-      <b-col sm="2" class="px-0">
+      <b-col class="px-0" sm="2">
         <b-button-group>
-          <b-button variant="outline-danger"
+          <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="cancel('textarea-exampleTranslation', 'exampleTranslation')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="cancel(properties.exampleTranslation.inputId, 'exampleTranslation')"
           >
             <i class="fa fa-close"></i>
           </b-button>
-          <b-button variant="outline-primary"
-                    :id="'copy'+'textarea-exampleTranslation'"
+          <b-button :id="'copy-'+properties.exampleTranslation.inputId"
+                    class="shadow-none"
                     size="sm"
                     tabindex="-1"
-                    class="shadow-none"
-                    @click.prevent.stop="copy(card.exampleTranslation, 'textarea-exampleTranslation', 'exampleTranslation')"
+                    variant="outline-secondary"
+                    @click.prevent.stop="copy(card.exampleTranslation, properties.exampleTranslation.inputId, 'exampleTranslation')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
-          <b-tooltip :show.sync="properties.exampleTranslation.showCopyTooltip"
-                     @shown="copyTooltipHideLater('exampleTranslation')" variant="secondary"
-                     :target="'copy'+'textarea-exampleTranslation'" triggers
-                     :title="getCapitalizeLang('copied')"></b-tooltip>
+          <b-tooltip :id="'tooltip-'+'copy-'+properties.exampleTranslation.inputId"
+                     :ref="'tooltip-'+'copy-'+properties.exampleTranslation.inputId"
+                     :target="'copy-'+properties.exampleTranslation.inputId"
+                     :title="getCapitalizeLang('copied')"
+                     triggers
+                     variant="secondary"
+          ></b-tooltip>
         </b-button-group>
       </b-col>
     </b-row>
 
-    <span>{{ getCapitalizeLang("picture") + ':' }}</span>
+    <span>{{ getCapitalizeLang('picture') + ':' }}</span>
     <single-picture-drop-zone></single-picture-drop-zone>
 
     <template #modal-footer="{ ok, cancel, hide }">
-      <button type="button" class="btn btn-secondary" @click.prevent.stop="reject()">
+      <b-button variant="secondary"
+                @click.prevent.stop="reject()">
         {{ getCapitalizeLang("no") }}
-      </button>
-      <button type="button" class="btn btn-primary" @click.prevent.stop="confirm()">
+      </b-button>
+      <b-button
+          :class="!stateTrue()?'cursor-not-allowed':null"
+          :disabled="!stateTrue()"
+          :variant="stateTrue()?'success':'outline-success'"
+          @click.prevent.stop="confirm()">
         {{ getCapitalizeLang("yes") }}
-      </button>
+      </b-button>
     </template>
   </b-modal>
 </template>
 
 <script>
 import {mapState} from 'vuex'
-import SinglePictureDropZone from "./SinglePictureDropZone.vue"
-import CloseRow from "../../close/CloseRow.vue"
-import * as _ from "lodash"
+import SinglePictureDropZone from './SinglePictureDropZone.vue'
+import CloseRow from '../../close/CloseRow.vue'
+import * as _ from 'lodash'
 
 export default {
   props: [
@@ -269,27 +331,57 @@ export default {
     CloseRow,
   },
   created() {
-    this.$store.watch(this.$store.getters.getActionId, actionId => {
-      if (actionId === this.actionLocal.id) {
-        this.updateAction()
-        this.closeIfNoErrors()
-      }
-    })
+    Object.assign(this.properties, this.defaultProperties)
     this.$root.$on('getPictureFormData', payload => {
       this.formData = payload.formData
     })
   },
   computed: {
     ...mapState([
-      'action',
       'lang',
     ]),
+    defaultProperties() {
+      return {
+        word: {
+          inputId: this.prefixId() + "word-input-id",
+          hasFocus: false,
+          wasOutFocus: false,
+          showError: false,
+          timeoutCopyTooltip: 300,
+          maxlength: 100,
+        },
+        translation: {
+          inputId: this.prefixId() + "translation-input-id",
+          hasFocus: false,
+          wasOutFocus: false,
+          showError: false,
+          timeoutCopyTooltip: 300,
+          maxlength: 100,
+        },
+        example: {
+          inputId: this.prefixId() + "example-input-id",
+          hasFocus: false,
+          wasOutFocus: false,
+          showError: false,
+          timeoutCopyTooltip: 300,
+          maxlength: 500,
+        },
+        exampleTranslation: {
+          inputId: this.prefixId() + "exampleTranslation-input-id",
+          hasFocus: false,
+          wasOutFocus: false,
+          showError: false,
+          timeoutCopyTooltip: 300,
+          maxlength: 500,
+        }
+      }
+    },
   },
   watch: {
     $route: [
       'fetchData',
     ],
-    dictionary(){
+    dictionary() {
       this.fetchData()
     }
   },
@@ -297,48 +389,24 @@ export default {
     return {
       show: true,
       card: {
+        word: '',
+        translation: '',
+        example: '',
+        exampleTranslation: '',
         unrepeated: this.unrepeated,
-        word: null,
-        translation: null,
-        example: null,
-        exampleTranslation: null,
         dictionary: this.dictionary,
         picture: null,
       },
-      properties: {
-        word: {
-          showCopyTooltip: false,
-          timeoutCopyTooltip: 300,
-          maxlength: 100,
-        },
-        translation: {
-          showCopyTooltip: false,
-          timeoutCopyTooltip: 300,
-          maxlength: 100,
-        },
-        example: {
-          showCopyTooltip: false,
-          timeoutCopyTooltip: 300,
-          maxlength: 500,
-        },
-        exampleTranslation: {
-          showCopyTooltip: false,
-          timeoutCopyTooltip: 300,
-          maxlength: 500,
-        },
-      },
       formData: null,
-      actionLocal: {
-        id: -1,
-        errors: {},
-      },
+      properties: {},
+      errors: [],
     }
   },
   methods: {
     fetchData() {
-      this.show = false
-      this.card.dictionary = this.dictionary
-      this.show = true
+    },
+    prefixId() {
+      return this.id + '-'
     },
     showModal() {
       this.$refs[this.id].show()
@@ -346,42 +414,48 @@ export default {
     hideModal() {
       this.$refs[this.id].hide()
     },
-    updateAction() {
-      this.actionLocal.id = this.action.id
-      this.actionLocal.errors = this.action.errors
+    closeModal() {
+      this.hideModal()
+      this.setDataToDefault()
     },
     confirm() {
-      this.actionLocal.id = _.now()
-      this.$store.dispatch(
-          'addCardWithPictureAction',
-          {actionId: this.actionLocal.id, formData: this.formData, card: this.card}
-      )
+      if (this.stateTrue()) {
+        this.$store.dispatch(
+            'addCardWithPictureAction',
+            {formData: this.formData, card: this.card}
+        ).then((errors) => {
+          if (errors.length === 0) {
+            this.closeModal()
+          } else {
+            this.errors = errors
+            console.info(this.errors[0])
+            this.showErrors()
+          }
+        })
+      }
     },
     reject() {
+      this.hideModal()
       this.setDataToDefault()
-      this.close()
     },
     setDataToDefault() {
-      this.actionLocal.errors = {}
+      this.hideErrorsAndFlush()
+      this.errors = []
       this.card = {
-        unrepeated: this.unrepeated,
-        word: null,
-        translation: null,
-        example: null,
-        exampleTranslation: null,
+        word: '',
+        translation: '',
+        example: '',
+        exampleTranslation: '',
         dictionary: this.dictionary,
+        unrepeated: this.unrepeated,
         picture: null,
       }
       this.formData = null
       this.$root.$emit('setDefaultDropZone')
     },
-    close() {
-      this.hideModal()
-    },
-    closeIfNoErrors() {
-      if (Object.keys(this.actionLocal.errors).length === 0) {
-        this.reject()
-      }
+    hideErrorsAndFlush() {
+      this.hideErrors()
+      this.flush()
     },
     getCapitalizeLang(key) {
       return _.capitalize(this.getLang(key))
@@ -390,34 +464,117 @@ export default {
       return this.$t(key)
     },
     cancel(ref, property) {
-      this.card[property] = null
+      this.card[property] = ''
       this.$refs[ref].focus();
     },
     copy(text, ref, property) {
-      this.properties[property].showCopyTooltip = true
       this.$refs[ref].focus();
+      this.$refs['tooltip-' + 'copy-' + ref].$emit('open')
+      _.delay(() => {
+            this.$refs['tooltip-' + 'copy-' + ref].$emit('close')
+          },
+          this.properties[property].timeoutCopyTooltip)
       navigator.clipboard.writeText(text)
     },
-    copyTooltipHideLater(property) {
-      setTimeout(() => {
-        this.properties[property].showCopyTooltip = false
-      }, this.properties[property].timeoutCopyTooltip);
-    },
     focusWord() {
-      this.$refs['textarea-word'].focus();
+      this.$refs[this.properties.word.inputId].focus();
     },
     insert(event, property) {
       if (event.ctrlKey && event.keyCode === 86) {
-        console.info(property)
+
       }
       if (event.metaKey && event.keyCode === 86) {
-        console.info(property)
+
       }
+    },
+    inputProperty(event, property) {
+      this.properties[property].showError = false
+    },
+    onFocusinProperty(event, ref, property) {
+      this.properties[property].hasFocus = true
+    },
+    onFocusoutProperty(event, ref, property) {
+      this.show = false
+      this.properties[property].wasOutFocus = true
+      this.properties[property].hasFocus = false
+      this.show = true
+    },
+    stateWord() {
+      return !this.isBlank(this.card.word)
+    },
+    stateTranslation() {
+      return !this.isBlank(this.card.translation)
+    },
+    stateTrue() {
+      return this.stateWord() && this.stateTranslation() && !this.isAnyErrorsShow()
+    },
+    showBorderProperty(property) {
+      if (!this.properties[property].wasOutFocus) return true
+      if (this.properties[property].hasFocus) return true
+      return false
+    },
+    showErrors() {
+      this.show = false
+      this.errors.forEach(e => {
+        try {
+          this.properties[e.attribute].showError = true
+        } catch (e) {
+        }
+      })
+      this.show = true
+    },
+    isAnyErrorsShow() {
+      let any = false
+      Object.keys(this.properties).forEach(p => {
+        if (this.properties[p].showError) {
+          any = true
+        }
+      })
+      return any
+    },
+    hideErrors() {
+      Object.keys(this.properties).forEach(p => {
+        this.properties[p].showError = false
+      })
+    },
+    flush() {
+      this.card.word = ''
+      this.card.translation = ''
+      this.card.example = ''
+      this.card.exampleTranslation = ''
+      Object.keys(this.properties).forEach(p => {
+        this.properties[p].wasOutFocus = false
+      })
+    },
+    getErrors(property) {
+      return this.errors.filter(e => e.attribute === property)
+    },
+    isBlank(str) {
+      return _.isNil(str) || _.isEmpty(str)
+    },
+    wordError() {
+      if (this.isBlank(this.card.word)) return ''
+      return ''
+    },
+    translationError() {
+      if (this.isBlank(this.card.translation)) return ''
+      return ''
+    },
+    exampleError() {
+      if (this.isBlank(this.card.example)) return ''
+      return ''
+    },
+    exampleTranslationError() {
+      if (this.isBlank(this.card.exampleTranslation)) return ''
+      return ''
     },
   }
 }
 </script>
 
 <style scoped>
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
 
 </style>

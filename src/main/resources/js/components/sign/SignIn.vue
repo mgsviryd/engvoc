@@ -1,5 +1,11 @@
 <template>
-  <b-collapse v-if="show" @shown="focusEmail()" :id="signinId" v-model="signinVmodel" class="mt-2">
+  <b-collapse
+      v-if="show"
+      :id="signinId"
+      v-model="signinVmodel"
+      class="mt-2"
+      @shown="focus()"
+  >
     <b-card
         body-class="pt-1"
         border-variant="light"
@@ -10,74 +16,74 @@
       ></services>
 
       <b-row class="mb-1">
-        <b-col sm="12" class="">
+        <b-col class="" sm="12">
           <b-input-group
-              label-class="py-0"
-              label-cols-sm="3"
-              label-cols-lg="3"
-              content-cols-sm="7"
-              content-cols-lg="7"
               :label-for="properties.email.inputId"
+              content-cols-lg="7"
+              content-cols-sm="7"
+              label-class="py-0"
+              label-cols-lg="3"
+              label-cols-sm="3"
           >
             <b-form-input
-                class="shadow-none rounded-sm"
-                :class="{'border-success':showBorderProperty('email')}"
                 :id="properties.email.inputId"
                 :ref="properties.email.inputId"
-                size="sm"
-                :state="stateEmail()"
-                trim
                 v-model="email"
-                @keyup.enter="signIn()"
+                :class="{'border-success':showBorderProperty('email')}"
+                :placeholder="getCapitalizeLang('email')"
+                :state="stateEmail()"
+                class="shadow-none rounded-sm"
+                size="sm"
+                trim
                 @input="inputProperty($event, 'email')"
+                @keyup.enter="signIn()"
                 @focusin.prevent.stop="onFocusinProperty($event, properties.email.inputId, 'email')"
                 @focusout.prevent.stop="onFocusoutProperty($event, properties.email.inputId, 'email')"
-                :placeholder="getCapitalizeLang('email')"
             >
             </b-form-input>
-            <div class="invalid-feedback my-0" v-if="properties.email.wasOutFocus">
+            <div v-if="properties.email.wasOutFocus && emailError()" class="invalid-feedback my-0">
               <small>{{ emailError() }}</small>
             </div>
           </b-input-group>
-          <div class="my-0 text-danger" v-if="properties.email.showError">
+          <div v-if="properties.email.showError" class="my-0 text-danger">
             <small v-for="(e,i) in getErrors('email')">{{ getCapitalize(e.message) }}</small>
           </div>
         </b-col>
       </b-row>
 
       <b-row class="mb-1">
-        <b-col sm="12" class="">
+        <b-col class="" sm="12">
           <b-input-group
-              label-class="py-0"
-              label-cols-sm="3"
-              label-cols-lg="3"
-              content-cols-sm="7"
-              content-cols-lg="7"
               :label-for="properties.password.inputId"
+              content-cols-lg="7"
+              content-cols-sm="7"
+              label-class="py-0"
+              label-cols-lg="3"
+              label-cols-sm="3"
           >
             <b-form-input
-                class="shadow-none rounded-sm"
-                :class="{'border-success':showBorderProperty('password')}"
-                type="password"
                 :id="properties.password.inputId"
                 :ref="properties.password.inputId"
-                size="sm"
-                :state="statePassword()"
-                trim
                 v-model="password"
-                @keyup.enter="signIn()"
+                :class="{'border-success':showBorderProperty('password')}"
+                :placeholder="getCapitalizeLang('password')"
+                :state="statePassword()"
+                class="shadow-none rounded-sm"
+                size="sm"
+                trim
+                type="password"
                 @input="inputProperty($event,'password')"
+                @keyup.enter="signIn()"
                 @focusin.prevent.stop="onFocusinProperty($event, properties.password.inputId, 'password')"
                 @focusout.prevent.stop="onFocusoutProperty($event, properties.password.inputId, 'password')"
-                :placeholder="getCapitalizeLang('password')"
             >
             </b-form-input>
 
-            <div class="invalid-feedback my-0" v-if="properties.password.wasOutFocus">
+            <div v-if="properties.password.wasOutFocus" class="invalid-feedback my-0">
               <small>{{ passwordError() }}</small>
             </div>
           </b-input-group>
-          <div class="my-0 text-danger" v-if="properties.password.showError">
+          <div v-if="properties.password.showError && passwordError()" class="my-0 text-danger">
             <small v-for="(e,i) in getErrors('password')">{{ getCapitalize(e.message) }}</small>
           </div>
         </b-col>
@@ -86,8 +92,8 @@
         <b-col>
           <b-link class="float-right mt-0 mb-1"
                   tabindex="-1"
-                  @mousedown="$event.preventDefault()"
                   @click="routerForgotPassword()"
+                  @mousedown="$event.preventDefault()"
           >
             <small>{{ getCapitalizeLang('forgotPassword') }}?</small>
           </b-link>
@@ -95,11 +101,11 @@
       </b-row>
 
       <b-button
-          block
-          variant="success"
-          size="sm"
+          :class="!stateTrue()?'cursor-not-allowed':null"
           :disabled="!stateTrue()"
-          :class="!stateTrue()?'no-stateTrue':null"
+          block
+          size="sm"
+          variant="success"
           @click.prevent.stop="signIn()"
       >
         {{ getUpperCaseLang('signIn') }}
@@ -107,11 +113,11 @@
     </b-card>
 
     <b-alert
+        :show="alert.showInternetConnectionError"
         class="mx-3 mb-1"
-        variant="danger"
         dismissible
         fade
-        :show="alert.showInternetConnectionError"
+        variant="danger"
         @dismissed="alert.showInternetConnectionError=false"
     >
       <b-row>
@@ -149,7 +155,7 @@ export default {
     defaultProperties() {
       return {
         email: {
-          inputId: this.prefixId() + "-" + "emailInputId",
+          inputId: this.prefixId() + "-" + "email-input-id",
           hasFocus: false,
           wasOutFocus: false,
           showError: false,
@@ -159,7 +165,7 @@ export default {
           timeoutTooltip: 2000,
         },
         password: {
-          inputId: this.prefixId() + "-" + "passwordInputId",
+          inputId: this.prefixId() + "-" + "password-input-id",
           hasFocus: false,
           wasOutFocus: false,
           showError: false,
@@ -177,6 +183,7 @@ export default {
       name: "SignIn",
       show: true,
       errors: [],
+      updated: false,
       alert: {
         showInternetConnectionError: false,
       },
@@ -186,14 +193,15 @@ export default {
     }
   },
   methods: {
-    routerForgotPassword() {
-    },
-
     prefixId() {
       return this.name
     },
 
+    routerForgotPassword() {
+    },
+
     inputProperty(event, property) {
+      this.updated = true
       this.properties[property].showError = false
     },
 
@@ -223,7 +231,7 @@ export default {
     },
 
     getErrors(property) {
-      return this.errors.filter(e => e.attrName === property)
+      return this.errors.filter(e => e.attribute === property)
     },
 
     closeAllAlert() {
@@ -262,19 +270,19 @@ export default {
       })
     },
     showSpinOverlay() {
-      console.info("showSpinOverlay")
       this.$emit('showOverlayMethod', true)
       this.$emit('showSignInSpinMethod', true)
     },
     showErrors() {
+      this.updated = false
       this.errors.forEach(e => {
         try {
-          this.properties[e.attrName].showError = true
+          this.properties[e.attribute].showError = true
         } catch (e) {
         }
       })
     },
-    hideError() {
+    hideErrors() {
       this.properties.email.showError = false
       this.properties.password.showError = false
     },
@@ -289,7 +297,7 @@ export default {
     },
     hideSignInOverlayAndErrorAndFlush() {
       this.hideSignInOverlay()
-      this.hideError()
+      this.hideErrors()
       this.flushSignIn()
     },
     flushSignIn() {
@@ -300,10 +308,16 @@ export default {
     },
     openSignIn() {
       this.hideSignInOverlayAndErrorAndFlush()
-      this.focusEmail()
     },
     closeSignIn() {
       this.hideSignInOverlayAndErrorAndFlush()
+    },
+    focus() {
+      if (this.isBlank(this.email)) {
+        this.focusEmail()
+      } else {
+        this.focusPassword()
+      }
     },
     focusEmail() {
       this.$refs[this.properties.email.inputId].focus();
@@ -324,7 +338,7 @@ export default {
       return this.$t(key)
     },
     isBlank(str) {
-      return str === null || str === ''
+      return _.isNil(str) || _.isEmpty(str)
     },
     stateEmail() {
       return !this.isBlank(this.email)
@@ -338,21 +352,26 @@ export default {
     },
 
     stateTrue() {
-      return this.stateEmail() && this.statePassword()
+      return this.stateEmail() && this.statePassword() && !this.isAnyErrorsShow() && this.updated
+    },
+    isAnyErrorsShow() {
+      let any = false
+      Object.keys(this.properties).forEach(p => {
+        if (this.properties[p].showError) {
+          any = true
+        }
+      })
+      return any
     },
     emailError() {
-      if (this.isBlank(this.email)) {
-        return this.getCapitalizeLang('enterEmail')
-      }
+      if (this.isBlank(this.email)) return ''
       if (!RegexJS.isEmail(this.email)) {
         return this.getCapitalizeLang('signUpEmailError')
       }
       return ''
     },
     passwordError() {
-      if (this.isBlank(this.password)) {
-        return this.getCapitalizeLang('enterPassword')
-      }
+      if (this.isBlank(this.password)) return ''
       if (this.password.length < 8) {
         return this.getCapitalizeLang('signUpPasswordShortLengthError')
       }
@@ -379,7 +398,7 @@ export default {
       if (this.properties[property].hasFocus) return true
       return false
     },
-    changeEmail(email){
+    changeEmail(email) {
       this.email = email
     },
   },
@@ -387,7 +406,7 @@ export default {
 </script>
 
 <style scoped>
-.no-stateTrue {
+.cursor-not-allowed {
   cursor: not-allowed;
 }
 </style>

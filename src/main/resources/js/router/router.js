@@ -8,8 +8,8 @@ Vue.use(VueRouter)
 
 const routes = [
     {path: '/', name: 'greeting', component: Greeting},
-    {path: '/vocabulary', name: 'vocabulary', component: Vocabulary},
-    {path: '/vocabulary/:mark', name: 'vocabularyMark',  component: Vocabulary},
+    {path: '/vocabulary', name: 'vocabulary', component: Vocabulary, meta: {requiresAuth: true}},
+    {path: '/vocabulary/:tab', name: 'vocabulary-tab',  component: Vocabulary, meta: {requiresAuth: true}},
     {path: '/sign/:mark', name: 'sign', component: Sign},
 ]
 

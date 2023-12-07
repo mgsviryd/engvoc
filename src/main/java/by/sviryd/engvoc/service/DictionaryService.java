@@ -75,8 +75,11 @@ public class DictionaryService {
         dictionaryRepo.deleteByIdIn(ids);
     }
 
-    public void deleteByUnrepeated(boolean unrepeated) {
-        dictionaryRepo.deleteByUnrepeated(unrepeated);
+    public void deleteByAuthorAndUnrepeated(User author, boolean unrepeated) {
+        dictionaryRepo.deleteByAuthorAndUnrepeated(author, unrepeated);
+    }
+    public void deleteByAuthorAndVocabulary(User author, Vocabulary vocabulary) {
+        dictionaryRepo.deleteByAuthorAndVocabulary(author, vocabulary);
     }
 
     public List<Dictionary> findAllById(List<UUID> ids) {
@@ -92,11 +95,11 @@ public class DictionaryService {
     }
 
     public Dictionary findIfAbsentSaveNewUnrepeated(User author, Vocabulary vocabulary) {
-        Dictionary newDictionary = findByAuthorAndVocabularyAndUnrepeatedAndName(author, vocabulary, true, "new");
-        if (newDictionary == null) {
-            newDictionary = saveNewUnrepeated(author, vocabulary);
+        Dictionary d = findByAuthorAndVocabularyAndUnrepeatedAndName(author, vocabulary, true, "new");
+        if (d == null) {
+            d = saveNewUnrepeated(author, vocabulary);
         }
-        return newDictionary;
+        return d;
     }
 
     public List<Dictionary> findAllByAuthorAndVocabulary(User author, Vocabulary vocabulary) {

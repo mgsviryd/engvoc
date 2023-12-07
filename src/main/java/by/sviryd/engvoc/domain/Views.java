@@ -2,6 +2,22 @@ package by.sviryd.engvoc.domain;
 
 public final class Views {
 
+    public interface UserAndLocaleExceptionMessage extends User, LocaleExceptionMessage {
+
+    }
+    public interface LocaleExceptionMessage extends Code, Attribute, Message {
+
+    }
+
+    public interface Code {
+    }
+
+    public interface Attribute {
+    }
+
+    public interface Message {
+    }
+
     public interface Active {
     }
 
@@ -27,10 +43,6 @@ public final class Views {
     }
 
     public interface LangLocale {
-    }
-
-    public interface Vocabularies extends Vocabulary {
-
     }
 
     public interface Name {
@@ -75,6 +87,14 @@ public final class Views {
     public interface Learned {
     }
 
+    public interface DictionaryAndLocaleExceptionMessage extends Dictionary, LocaleExceptionMessage {
+    }
+    public interface VocabularyAndLocaleExceptionMessage extends Dictionary, LocaleExceptionMessage {
+    }
+
+    public interface CardAndLocaleExceptionMessage extends Card, LocaleExceptionMessage {
+    }
+
     public interface Dictionary extends
             Id,
             Unrepeated,
@@ -108,7 +128,7 @@ public final class Views {
             Dictionary {
     }
 
-    public interface DictionaryCard extends Dictionary, Card {
+    public interface VocabularyDictionaryCard extends Vocabulary, Dictionary, Card {
     }
 
     public interface LastModifiedLDT {
@@ -131,11 +151,17 @@ public final class Views {
     public interface Username {
     }
 
-    public interface User extends Id, Email, LastModifiedLDT, Vocabularies, Social, Sub, Token, Username {
+    public interface User extends Id, Email, LastModifiedLDT, Vocabulary, Social, Sub, Token, Username {
     }
-    public interface Source{}
-    public interface Target{}
-    public interface Vocabulary extends Id, Source, Target{
+    public interface UserAndLangLocale extends User, LangLocale{}
+
+    public interface Source extends LangLocale {
+    }
+
+    public interface Target extends LangLocale {
+    }
+
+    public interface Vocabulary extends Id, Name, Source, Target {
     }
 
 }

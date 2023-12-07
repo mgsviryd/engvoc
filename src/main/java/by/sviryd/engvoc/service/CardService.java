@@ -85,6 +85,12 @@ public class CardService {
     public void deleteByDictionaryIn(List<Dictionary> dictionaries) {
         cardRepo.deleteByDictionaryIn(dictionaries);
     }
+    public void deleteByClientAndVocabulary(User client, Vocabulary vocabulary) {
+        cardRepo.deleteByClientAndVocabulary(client, vocabulary);
+    }
+    public void deleteByClientAndVocabularyAndUnrepeated(User client, Vocabulary vocabulary, boolean unrepeated) {
+        cardRepo.deleteByClientAndVocabularyAndUnrepeated(client, vocabulary, unrepeated);
+    }
 
     public void deleteByIdIn(List<UUID> ids) {
         cardRepo.deleteByIdIn(ids);

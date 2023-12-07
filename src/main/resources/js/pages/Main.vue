@@ -1,55 +1,71 @@
 <template>
   <div>
-    <router-view></router-view>
+    <b-overlay :show="overlay.show" no-wrap rounded="sm">
+      <template #overlay>
+        <div class="text-center">
+          <div class="d-flex justify-content-center">
+            <google-circle :heightRem="6" :widthRem="6"></google-circle>
+          </div>
+        </div>
+      </template>
+    </b-overlay>
+
+    <router-view v-if="!overlay.show"></router-view>
   </div>
 </template>
+
 <script>
 
-import {mapState} from 'vuex'
+import {mapState} from "vuex"
+import * as _ from "lodash"
+import GoogleCircle from "../components/spinner/GoogleCircle.vue"
+import store from "../store/store"
 
 export default {
   components: {
-
+    GoogleCircle,
   },
   async created() {
-    let frontend = await this.$store.dispatch('getFrontendAction', this.lang.lang.locale)
-    this.refreshVersions(frontend)
-    this.$store.dispatch('setFrontendAction', frontend)
-    this.$store.dispatch('getAuthenticationAction', this.$store.getters.getUsersTokens)
+    this.overlay.show = true
+    await store.restored
+    await this.$store.dispatch('updateFrontendAction')
     this.$cookies.config('365d')
     this.sync()
-  },
-  watch: {
-    main(newVal){
-      if (newVal){
-        this.$store.dispatch('setPageAttributesAction', {id: "main", attr: "data"})
-      }
-    }
+    this.overlay.show = false
   },
   computed: {
     ...mapState([
       'lang',
       'frontend',
+      'authentication',
     ]),
-    main(){
+    main() {
       return document.getElementById("main")
     }
   },
-  methods: {
-    refreshVersions(frontend){
-      let version = frontend.version
-      let keys = Object.keys(version)
-      for (let k in keys) {
-        if (this.frontend && this.frontend.version) {
-          if (this.needLoad(keys[k], version)) {
-            let action = 'get' + keys[k] + 'Action'
-            this.$store.dispatch(action)
-          }
-        } else {
-          this.$store.dispatch('get' + keys[k] + 'Action')
-        }
+  watch: {
+    main(newVal) {
+      if (newVal) {
+        this.$store.dispatch('setPageAttributesAction', {id: "main", attr: "data"})
       }
     },
+    authentication: {
+      handler: function () {
+        this.$forceNextTick(() => {
+          this.watchAuthentication()
+        })
+      },
+      deep: true
+    },
+  },
+  data() {
+    return {
+      overlay: {
+        show: true,
+      }
+    }
+  },
+  methods: {
     async sync() {
       let result = false
       await this.sleep(1)
@@ -71,9 +87,12 @@ export default {
       await this.$store.dispatch('syncAuthenticationStateWithLocalAction')
     },
 
-    needLoad(key, version) {
-      return !this.frontend.version[key]
-          || this.frontend.version[key] !== version[key]
+    watchAuthentication() {
+      this.$store.commit('watchAuthenticationMutation')
+    },
+
+    getCapitalizeLang(key) {
+      return _.capitalize(this.$t(key))
     },
   },
 }

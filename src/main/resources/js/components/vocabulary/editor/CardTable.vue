@@ -8,42 +8,46 @@
       <tr class="bg-dark border-0"
           style="position: sticky;"
       >
-        <th colspan="10" class="border-0 p-0">
+        <th class="border-0 p-0" colspan="10">
           <div class="btn-group btn-group-sm btn-group-justified">
-            <button class="btn btn-light shadow-none px-1 py-0"
-                    :disabled="isSelectAll()"
-                    @click.prevent.stop="selectAll()"
+            <button v-if="selectedCardIds.length > 0"
+                    :data-delay="deselectAllSetting.tooltip.delay"
+                    :data-placement="deselectAllSetting.tooltip.placement"
+                    :title="getCapitalizeLang(deselectAllSetting.tooltip.title)"
+                    class="btn btn-light shadow-none px-1 py-0"
                     data-toggle="tooltip"
-                    :title="getCapitalizeLang(selectAllSetting.tooltip.title)"
-                    :data-placement="selectAllSetting.tooltip.placement"
+                    @click.prevent.s.stop="deselectAll()"
+            >
+              <i class="fa fa-xmark fa-xs text-danger"></i>
+            </button>
+
+            <button v-if="selectedCardIds.length === 0"
                     :data-delay="selectAllSetting.tooltip.delay"
+                    :data-placement="selectAllSetting.tooltip.placement"
+                    :title="getCapitalizeLang(selectAllSetting.tooltip.title)"
+                    class="btn btn-light shadow-none px-1 py-0"
+                    data-toggle="tooltip"
+                    @click.prevent.stop="selectAll()"
             >
               <i class="fa fa-check fa-xs text-success"></i>
             </button>
+
             <button class="btn btn-light px-0 py-0"
                     @mousedown.prevent.stop="mousedownSelected()">
               <span class="st-text-shift">
                 {{ getLang('selected') }}
               </span>
-              <span class="st-right badge bg-white border border-secondary badge-pill">{{
-                  selectedCardIds.length
-                }}</span>
+              <span class="st-right badge bg-white border border-secondary badge-pill">
+                {{ selectedCardIds.length }}
+              </span>
             </button>
-            <button class="btn btn-light shadow-none px-1 py-0"
-                    :disabled="isDeselectAll()"
-                    @click.prevent.s.stop="deselectAll()"
-                    data-toggle="tooltip"
-                    :title="getCapitalizeLang(deselectAllSetting.tooltip.title)"
-                    :data-placement="deselectAllSetting.tooltip.placement"
-                    :data-delay="deselectAllSetting.tooltip.delay"
-            >
-              <i class="fa fa-xmark fa-xs text-danger"></i>
-            </button>
+
+
           </div>
           <b-button-group size="sm">
             <b-button
-                variant="light"
                 class="shadow-none px-1 py-0"
+                variant="light"
                 @click="$refs[id.tableSettingsModal].showModal()"
             >
               <i class="fa fa-gear fa-xs text-secondary"></i>
@@ -51,29 +55,29 @@
           </b-button-group>
           <b-button-group size="sm">
             <b-button
-                variant="light"
                 class="shadow-none px-1 py-0"
+                variant="light"
                 @click="$refs[id.addCardModal].showModal()"
             >
               <i class="fa fa-plus fa-xs text-success"></i>
-              {{ getLang("card") }}
+              {{ getLang('card') }}
             </b-button>
           </b-button-group>
-          <b-button-group size="sm" class="border-1 border-secondary shadow-none">
+          <b-button-group class="border-1 border-secondary shadow-none" size="sm">
             <b-button
                 id="download-xml-file"
-                variant="light"
-                class="py-0 px-1 shadow-none"
-                v-b-tooltip.hover :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('xml')"
+                v-b-tooltip.hover
+                :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('xml')"
+                class="py-0 px-1 shadow-none" variant="light"
                 @click="downloadXmlFile()">
-              <img src="/static/picture/icon/xml-extension.png" alt="..." width="24" height="24">
+              <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
             </b-button>
             <b-button
-                variant="light"
-                class="py-0 px-1 shadow-none"
-                v-b-tooltip.hover :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('excel')"
+                v-b-tooltip.hover
+                :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('excel')"
+                class="py-0 px-1 shadow-none" variant="light"
                 @click="downloadExcelFile()">
-              <img src="/static/picture/icon/excel.png" alt="..." width="24" height="24">
+              <img alt="..." height="24" src="/static/picture/icon/excel.png" width="24">
             </b-button>
           </b-button-group>
         </th>
@@ -88,11 +92,11 @@
               class="border-0 py-0"
           >
             <div class="d-flex align-items-center">
-              <div class="d-flex align-items-center pl-0"
-                   data-toggle="tooltip"
-                   :title="getCapitalizeLang(property.tooltip.title)"
+              <div :data-delay="property.tooltip.delay"
                    :data-placement="property.tooltip.placement"
-                   :data-delay="property.tooltip.delay"
+                   :title="getCapitalizeLang(property.tooltip.title)"
+                   class="d-flex align-items-center pl-0"
+                   data-toggle="tooltip"
               >
                 <div v-if="property.showIcon" class="pl-0" v-html="property.icon"></div>
                 <div v-if="property.showLabel" class="pl-2">
@@ -100,11 +104,11 @@
                 </div>
               </div>
               <div v-if="property.sortable" class="d-flex flex-column pl-2">
-                <i class="fa fa-sort-up fa-sm st-cursor-pointer"
-                   :class="[property.order === 'asc'? 'text-warning': 'text-white']"
+                <i :class="[property.order === 'asc'? 'text-warning': 'text-white']"
+                   class="fa fa-sort-up fa-sm st-cursor-pointer"
                    @click="orderCards(property.property, 'asc')"></i>
-                <i class="fa fa-sort-down fa-sm st-cursor-pointer mt-1"
-                   :class="[property.order === 'desc'? 'text-warning': 'text-white']"
+                <i :class="[property.order === 'desc'? 'text-warning': 'text-white']"
+                   class="fa fa-sort-down fa-sm st-cursor-pointer mt-1"
                    @click="orderCards(property.property, 'desc')"></i>
               </div>
               <div v-if="property.sortable" :class="property.priorityOrder !== 0? 'text-warning':'text-dark'"
@@ -115,10 +119,10 @@
           </th>
         </template>
         <th class="st-squeeze border-0 border-right-0 py-0">
-          <button class="btn bg-white btn-sm border-1 border-secondary py-0"
-                  style="margin-bottom: 2px;"
-                  :id="getCardDetailsButtonElemId(null)"
+          <button :id="getCardDetailsButtonElemId(null)"
+                  class="btn bg-white btn-sm border-1 border-secondary py-0"
                   role="button"
+                  style="margin-bottom: 2px;"
                   @click.prevent.stop="toggleCardDetails()"
           >
             <i v-if="showCardDetails" class="fa fa-angle-up fa-xs text-dark"></i>
@@ -126,20 +130,20 @@
           </button>
         </th>
         <th class="st-squeeze border-0 border-right-0 py-0">
-          <button class="btn bg-white btn-sm border-1 border-secondary py-0"
-                  style="margin-bottom: 2px;"
-                  :id="getCardEditButtonElemId(null)"
+          <button :id="getCardEditButtonElemId(null)"
+                  class="btn bg-white btn-sm border-1 border-secondary py-0"
                   role="button"
+                  style="margin-bottom: 2px;"
                   @click.prevent.stop="editCards()"
           >
             <i class="fa fa-pen-to-square fa-xs text-dark"></i>
           </button>
         </th>
         <th class="st-squeeze border-0 border-right-0 py-0">
-          <button class="btn bg-white btn-sm border-1 border-secondary py-0"
-                  style="margin-bottom: 2px;"
-                  :id="getCardDeleteButtonElemId(null)"
+          <button :id="getCardDeleteButtonElemId(null)"
+                  class="btn bg-white btn-sm border-1 border-secondary py-0"
                   role="button"
+                  style="margin-bottom: 2px;"
                   @click.prevent.stop="deleteCards()"
           >
             <i class="fa fa-trash fa-xs text-dark"></i>
@@ -153,9 +157,9 @@
                 v-model="dictionaryCards">
         <tr :id="getCardElemId(card.id)"
             :key="card.id"
+            draggable="true"
             @mousedown.prevent.stop="mousedown(card, i)"
             @mouseup.prevent.stop="mouseup(card, i)"
-            draggable="true"
             @click.prevent="selectCard(card)"
         >
           <td class="st-squeeze border-1 border-secondary border-left-0">{{ i + 1 }}</td>
@@ -164,17 +168,17 @@
                 :class="property.propertyType === 'boolean'? 'st-squeeze':'st-text-shift'"
                 class="border-1 border-secondary"
             >
-              <input v-if="property.propertyType === 'boolean'" type="checkbox"
-                     :value="getProperty(card, property.property)">
+              <input v-if="property.propertyType === 'boolean'" :value="getProperty(card, property.property)"
+                     type="checkbox">
               <div v-else>{{ getProperty(card, property.property) }}</div>
             </td>
           </template>
           <td class="st-squeeze border-1 border-secondary">
-            <button class="btn bg-white btn-sm border-1 border-secondary py-0" data-toggle="collapse"
-                    :id="getCardDetailsButtonElemId(card.id)"
-                    role="button"
+            <button :id="getCardDetailsButtonElemId(card.id)" :aria-controls="getCardDetailsElemId(card.id)"
                     aria-expanded="false"
-                    :aria-controls="getCardDetailsElemId(card.id)"
+                    class="btn bg-white btn-sm border-1 border-secondary py-0"
+                    data-toggle="collapse"
+                    role="button"
                     @click.prevent.stop="toggleCardDetail(card, i)"
             >
               <i v-if="card.uiShowDetail" class="fa fa-angle-up fa-xs text-dark"></i>
@@ -182,8 +186,8 @@
             </button>
           </td>
           <td class="st-squeeze border-1 border-secondary">
-            <button class="btn bg-white btn-sm border-1 border-secondary py-0"
-                    :id="getCardEditButtonElemId(card.id)"
+            <button :id="getCardEditButtonElemId(card.id)"
+                    class="btn bg-white btn-sm border-1 border-secondary py-0"
                     role="button"
                     @click.prevent.stop="editCard(card, i)"
             >
@@ -191,16 +195,16 @@
             </button>
           </td>
           <td class="st-squeeze border-1 border-secondary">
-            <button class="btn bg-white btn-sm border-1 border-secondary py-0"
-                    :id="getCardDeleteButtonElemId(card.id)"
+            <button :id="getCardDeleteButtonElemId(card.id)"
+                    class="btn bg-white btn-sm border-1 border-secondary py-0"
                     @click.prevent.stop="deleteCard(card, i)"
             >
               <i class="fa fa-trash fa-xs text-dark"></i>
             </button>
           </td>
         </tr>
-        <tr class="collapse" :id="getCardDetailsElemId(card.id)">
-          <td colspan="5" class="st-squeeze border-1 border-secondary border-right-0">
+        <tr :id="getCardDetailsElemId(card.id)" class="collapse">
+          <td class="st-squeeze border-1 border-secondary border-right-0" colspan="5">
             {{ getUpperCaseLang('details') }}
           </td>
         </tr>
@@ -227,8 +231,8 @@
         :id="id.addCardModal"
         :ref="id.addCardModal"
         :closable="true"
-        :unrepeated="true"
         :dictionary="dictionary"
+        :unrepeated="true"
     ></add-card-modal>
   </div>
 </template>
@@ -275,6 +279,7 @@ export default {
     ...mapState([
       'cards',
       'lang',
+      'vocabulary',
     ]),
     ...mapGetters([
       'isDictionaryExists',
@@ -309,7 +314,7 @@ export default {
           property: "word",
           propertyType: "string",
           label: "word",
-          icon: '<i class="fa fa-book text-white"></i>',
+          icon: '<i class="fa-brands fa-wikipedia-w"></i>',
           showLabel: true,
           showIcon: true,
           tooltip: {
@@ -332,7 +337,7 @@ export default {
           property: "translation",
           propertyType: "string",
           label: "translation",
-          icon: '<i class="fa-solid fa-language"></i>',
+          icon: '<i class="fa-solid fa-t"></i>',
           showLabel: true,
           showIcon: true,
           tooltip: {
@@ -355,7 +360,7 @@ export default {
           property: "example",
           propertyType: "string",
           label: "example",
-          icon: '<i class="fa fa-book-bookmark"></i>',
+          icon: '<i class="fa fa-book text-white"></i>',
           showLabel: true,
           showIcon: true,
           tooltip: {
@@ -378,7 +383,7 @@ export default {
           property: "exampleTranslation",
           propertyType: "string",
           label: "exampleTranslation",
-          icon: '<i class="fa-solid fa-language"></i>',
+          icon: '<i class="fa fa-book-bookmark"></i>',
           showLabel: true,
           showIcon: true,
           tooltip: {
@@ -631,6 +636,9 @@ export default {
         $("#" + this.getCardElemId(card.id)).removeClass("card-select")
       }
     },
+    isSelected() {
+      return this.selectedCardIds.length > 0
+    },
     isSelectAll() {
       return this.selectedCardIds.length === this.dictionaryCards.length
     },
@@ -761,12 +769,15 @@ export default {
     },
     downloadExcelFile() {
       $('download-excel-file').removeClass("active")
-      this.$store.dispatch("downloadExcelFileAction", {dictionary: this.dictionary})
+      this.$store.dispatch("downloadExcelFileAction",
+          {vocabulary: this.vocabulary.vocabulary, dictionary: this.dictionary})
     },
     downloadXmlFile() {
       $('download-xml-file').removeClass("active")
-      this.$store.dispatch("downloadXmlFileAction", {dictionary: this.dictionary})
-    }
+      this.$store.dispatch("downloadXmlFileAction",
+          {vocabulary: this.vocabulary.vocabulary, dictionary: this.dictionary}
+      )
+    },
   },
 }
 </script>

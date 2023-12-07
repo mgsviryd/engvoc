@@ -72,10 +72,6 @@ public class User implements UserDetails, Serializable {
     @JsonView(Views.Token.class)
     private String token;
 
-    @OneToOne
-    @JsonView(Views.Vocabulary.class)
-    private Vocabulary vocabulary;
-
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
@@ -138,7 +134,6 @@ public class User implements UserDetails, Serializable {
     }
 
     public boolean addVocabulary(Vocabulary vocabulary) {
-        setVocabulary(vocabulary);
         return vocabularies.add(vocabulary);
     }
 }

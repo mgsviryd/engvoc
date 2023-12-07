@@ -24,7 +24,8 @@ import VueFileAgent from 'vue-file-agent'
 import VueFileAgentStyles from 'vue-file-agent/dist/vue-file-agent.css'
 import GlobalEvents from 'vue-global-events'
 import VueForceNextTick from 'vue-force-next-tick'
-import {i18n} from "./setup/i18n-setup";
+import {i18n} from "./setup/i18n-setup"
+
 
 import $ from 'jquery';
 window.jQuery = $;
@@ -36,6 +37,7 @@ Vue.component('VueSlider', VueSlider)
 Vue.component('GlobalEvents', GlobalEvents)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 library.add(faTwitter, faUserSecret)
+
 
 Vue.use(VueCookies)
 Vue.use(VueWait)
@@ -58,6 +60,17 @@ Vue.use(VueFileAgent)
 Vue.use(VueFileAgentStyles)
 Vue.use(VueForceNextTick)
 
+router.beforeEach(async (to, from, next) => {
+    await store.restored
+    if (to.meta.requiresAuth) {
+        if (!store.getters.isNoUser) {
+            next();
+        } else {
+            next('/sign/in');
+        }
+    }
+    next();
+});
 
 
 new Vue({

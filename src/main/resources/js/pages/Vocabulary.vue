@@ -2,7 +2,12 @@
   <div v-if="show">
     <greeting-nav></greeting-nav>
     <vocabulary-nav></vocabulary-nav>
-    <lang-pair-modal v-if="showVocabularyModal" :closable="true" :show="true"></lang-pair-modal>
+    <vocabulary-modal
+        :id="ids.vocabularyModal"
+        :ref="ids.vocabularyModal"
+        :closable="true"
+    >
+    </vocabulary-modal>
   </div>
 </template>
 
@@ -11,55 +16,74 @@
 import {mapState, mapGetters} from "vuex"
 import GreetingNav from "../components/greeting/GreetingNav.vue"
 import VocabularyNav from "../components/vocabulary/VocabularyNav.vue"
-import LangPairModal from "../components/lang/LangPairModal.vue"
-
+import VocabularyModal from "../components/vocabulary/VocabularyModal.vue"
+import * as _ from "lodash"
 
 export default {
   components: {
     GreetingNav,
     VocabularyNav,
-    LangPairModal,
+    VocabularyModal,
+  },
+  created() {
   },
   computed: {
-    ...mapState([
-      'authentication',
-    ]),
+    ...mapState({
+      authentication: 'authentication',
+      vocabularyStore: 'vocabulary',
+    }),
     ...mapGetters([
-      'isVocabularyPresent',
-      'isNoUser',
-    ])
+      'isVocabulariesPresent',
+      'isUserPresent',
+    ]),
+    ids() {
+      return {
+        id: this.prefixId(),
+        vocabularyModal: this.prefixId() + 'vocabulary-modal',
+      }
+    }
   },
   watch: {
-    authentication: {
+    vocabularyStore: {
       handler: function () {
         this.$forceNextTick(() => {
-          this.fetchData()
+          this.showVocabularyModal()
+          if (this.vocabularyStore.vocabulary !== this.vocabulary){
+            this.fetchData()
+          }
         })
       },
       deep: true
     },
   },
-  created() {
-    this.fetchData()
-  },
   data() {
     return {
+      name: 'Vocabulary',
       show: true,
-      showVocabularyModal: false,
+      vocabulary: null,
     }
   },
   methods: {
+    prefixId() {
+      return this.name + '-'
+    },
+    showVocabularyModal(){
+      if(this.isUserPresent && !this.isVocabulariesPresent){
+        this.$refs[this.ids.vocabularyModal].showModal()
+      }
+    },
     fetchData() {
       this.show = false
-      if (!this.isNoUser) {
-        if (!this.isVocabularyPresent) {
-          this.showVocabularyModal = true
-        } else {
-          this.showVocabularyModal = false
-          this.$store.dispatch('findDictionariesAndCardsAction', this.authentication.user.vocabulary)
-        }
+      this.vocabulary = this.vocabularyStore.vocabulary
+      if (this.isBlank(this.vocabulary)) {
+        this.$store.commit('resetVocabularyDatabaseMutation')
+      } else {
+        this.$store.dispatch('findVocabularyDataAction', this.vocabulary)
       }
       this.show = true
+    },
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
   },
 }

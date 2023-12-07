@@ -30,6 +30,7 @@ public class CardUploadService {
         Set<Dictionary> dictionaries = cards.stream().map(Card::getDictionary).filter(Objects::nonNull).collect(Collectors.toSet());
         LocalDateTime now = LocalDateTime.now();
         dictionaries.forEach(d -> {
+            d.setAuthor(client);
             d.setVocabulary(vocabulary);
             d.setUnrepeated(false);
             d.setCreationLDT(now);

@@ -1,17 +1,19 @@
 <template>
   <b-modal id="sign"
            ref="sign"
-           :header-class="'p-3'"
            :body-class="'py-0'"
-           no-fade
+           :header-class="'p-3'"
            :no-close-on-backdrop="!closable"
            :no-close-on-esc="!closable"
+           no-fade
+           @hide="shown=false"
+           @show="shown=true"
   >
-    <b-overlay no-wrap :show="overlay.showOverlay" rounded="sm">
+    <b-overlay :show="overlay.showOverlay" no-wrap rounded="sm">
       <template #overlay>
         <div v-if="overlay.showSignInSpin" class="text-center">
           <div class="d-flex justify-content-center">
-            <google-circle :widthRem="3" :heightRem="3"></google-circle>
+            <google-circle :heightRem="3" :widthRem="3"></google-circle>
           </div>
           <p>
             {{ getCapitalizeLang('pleaseWaitTreeDot') }}
@@ -26,54 +28,41 @@
           </p>
         </div>
         <div v-if="overlay.showSignInSuccess">
-          <b-card
-              header-tag="header"
-              header-class="py-0"
-              header-bg-variant="success"
-              footer-tag="footer"
-              footer-class="py-1"
-              border-variant="success"
-              align="center"
-          >
-            <template #header>
-              <h6 class="py-1">
-                {{ getUpperCaseLang('success') }}
-              </h6>
-            </template>
-
-            <small>{{ getCapitalizeLang('pleaseWaitLoading') }}&nbsp;{{ getUpperCaseLang('logo') }}</small>
-
-            <template #footer>
-              <google-circle :widthRem="1" :heightRem="1"></google-circle>
-            </template>
-          </b-card>
+          <div class="text-center">
+            <div class="d-flex justify-content-center">
+              <b-button size="lg" variant="outline-success">
+                {{ getUpperCaseLang('accessAllowed') }}
+              </b-button>
+            </div>
+          </div>
         </div>
 
         <div v-if="overlay.showSignUpSpin" class="text-center">
           <div class="d-flex justify-content-center">
-            <google-circle :widthRem="3" :heightRem="3"></google-circle>
+            <google-circle :heightRem="3" :widthRem="3"></google-circle>
           </div>
           <p id="cancel-label">
             {{ getCapitalizeLang('pleaseWaitTreeDot') }}
           </p>
         </div>
         <div v-if="overlay.showSignUpFailure" class="text-center">
-          <div class="d-flex justify-content-center">
-            <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
+          <div class="text-center">
+            <div class="d-flex justify-content-center">
+              <b-button size="lg" variant="outline-danger">
+                {{ getUpperCaseLang('accessDenied') }}
+              </b-button>
+            </div>
           </div>
-          <p id="cancel-label">
-            {{ getCapitalizeLang('failureOperation') }}
-          </p>
         </div>
         <div v-if="overlay.showSignUpSuccess">
           <b-card
-              header-tag="header"
-              header-class="py-0"
-              header-bg-variant="success"
-              footer-tag="footer"
-              footer-class="py-1"
-              border-variant="success"
               align="center"
+              border-variant="success"
+              footer-class="py-1"
+              footer-tag="footer"
+              header-bg-variant="success"
+              header-class="py-0"
+              header-tag="header"
           >
             <template #header>
               <i class="fa-badge-check text-success"></i>
@@ -83,9 +72,9 @@
             </template>
             <b-card-text>
               <b-row>
-                <small>{{ getCapitalizeLang('onlyWithConfirmedEmailHaveAccess') }}&nbsp;{{
-                    getUpperCaseLang('logo')
-                  }}</small>
+                <small>
+                  {{ getCapitalizeLang('onlyWithConfirmedEmailHaveAccess') }}&nbsp;{{ getUpperCaseLang('logo') }}
+                </small>
               </b-row>
               <hr class="my-0">
               <b-row>
@@ -94,8 +83,8 @@
             </b-card-text>
             <template #footer>
               <b-button
-                  variant="outline-secondary"
                   size="sm"
+                  variant="outline-secondary"
                   @click="$refs.signup.hideSignUpOverlayAndErrorAndFlush()"
               >
                 <small>{{ getCapitalizeLang('close') }}</small>
@@ -107,19 +96,19 @@
     </b-overlay>
 
     <template #modal-header="{ close }">
-      <b-container fluid class="px-1">
+      <b-container class="px-1" fluid>
         <close-row v-if="closable"
                    :title="''"
                    @close="closeModal()"
         ></close-row>
         <b-row no-gutters>
-          <b-col cols="auto" class="mr-auto">
+          <b-col class="mr-auto" cols="auto">
             <button class="btn btn-transparent shadow-none py-1 px-3 mx-1"
                     @click.prevent.stop="routerMainPage()">
               <logo-picture></logo-picture>
             </button>
           </b-col>
-          <b-col cols="auto" class="ml-auto">
+          <b-col class="ml-auto" cols="auto">
             <lang-multiselect></lang-multiselect>
           </b-col>
         </b-row>
@@ -127,39 +116,39 @@
     </template>
 
     <b-row class="px-3">
-      <b-col sm="6" class="px-0">
+      <b-col class="px-0" sm="6">
         <b-button
-            tabindex="-1"
-            block
-            variant="light"
-            class="rounded-0 border-0 shadow-none bg-white"
-            :class="[showSignIn?'collapsed':null, showSignIn?'text-dark':'text-secondary']"
             :aria-expanded="showSignIn ? 'true' : 'false'"
+            :class="[showSignIn?'collapsed':null, showSignIn?'text-dark':'text-secondary']"
             aria-controls="collapse-signin"
+            block
+            class="rounded-0 border-0 shadow-none bg-white"
+            tabindex="-1"
+            variant="light"
             @click="switchSignIn()"
         >
           {{ getCapitalizeLang('signIn') }}
         </b-button>
-        <hr class="my-0"
-            :class="[showSignIn?'border-secondary':'border-light']"
+        <hr :class="[showSignIn?'border-secondary':'border-light']"
+            class="my-0"
             style="border-top: 3px solid;"
         >
       </b-col>
-      <b-col sm="6" class="px-0">
+      <b-col class="px-0" sm="6">
         <b-button
-            tabindex="-1"
-            block
-            variant="light"
-            class="rounded-0 border-0 shadow-none bg-white"
-            :class="[showSignUp?'collapsed':null, showSignUp?'text-dark':'text-secondary']"
             :aria-expanded="showSignUp ? 'true' : 'false'"
+            :class="[showSignUp?'collapsed':null, showSignUp?'text-dark':'text-secondary']"
             aria-controls="collapse-signup"
+            block
+            class="rounded-0 border-0 shadow-none bg-white"
+            tabindex="-1"
+            variant="light"
             @click="switchSignUp()"
         >
           {{ getCapitalizeLang('signUp') }}
         </b-button>
-        <hr class="my-0"
-            :class="[showSignUp?'border-secondary':'border-light']"
+        <hr :class="[showSignUp?'border-secondary':'border-light']"
+            class="my-0"
             style="border-top: 3px solid;"
         >
       </b-col>
@@ -170,9 +159,9 @@
         :signinId="'collapse-signin'"
         :signinVmodel="showSignIn"
         @showOverlayMethod="showOverlayMethod"
+        @showSignInFailureMethod="showSignInFailureMethod"
         @showSignInSpinMethod="showSignInSpinMethod"
         @showSignInSuccessMethod="showSignInSuccessMethod"
-        @showSignInFailureMethod="showSignInFailureMethod"
     ></sign-in>
 
     <sign-up
@@ -180,9 +169,9 @@
         :signupId="'collapse-signup'"
         :signupVmodel="showSignUp"
         @showOverlayMethod="showOverlayMethod"
+        @showSignUpFailureMethod="showSignUpFailureMethod"
         @showSignUpSpinMethod="showSignUpSpinMethod"
         @showSignUpSuccessMethod="showSignUpSuccessMethod"
-        @showSignUpFailureMethod="showSignUpFailureMethod"
     ></sign-up>
 
     <template #modal-footer>
@@ -211,7 +200,7 @@ import * as _ from "lodash"
 export default {
   props: [
     'closable',
-    'show'
+    'show',
   ],
   mounted() {
     this.switchModal(this.show)
@@ -230,6 +219,7 @@ export default {
   computed: {
     ...mapState([
       'lang',
+      'authentication',
     ]),
   },
   watch: {
@@ -247,6 +237,7 @@ export default {
   },
   data() {
     return {
+      shown: false,
       overlay: {
         showOverlay: false,
         showSignInSpin: false,
@@ -289,6 +280,15 @@ export default {
     },
     showSignInSuccessMethod(bool) {
       this.overlay.showSignInSuccess = bool
+      if (bool) {
+        this.$store.commit('authenticationIsNewMutation', {isNew: true})
+        _.delay(() => {
+          this.overlay.showSignInSuccess = !bool
+          if (this.shown) {
+            this.closeModal()
+          }
+        }, 1500)
+      }
     },
     showSignInFailureMethod(bool) {
       this.overlay.showSignUpFailure = bool

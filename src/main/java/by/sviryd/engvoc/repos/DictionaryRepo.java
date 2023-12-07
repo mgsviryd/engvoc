@@ -20,8 +20,8 @@ public interface DictionaryRepo extends JpaRepository<Dictionary, UUID>, Diction
 
     void deleteByIdIn(List<UUID> ids);
 
-    void deleteByUnrepeated(boolean unrepeated);
+    void deleteByAuthorAndUnrepeated(User author, boolean unrepeated);
+    void deleteByAuthorAndVocabulary(User author, Vocabulary vocabulary);
 
     Dictionary findByAuthorAndVocabularyAndUnrepeatedAndName(User author, Vocabulary vocabulary, boolean unrepeated, String name);
-
 }

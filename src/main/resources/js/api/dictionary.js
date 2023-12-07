@@ -13,11 +13,8 @@ export default {
 
     findAll: () => Vue.http.get("/json/dictionary/findAll"),
     deleteByIdIn: (body) => Vue.http.delete("/json/dictionary/deleteByIdIn",{body:  body}),
-    deleteByUnrepeated: (body) => Vue.http.delete("/json/dictionary/deleteByUnrepeated", {body: body}),
+    deleteByUnrepeatedDanger: (body) => Vue.http.post("/json/dictionary/deleteByUnrepeated/danger", body),
 
-    saveUnrepeatedWithPicture: (formData) => Vue.http.post("/json/dictionary/saveUnrepeatedWithPicture", formData, configUndefinedJson),
-    saveUnrepeated: (dictionary) => Vue.http.post("/json/dictionary/saveUnrepeated", dictionary),
-
-    findDictionariesAndCards: (vocabulary) => Vue.http.post("/json/dictionary/findDictionariesAndCards", vocabulary),
-    saveNewUnrepeated: (vocabulary) => Vue.http.post("/json/dictionary/saveNewUnrepeated", vocabulary),
+    saveWithPicture: (formData) => Vue.http.post("/json/dictionary/saveWithPicture", formData, configUndefinedJson),
+    saveWithoutPicture: (body) => Vue.http.post("/json/dictionary/saveWithoutPicture", body),
 }

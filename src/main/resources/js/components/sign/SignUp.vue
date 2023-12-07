@@ -36,7 +36,7 @@
                   :placeholder="getCapitalizeLang('email')"
               >
               </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.email.wasOutFocus">
+              <div class="invalid-feedback my-0" v-if="properties.email.wasOutFocus && emailError()">
                 <small>{{ emailError() }}</small>
               </div>
             </b-input-group>
@@ -73,7 +73,7 @@
                   :placeholder="getCapitalizeLang('password')"
               >
               </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.password.wasOutFocus">
+              <div class="invalid-feedback my-0" v-if="properties.password.wasOutFocus && passwordError()">
                 <small>{{ passwordError() }}</small>
               </div>
             </b-input-group>
@@ -160,7 +160,7 @@
                   :placeholder="getCapitalizeLang('passwordRepeat')"
               >
               </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.passwordRepeat.wasOutFocus">
+              <div class="invalid-feedback my-0" v-if="properties.passwordRepeat.wasOutFocus && passwordRepeatError()">
                 <small>{{ passwordRepeatError() }}</small>
               </div>
             </b-input-group>
@@ -251,6 +251,9 @@ export default {
   },
   created() {
     Object.assign(this.properties, this.defaultProperties)
+    this.$forceNextTick(() => {
+      this.focusEmail()
+    })
   },
   components: {
     GoogleCircle,
@@ -325,7 +328,7 @@ export default {
     },
 
     getErrors(property) {
-      return this.errors.filter(e => e.attrName === property)
+      return this.errors.filter(e => e.attribute === property)
     },
 
     recaptchaReset() {
@@ -407,7 +410,7 @@ export default {
     showErrors() {
       this.errors.forEach(e => {
         try {
-          this.properties[e.attrName].showError = true
+          this.properties[e.attribute].showError = true
         } catch (e) {
         }
       })
@@ -465,8 +468,8 @@ export default {
     getLang(key) {
       return this.$t(key)
     },
-    isBlank(str) {
-      return str === null || str === ''
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
     stateEmail() {
       return !this.isBlank(this.email)
@@ -483,21 +486,26 @@ export default {
           && this.password === this.passwordRepeat
     },
     stateTrue() {
-      return this.stateEmail() && this.statePassword() && this.statePasswordRepeat()
+      return this.stateEmail() && this.statePassword() && this.statePasswordRepeat() && !this.isAnyErrorsShow()
+    },
+    isAnyErrorsShow(){
+      let any = false
+      Object.keys(this.properties).forEach(p => {
+        if (this.properties[p].showError){
+          any = true
+        }
+      })
+      return any
     },
     emailError() {
-      if (this.isBlank(this.email)) {
-        return this.getCapitalizeLang('enterEmail')
-      }
+      if (this.isBlank(this.email)) return ''
       if (!RegexJS.isEmail(this.email)) {
         return this.getCapitalizeLang('signUpEmailError')
       }
       return ''
     },
     passwordError() {
-      if (this.isBlank(this.password)) {
-        return this.getCapitalizeLang('enterPassword')
-      }
+      if (this.isBlank(this.password)) return ''
       if (this.password.length < 8) {
         return this.getCapitalizeLang('signUpPasswordShortLengthError')
       }
@@ -510,9 +518,7 @@ export default {
       return ''
     },
     passwordRepeatError() {
-      if (this.isBlank(this.passwordRepeat)) {
-        return this.getCapitalizeLang('enterPassword')
-      }
+      if (this.isBlank(this.passwordRepeat)) return ''
       if (this.password !== this.passwordRepeat) {
         return this.getLang('signUpPasswordRepeatError')
       }

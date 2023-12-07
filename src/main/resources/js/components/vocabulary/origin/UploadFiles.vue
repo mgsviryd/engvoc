@@ -43,7 +43,7 @@
 <script>
 import {mapState} from 'vuex'
 import DropZone from "../../upload/DropZone.vue"
-import UploadLangMultiselect from "../../lang/LangPairUploadMultiselect.vue"
+import UploadLangMultiselect from "../../lang/VocabularyUploadMultiselect.vue"
 import * as _ from "lodash"
 
 export default {
@@ -57,6 +57,7 @@ export default {
   computed: {
     ...mapState([
       'props',
+        'vocabulary',
     ]),
   },
   data() {
@@ -72,12 +73,12 @@ export default {
   },
   methods: {
     async uploadFile(payload) {
-      payload.pair = this.props.upload.lang
+      payload.vocabulary = this.vocabulary.vocabulary
       payload.options = this.options
       await this.$store.dispatch(this.dropZoneProps.fileStoreAction, payload)
     },
     async uploadFiles(payload) {
-      payload.pair = this.props.upload.lang
+      payload.vocabulary = this.vocabulary.vocabulary
       payload.options = this.options
       await this.$store.dispatch(this.dropZoneProps.filesStoreAction, payload)
     },

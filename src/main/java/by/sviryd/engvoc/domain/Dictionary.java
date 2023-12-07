@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@ToString(of = {"id", "name", "unrepeated", "creationLDT"})
-@EqualsAndHashCode(of = {"name", "unrepeated", "creationLDT"})
+@ToString(of = {"id","vocabulary", "name", "unrepeated", "creationLDT"})
+@EqualsAndHashCode(of = {"vocabulary", "name", "unrepeated", "creationLDT"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -33,7 +33,7 @@ import java.util.UUID;
 @Builder
 @JsonIgnoreProperties(value = {"user", "cards"})
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"author_id", "name", "unrepeated", "creationLDT"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"author_id", "vocabulary_id", "name", "unrepeated", "creationLDT"}))
 public class Dictionary implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -94,7 +94,7 @@ public class Dictionary implements Serializable {
     private Long countCard;
 
 
-    @OneToMany(mappedBy = "dictionary", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "dictionary", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Card> cards = new ArrayList<>();
 
     public Dictionary(UUID id) {

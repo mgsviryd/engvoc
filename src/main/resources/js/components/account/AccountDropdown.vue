@@ -1,6 +1,7 @@
 <template>
   <b-dropdown
       v-if="show"
+      :id="prefixId()"
       :ref="prefixId()"
       class="border-0 shadow-none"
       :class="isNoUserGetter?'bg-transparent':'bg-white'"
@@ -11,6 +12,14 @@
       @hide="shown=false"
       @show="shown=true"
   >
+    <b-popover :target="prefixId()"
+               :title="username"
+               :show.sync="isPopover"
+               placement="bottomleft"
+               variant="success"
+    >
+      {{getCapitalizeLang('welcomeTo')+ ' '}}{{getUpperCaseLang('logo')}}
+    </b-popover>
     <template #button-content>
       <i class="fa-solid fa-user"
          :class="isNoUserGetter?'text-white':'text-success'"></i>
@@ -116,7 +125,9 @@ export default {
       show: true,
       isNoUserGetter: true,
       isNoUsersGetter: true,
+      isPopover: false,
       user: null,
+      isNew: false,
       username: "",
       users: [],
     }
@@ -132,8 +143,17 @@ export default {
       } else {
         this.username = ""
       }
+      if(this.authentication.isNew){
+        this.launchPopover()
+      }
       this.users = this.authentication.users
       this.show = true
+    },
+    launchPopover(){
+      this.isPopover = true
+      _.delay(()=>{
+        this.isPopover = false
+      }, 4000)
     },
     getCapitalize(text) {
       return _.capitalize(text)

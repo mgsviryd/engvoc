@@ -7,6 +7,7 @@ import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.service.CardService;
 import by.sviryd.engvoc.service.CardUnrepeatedService;
 import by.sviryd.engvoc.service.CardUploadService;
+import by.sviryd.engvoc.service.VocabularyService;
 import by.sviryd.engvoc.service.card.reader.ExcelCardShortReaderService;
 import by.sviryd.engvoc.service.card.reader.XmlCardReaderService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -21,9 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -39,39 +38,45 @@ public class CardUploadRestController {
     private CardService cardService;
     @Autowired
     private CardUnrepeatedService cardUnrepeatedService;
+    @Autowired
+    private VocabularyService vocabularyService;
 
     @PostMapping(value = "/upload/excel/file", consumes = {"multipart/form-data"})
-    @JsonView({Views.DictionaryCard.class})
+    @JsonView({Views.VocabularyDictionaryCard.class})
     public HashMap<Object, Object> excelFile(
             @AuthenticationPrincipal User user,
             @RequestPart("file") MultipartFile file,
-            @RequestPart("vocabulary") String vocabularyJson,
+            @RequestPart("vocabularyId") String vocabularyId,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = excelCardShortReaderService.extract(file);
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, vocabularyJson, optionsJson, cards);
+        Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
+        Vocabulary vocabulary = vocabularyOpt.get();
+        return getData(user, vocabulary, optionsJson, cards);
     }
 
     @PostMapping(value = "upload/xml/file", consumes = {"multipart/form-data"})
-    @JsonView({Views.DictionaryCard.class})
+    @JsonView({Views.VocabularyDictionaryCard.class})
     public HashMap<Object, Object> xmlFile(
             @AuthenticationPrincipal User user,
             @RequestPart("file") MultipartFile file,
-            @RequestPart("vocabulary") String vocabularyJson,
+            @RequestPart("vocabularyId") String vocabularyId,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = xmlCardReaderService.extract(file);
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, vocabularyJson, optionsJson, cards);
+        Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
+        Vocabulary vocabulary = vocabularyOpt.get();
+        return getData(user, vocabulary, optionsJson, cards);
     }
 
     @PostMapping(value = "/upload/excel/files", consumes = {"multipart/form-data"})
-    @JsonView({Views.DictionaryCard.class})
+    @JsonView({Views.VocabularyDictionaryCard.class})
     public HashMap<Object, Object> excelFiles(
             @AuthenticationPrincipal User user,
             @RequestPart("files") MultipartFile[] files,
-            @RequestPart("vocabulary") String vocabularyJson,
+            @RequestPart("vocabularyId") String vocabularyId,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = Arrays.stream(files)
@@ -79,15 +84,17 @@ public class CardUploadRestController {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, vocabularyJson, optionsJson, cards);
+        Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
+        Vocabulary vocabulary = vocabularyOpt.get();
+        return getData(user, vocabulary, optionsJson, cards);
     }
 
     @PostMapping(value = "/upload/xml/files", consumes = {"multipart/form-data"})
-    @JsonView({Views.DictionaryCard.class})
+    @JsonView({Views.VocabularyDictionaryCard.class})
     public HashMap<Object, Object> xmlFiles(
             @AuthenticationPrincipal User user,
             @RequestPart("files") MultipartFile[] files,
-            @RequestPart("vocabulary") String vocabularyJson,
+            @RequestPart("vocabularyId") String vocabularyId,
             @RequestPart("options") String optionsJson
     ) throws IOException {
         List<Card> cards = Arrays.stream(files)
@@ -95,11 +102,12 @@ public class CardUploadRestController {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        return getData(user, vocabularyJson, optionsJson, cards);
+        Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
+        Vocabulary vocabulary = vocabularyOpt.get();
+        return getData(user, vocabulary, optionsJson, cards);
     }
 
-    private HashMap<Object, Object> getData(@AuthenticationPrincipal User user, @RequestPart("vocabulary")String vocabularyJson, @RequestPart("options") String optionsJson, List<Card> cards) throws IOException {
-        Vocabulary vocabulary = new ObjectMapper().readValue(vocabularyJson, Vocabulary.class);
+    private HashMap<Object, Object> getData(@AuthenticationPrincipal User user, Vocabulary vocabulary, @RequestPart("options") String optionsJson, List<Card> cards) throws IOException {
         cards.forEach(c -> {
             c.setClient(user);
             c.setVocabulary(vocabulary);

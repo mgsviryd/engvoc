@@ -1,6 +1,5 @@
 package by.sviryd.engvoc.service;
 
-import by.sviryd.engvoc.config.MessageSourceConfig;
 import by.sviryd.engvoc.util.LocaleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -18,7 +17,7 @@ public class LocaleExceptionAttributeWrapperService {
     public void wrapAsAttributes(List<LocaleException> errors, Model model, Locale locale) {
         for (LocaleException e : errors) {
             String message = messageSource.getMessage(e.getCode(), e.getArgs(), locale);
-            model.addAttribute(e.getAttrName(), message);
+            model.addAttribute(e.getAttribute(), message);
         }
     }
 }
