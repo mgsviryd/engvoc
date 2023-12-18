@@ -1,6 +1,7 @@
 <template>
   <div
       v-if="show"
+      :id="ids.id"
       class="dictionary-nav- btn-group-vertical btn-group-sm d-inline-block"
       style="width: 100%"
   >
@@ -10,6 +11,7 @@
         :href="'#'+ids.vocabularyDropdown"
         aria-expanded="false"
         block
+        class="sticky-top"
         data-toggle="collapse"
         menu-class="w-100"
         role="button"
@@ -20,7 +22,8 @@
         toggle-class="shadow-none rounded-0 border-1 border-secondary"
         variant="light"
     >
-      <template slot="button-content">
+      <template slot="button-content"
+      >
         <vocabulary-multiselect
             :id="ids.vocabularyMultiselect"
             :ref="ids.vocabularyMultiselect"
@@ -37,9 +40,9 @@
                        @click.prevent.stop="$refs[ids.vocabularyModal].showModal()"
       >
         <b-row no-gutters>
+          <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+              class="fa fa-plus fa-1x text-success"></i></b-col>
           <b-col class="col-10"><small>{{ getCapitalizeLang('addVocabulary') }}</small></b-col>
-          <b-col class="col-2 d-flex justify-content-left text-left"><i class="fa fa-plus fa-1x text-success"></i>
-          </b-col>
         </b-row>
       </b-dropdown-item>
 
@@ -51,9 +54,9 @@
         <b-dropdown-item size="sm"
                          @click.prevent.stop="$refs[ids.deleteVocabularyDangerModal].showModal()">
           <b-row no-gutters>
+            <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                class="fa fa-trash fa-1x text-danger"></i></b-col>
             <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
-            <b-col class="col-2 d-flex justify-content-left text-left"><i class="fa fa-trash fa-1x text-danger"></i>
-            </b-col>
           </b-row>
         </b-dropdown-item>
       </b-dropdown-group>
@@ -71,10 +74,10 @@
         role="button"
         size="sm"
         split
-        split-class="text-left shadow-none rounded-0 border-1 border-secondary"
-        split-variant="primary"
-        toggle-class="shadow-none rounded-0 border-1 border-secondary"
-        variant="primary"
+        split-class="text-left shadow-none rounded-0 border-1 border-dark"
+        split-variant="secondary"
+        toggle-class="shadow-none rounded-0 border-1 border-dark"
+        variant="secondary"
     >
       <template slot="button-content">
         <span class="st-text-shift">{{ getLang('unique') }}</span>
@@ -84,18 +87,20 @@
                        @click.prevent.stop="$refs[ids.addDictionaryUnrepeatedModal].showModal()"
       >
         <b-row no-gutters>
-          <b-col class="col-10"><small>{{ getCapitalizeLang('addDictionary') }}</small></b-col>
-          <b-col class="col-2 d-flex justify-content-left text-left"><i class="fa fa-plus fa-1x text-success"></i>
+          <b-col class="col-2 d-flex align-items-center justify-content-left text-left">
+            <i class="fa fa-plus fa-1x text-success"></i>
           </b-col>
+          <b-col class="col-10"><small>{{ getCapitalizeLang('addDictionary') }}</small></b-col>
         </b-row>
       </b-dropdown-item>
-      <b-dropdown-item size="sm"
-                       @click.prevent.stop="downloadDictionariesXmlFilesByUnrepeated(true)">
+      <b-dropdown-item size="sm" @click.prevent.stop="downloadDictionariesXmlFilesByUnrepeated(true)">
         <b-row no-gutters>
-          <b-col class="col-10"><small>{{ getCapitalizeLang('downloadTo') }}</small></b-col>
-          <b-col class="col-2 d-flex justify-content-left text-left">
-            <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
+          <b-col class="col-2 d-flex align-items-center justify-content-left text-left">
+            <img alt="..." height="24"
+                 src="/static/picture/icon/xml-extension.png"
+                 width="24">
           </b-col>
+          <b-col class="col-10"><small>{{ getCapitalizeLang('download') }}</small></b-col>
         </b-row>
       </b-dropdown-item>
 
@@ -104,14 +109,11 @@
           :header="getCapitalizeLang('dangerZone')"
           header-classes="text-danger"
       >
-        <b-dropdown-item
-            size="sm"
-            @click.prevent.stop="$refs[ids.deleteDictionariesUniqueDangerModal].showModal()"
-        >
+        <b-dropdown-item size="sm" @click.prevent.stop="$refs[ids.deleteDictionariesUniqueDangerModal].showModal()">
           <b-row no-gutters>
+            <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                class="fa fa-trash fa-1x text-danger"></i></b-col>
             <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
-            <b-col class="col-2 d-flex justify-content-left text-left"><i class="fa fa-trash fa-1x text-danger"></i>
-            </b-col>
           </b-row>
         </b-dropdown-item>
       </b-dropdown-group>
@@ -124,8 +126,6 @@
           :id="getDictionaryElemId(d.id)"
           :key="d.id"
           :ref="getDictionaryElemId(d.id)"
-          :aria-controls="ids.unrepeatedDictionaries"
-          :href="'#'+ids.unrepeatedDictionaries"
           :right="instance.instanceMark === 'right'"
           aria-expanded="false"
           block
@@ -139,8 +139,9 @@
           split-variant="light"
           toggle-class="shadow-none rounded-0 border-1 border-secondary"
           variant="light"
-          @hide="hideDropdown($event, getDictionaryElemId(d.id))"
-          @show="showDropdown($event, getDictionaryElemId(d.id))"
+          @hide="hideDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
+          @show="showDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
+          @toggle="toggleDropdownRef({ref:getDictionaryElemId(d.id), level: 0})"
           @click.prevent.stop="parentLoadDictionary(d)"
       >
         <template slot="button-content">
@@ -154,23 +155,131 @@
           </span>
           </div>
         </template>
-        <b-dropdown-item
-            size="sm"
-            @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
-        >
-          <b-row no-gutters>
-            <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
-            <b-col class="col-2 d-flex justify-content-left text-left">
-              <i class="fa fa-trash fa-1x text-danger"></i>
-            </b-col>
-          </b-row>
 
-        </b-dropdown-item>
+        <b-dropdown
+            :id="getDictionaryElemId(d.id)+'-download-id'"
+            :ref="getDictionaryElemId(d.id)+'-download-id'"
+            :dropleft="instance.instanceMark === 'right'"
+            :dropright="instance.instanceMark === 'left'"
+            :right="instance.instanceMark === 'right'"
+            block
+            no-caret
+            size="sm"
+            variant="light"
+            @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+            @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+        >
+          <template #button-content>
+            <b-row class="px-3"
+                   no-gutters
+                   @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+            >
+              <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                  class="fa-solid fa-download"></i></b-col>
+              <b-col class="col-10 d-flex align-items-center justify-content-between">
+                <span>{{ getCapitalizeLang('download') }}</span>
+                <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
+              </b-col>
+            </b-row>
+          </template>
+
+          <b-dropdown-item
+              @click.prevent.stop="downloadXmlFile(d)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
+                <img alt="..." height="24"
+                     src="/static/picture/icon/xml-extension.png"
+                     width="24">
+              </b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('xml') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+          <b-dropdown-item
+              @click.prevent.stop="downloadExcelFile(d)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
+                <img alt="..." height="24"
+                     src="/static/picture/icon/excel.png"
+                     width="24">
+              </b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('excel') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+        </b-dropdown>
+
+        <b-dropdown
+            :id="getDictionaryElemId(d.id)+'-upload-id'"
+            :ref="getDictionaryElemId(d.id)+'-upload-id'"
+            :dropleft="instance.instanceMark === 'right'"
+            :dropright="instance.instanceMark === 'left'"
+            :right="instance.instanceMark === 'right'"
+            block
+            no-caret
+            size="sm"
+            variant="light"
+            @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+            @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+        >
+          <template #button-content>
+            <b-row class="px-3"
+                   no-gutters
+                   @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+            >
+              <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                  class="fa-solid fa-upload"></i></b-col>
+              <b-col class="col-10 d-flex align-items-center justify-content-between">
+                <span>{{ getCapitalizeLang('upload') }}</span>
+                <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
+              </b-col>
+            </b-row>
+          </template>
+
+          <b-dropdown-item
+              @click.prevent.stop="uploadXmlFile(d)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left"><img alt="..." height="24"
+                                                                                                 src="/static/picture/icon/xml-extension.png"
+                                                                                                 width="24"></b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('xml') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+          <b-dropdown-item
+              @click.prevent.stop="uploadExcelFile(d)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left"><img alt="..." height="24"
+                                                                                                 src="/static/picture/icon/excel.png"
+                                                                                                 width="24"></b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('excel') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+        </b-dropdown>
+
+        <b-dropdown-divider></b-dropdown-divider>
+        <b-dropdown-group
+            :header="getCapitalizeLang('dangerZone')"
+            header-classes="text-danger"
+        >
+          <b-dropdown-item
+              size="sm"
+              @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                  class="fa fa-trash fa-1x text-danger"></i></b-col>
+              <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+        </b-dropdown-group>
       </b-dropdown>
     </div>
 
     <b-dropdown
         :id="'button'+ids.nonUnrepeatedDictionaries"
+        :ref="'button'+ids.nonUnrepeatedDictionaries"
         :aria-controls="ids.nonUnrepeatedDictionaries"
         :href="'#'+ids.nonUnrepeatedDictionaries"
         :right="instance.instanceMark === 'right'"
@@ -181,10 +290,10 @@
         role="button"
         size="sm"
         split
-        split-class="text-left shadow-none rounded-0 border-1 border-secondary"
-        split-variant="primary"
-        toggle-class="shadow-none rounded-0 border-1 border-secondary"
-        variant="primary"
+        split-class="text-left shadow-none rounded-0 border-1 border-dark"
+        split-variant="secondary"
+        toggle-class="shadow-none rounded-0 border-1 border-dark"
+        variant="secondary"
     >
       <template slot="button-content">
         <span class="st-text-shift">{{ getLang('notUnique') }}</span>
@@ -195,18 +304,18 @@
           @click.prevent.stop="$refs[ids.addDictionaryNonUnrepeatedModal].showModal()"
       >
         <b-row no-gutters>
+          <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+              class="fa fa-plus fa-1x text-success"></i></b-col>
           <b-col class="col-10"><small>{{ getCapitalizeLang('addDictionary') }}</small></b-col>
-          <b-col class="col-2 d-flex justify-content-left text-left"><i class="fa fa-plus fa-1x text-success"></i>
-          </b-col>
         </b-row>
       </b-dropdown-item>
       <b-dropdown-item size="sm"
                        @click.prevent.stop="downloadDictionariesXmlFilesByUnrepeated(false)">
         <b-row no-gutters>
-          <b-col class="col-10"><small>{{ getCapitalizeLang('downloadTo') }}</small></b-col>
-          <b-col class="col-2 d-flex justify-content-left text-left">
-            <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
-          </b-col>
+          <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><img alt="..." height="24"
+                                                                                             src="/static/picture/icon/xml-extension.png"
+                                                                                             width="24"></b-col>
+          <b-col class="col-10"><small>{{ getCapitalizeLang('download') }}</small></b-col>
         </b-row>
       </b-dropdown-item>
 
@@ -219,9 +328,9 @@
                          @click.prevent.stop="$refs[ids.deleteDictionariesNotUniqueDangerModal].showModal()"
         >
           <b-row no-gutters>
+            <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                class="fa fa-trash fa-1x text-danger"></i></b-col>
             <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
-            <b-col class="col-2 d-flex justify-content-left text-left"><i class="fa fa-trash fa-1x text-danger"></i>
-            </b-col>
           </b-row>
         </b-dropdown-item>
       </b-dropdown-group>
@@ -229,154 +338,156 @@
 
 
     <div :id="ids.nonUnrepeatedDictionaries" class="collapse">
-      <div v-for="(d,ii) in nonUnrepeatedDictionaries">
-        <b-dropdown
-            :id="getDictionaryElemId(d.id)"
-            :key="d.id"
-            :ref="getDictionaryElemId(d.id)"
-            :aria-controls="ids.nonUnrepeatedDictionaries"
-            :href="'#'+ids.nonUnrepeatedDictionaries"
-            :right="instance.instanceMark === 'right'"
-            aria-expanded="false"
-            block
-            data-toggle="collapse"
-            draggable="true"
-            menu-class="w-100"
-            role="button"
-            size="sm"
-            split
-            split-class="text-left shadow-none rounded-0 border-1 border-secondary"
-            split-variant="light"
-            toggle-class="shadow-none rounded-0 border-1 border-secondary"
-            variant="light"
-            @hide="hideDropdown($event, getDictionaryElemId(d.id))"
-            @show="showDropdown($event, getDictionaryElemId(d.id))"
-            @click.prevent.stop="parentLoadDictionary(d)"
-            @toggle="clickDropdownRef(getDictionaryElemId(d.id))"
-        >
-          <template slot="button-content">
-            <div
-                @mousedown.prevent.stop="mousedown(d.id)"
-                @mouseup.prevent.stop="mouseup(d.id)"
-            >
-              <span class="st-text-shift">{{ d.name }}</span>
-              <span class="st-right badge badge-light bg-white border badge-pill">
+      <b-dropdown
+          v-for="(d,ii) in nonUnrepeatedDictionaries"
+          :id="getDictionaryElemId(d.id)"
+          :key="d.id"
+          :ref="getDictionaryElemId(d.id)"
+          :right="instance.instanceMark === 'right'"
+          aria-expanded="false"
+          block
+          data-toggle="collapse"
+          draggable="true"
+          menu-class="w-100"
+          role="button"
+          size="sm"
+          split
+          split-class="text-left shadow-none rounded-0 border-1 border-secondary"
+          split-variant="light"
+          toggle-class="shadow-none rounded-0 border-1 border-secondary"
+          variant="light"
+          @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
+          @show="showDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
+          @toggle="toggleDropdownRef({ref: getDictionaryElemId(d.id), level: 0})"
+          @click.prevent.stop="parentLoadDictionary(d)"
+      >
+        <template slot="button-content">
+          <div
+              @mousedown.prevent.stop="mousedown(d.id)"
+              @mouseup.prevent.stop="mouseup(d.id)"
+          >
+            <span class="st-text-shift">{{ d.name }}</span>
+            <span class="st-right badge badge-light bg-white border badge-pill">
             {{ getCountCardsInDictionaryById(d.id) }}
           </span>
+          </div>
+        </template>
+
+        <b-dropdown
+            :id="getDictionaryElemId(d.id)+'-download-id'"
+            :ref="getDictionaryElemId(d.id)+'-download-id'"
+            :dropleft="instance.instanceMark === 'right'"
+            :dropright="instance.instanceMark === 'left'"
+            :right="instance.instanceMark === 'right'"
+            block
+            no-caret
+            size="sm"
+            variant="light"
+            @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+            @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+        >
+          <template #button-content>
+            <div class="text-left px-3 d-flex align-items-center justify-content-between"
+                 @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+            >
+              <span>{{ getCapitalizeLang('download') }}</span>
+              <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
             </div>
           </template>
 
-          <b-dropdown
-              :id="getDictionaryElemId(d.id)+'-download-id'"
-              :ref="getDictionaryElemId(d.id)+'-download-id'"
-              :dropleft="instance.instanceMark === 'right'"
-              :dropright="instance.instanceMark === 'left'"
-              :right="instance.instanceMark === 'right'"
-              block
-              no-caret
-              size="sm"
-              variant="light"
-              @hide="hideDropdown($event, getDictionaryElemId(d.id)+'-download-id')"
-              @show="showDropdown($event, getDictionaryElemId(d.id)+'-download-id')"
+          <b-dropdown-item
+              @click.prevent.stop="downloadXmlFile(d)"
           >
-            <template #button-content>
-              <div class="text-left px-3 d-flex align-items-center justify-content-between"
-                   @click="clickDropdownRef(getDictionaryElemId(d.id)+'-download-id')"
-              >
-                <span>{{ getCapitalizeLang('download') }}</span>
-                <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
-              </div>
-            </template>
-
-
-<!--            -delete-->
-            <b-dropdown
-                :id="getDictionaryElemId(d.id)+'-download1-id'"
-                :ref="getDictionaryElemId(d.id)+'-download1-id'"
-                :dropleft="instance.instanceMark === 'right'"
-                :dropright="instance.instanceMark === 'left'"
-                :right="instance.instanceMark === 'right'"
-                block
-                no-caret
-                size="sm"
-                variant="light"
-                @hide="hideDropdown($event, getDictionaryElemId(d.id)+'-download1-id')"
-                @show="showDropdown($event, getDictionaryElemId(d.id)+'-download1-id')"
-            >
-              <template #button-content>
-                <div class="text-left px-3 d-flex align-items-center justify-content-between"
-                     @click="clickDropdownRef(getDictionaryElemId(d.id)+'-download1-id')"
-                >
-                  <span>{{ getCapitalizeLang('download') }}</span>
-                  <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
-                </div>
-              </template>
-
-
-              <b-dropdown-item
-                  @click="downloadXmlFile(d)"
-              >
-                <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
-              </b-dropdown-item>
-              <b-dropdown-item
-                  @click="downloadExcelFile(d)"
-              >
-                <img alt="..." height="24" src="/static/picture/icon/excel.png" width="24">
-              </b-dropdown-item>
-
-
-            <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-group
-                :header="getCapitalizeLang('dangerZone')"
-                header-classes="text-danger"
-            >
-              <b-dropdown-item
-                  size="sm"
-                  @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
-              >
-                <b-row no-gutters>
-                  <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
-                  <b-col class="col-2 d-flex justify-content-left text-left">
-                    <i class="fa fa-trash fa-1x text-danger"></i>
-                  </b-col>
-                </b-row>
-              </b-dropdown-item>
-            </b-dropdown-group>
-          </b-dropdown>
-
-<!--          delete-->
-
-            <b-dropdown-item
-                @click="downloadXmlFile(d)"
-            >
-              <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
-            </b-dropdown-item>
-            <b-dropdown-item
-                @click="downloadExcelFile(d)"
-            >
-              <img alt="..." height="24" src="/static/picture/icon/excel.png" width="24">
-            </b-dropdown-item>
-          </b-dropdown>
-
-          <b-dropdown-divider></b-dropdown-divider>
-          <b-dropdown-group
-              :header="getCapitalizeLang('dangerZone')"
-              header-classes="text-danger"
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
+                <img alt="..." height="24"
+                     src="/static/picture/icon/xml-extension.png"
+                     width="24">
+              </b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('xml') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+          <b-dropdown-item
+              @click.prevent.stop="downloadExcelFile(d)"
           >
-            <b-dropdown-item
-                size="sm"
-                @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
-            >
-              <b-row no-gutters>
-                <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
-                <b-col class="col-2 d-flex justify-content-left text-left">
-                  <i class="fa fa-trash fa-1x text-danger"></i>
-                </b-col>
-              </b-row>
-            </b-dropdown-item>
-          </b-dropdown-group>
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
+                <img alt="..." height="24"
+                     src="/static/picture/icon/excel.png"
+                     width="24">
+              </b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('excel') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
         </b-dropdown>
-      </div>
+
+        <b-dropdown
+            :id="getDictionaryElemId(d.id)+'-upload-id'"
+            :ref="getDictionaryElemId(d.id)+'-upload-id'"
+            :dropleft="instance.instanceMark === 'right'"
+            :dropright="instance.instanceMark === 'left'"
+            :right="instance.instanceMark === 'right'"
+            block
+            no-caret
+            size="sm"
+            variant="light"
+            @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+            @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+        >
+          <template #button-content>
+            <b-row class="px-3"
+                   no-gutters
+                   @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+            >
+              <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                  class="fa-solid fa-upload"></i></b-col>
+              <b-col class="col-10 d-flex align-items-center justify-content-between">
+                <span>{{ getCapitalizeLang('upload') }}</span>
+                <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
+              </b-col>
+            </b-row>
+          </template>
+
+          <b-dropdown-item
+              @click.prevent.stop="uploadXmlFile(d)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left"><img alt="..." height="24"
+                                                                                                 src="/static/picture/icon/xml-extension.png"
+                                                                                                 width="24"></b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('xml') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+          <b-dropdown-item
+              @click.prevent.stop="uploadExcelFile(d)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-3 d-flex align-items-center justify-content-left text-left"><img alt="..." height="24"
+                                                                                                 src="/static/picture/icon/excel.png"
+                                                                                                 width="24"></b-col>
+              <b-col class="col-9"><small>{{ getCapitalizeLang('excel') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+        </b-dropdown>
+
+
+        <b-dropdown-divider></b-dropdown-divider>
+        <b-dropdown-group
+            :header="getCapitalizeLang('dangerZone')"
+            header-classes="text-danger"
+        >
+          <b-dropdown-item
+              size="sm"
+              @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
+          >
+            <b-row no-gutters>
+              <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                  class="fa fa-trash fa-1x text-danger"></i></b-col>
+              <b-col class="col-10"><small>{{ getCapitalizeLang('delete') }}</small></b-col>
+            </b-row>
+          </b-dropdown-item>
+        </b-dropdown-group>
+      </b-dropdown>
     </div>
 
     <add-dictionary-modal
@@ -448,6 +559,7 @@ export default {
     'instance',
   ],
   mounted() {
+    this.dropdownClickOutsideListener()
   },
   created() {
     this.setConfirmActionToDefault()
@@ -490,6 +602,7 @@ export default {
     ]),
     ids() {
       return {
+        id: this.prefixId(),
         addDictionaryUnrepeatedModal: this.prefixId() + 'add-dictionary-unrepeated-modal-id',
         addDictionaryNonUnrepeatedModal: this.prefixId() + 'add-dictionary-non-repeated-modal-id',
         vocabularyModal: this.prefixId() + 'vocabulary-modal-id',
@@ -617,6 +730,7 @@ export default {
     },
 
     deleteDictionaryById(ref, id) {
+      this.hideDropdownsOnClick()
       this.$refs[this.ids.confirmDeleteDictionaryModal].showModal()
       let f = setInterval(
           () => {
@@ -647,14 +761,24 @@ export default {
       Object.assign(this.confirmAction, this.defaultConfirmAction)
     },
     downloadExcelFile(d) {
+      this.hideDropdownsOnClick()
       this.$store.dispatch("downloadExcelFileAction",
           {vocabulary: this.vocabulary.vocabulary, dictionary: d}
       )
     },
     downloadXmlFile(d) {
+      this.hideDropdownsOnClick()
       this.$store.dispatch("downloadXmlFileAction",
           {vocabulary: this.vocabulary.vocabulary, dictionary: d}
       )
+    },
+    uploadExcelFile(d) {
+      this.hideDropdownsOnClick()
+      //TODO
+    },
+    uploadXmlFile(d) {
+      this.hideDropdownsOnClick()
+      //TODO
     },
     mousedown(id) {
       this.isMouseInClick = true
@@ -754,46 +878,80 @@ export default {
       const ids = this.getDictionaryIdsByUnrepeated(unrepeated)
       this.$store.dispatch('downloadDictionaryXmlFilesByIdsAction', {ids: ids})
     },
-    clickDropdownRef(ref){
+    clickDropdownRef(ref) {
       this.dropdownRef = ref
-      console.info('clickDropdownRef: '+ref)
+    },
+    toggleDropdownRef(ref) {
+      this.dropdownRefs = []
+      this.dropdownRef = ref
     },
     hideDropdown(event, ref) {
-      if (this.isBeforeInclDropdownRef(ref)){
-        event.preventDefault()
-      } else{
+      if (ref.level >= this.dropdownRef.level) {
         this.removeDropdownRef(ref)
-        console.info("else: "+ref)
+        return
       }
-      console.info("dropdownRefs: "+this.dropdownRefs)
+      if (this.isBeforeInclDropdownRef(ref)) {
+        event.preventDefault()
+      } else {
+        this.removeDropdownRef(ref)
+      }
     },
-    isBeforeInclDropdownRef(ref){
-      const iDropdown = this.dropdownRefs.indexOf(this.dropdownRef)
-      const iRef = this.dropdownRefs.indexOf(ref)
-      if ( iDropdown <0 || iRef < 0){
+    isBeforeInclDropdownRef(ref) {
+      const iDropdown = this.dropdownRefs.findIndex(r => _.isEqual(r, this.dropdownRef))
+      const iRef = this.dropdownRefs.findIndex(r => _.isEqual(r, ref))
+      if (iDropdown < 0 || iRef < 0) {
         return false
-      }else{
+      } else {
         return iRef < iDropdown
       }
     },
-    removeDropdownRef(ref){
-      const inx = this.dropdownRefs.indexOf(ref)
-      this.dropdownRefs = [...this.dropdownRefs.slice(0, inx),...this.dropdownRefs.slice(inx+1)]
+    removeDropdownRef(ref) {
+      const inx = this.dropdownRefs.findIndex(r => _.isEqual(r, ref))
+      if (inx >= 0) {
+        this.dropdownRefs = [...this.dropdownRefs.slice(0, inx), ...this.dropdownRefs.slice(inx + 1)]
+      }
     },
     showDropdown(event, ref) {
       this.dropdownRefs.push(ref)
-      if (ref !== this.dropdownRef){
+      if (!_.isEqual(ref, this.dropdownRef)) {
         event.preventDefault()
       }
+    },
+    hideDropdownsOnClick() {
+      document.getElementById(this.ids.id).click()
+    },
+    hideDropdowns() {
+      for (let i = this.dropdownRefs.length - 1; i >= 0; i--) {
+        try {
+          this.$refs[this.dropdownRefs[i].ref].hide()
+        } catch (e) {
+        }
+      }
+      this.dropdownRefs = []
+    },
+    dropdownClickOutsideListener() {
+      const outsideClickListener = event => {
+        if (this.dropdownRefs.length === 0) return
+        const count = this.dropdownRefs.filter(r => {
+          const element = document.getElementById(r.ref)
+          return element === event.target || element.contains(event.target)
+        }).length
+        if (count === 0) {
+          this.hideDropdowns()
+        }
+      }
+      document.addEventListener('click', outsideClickListener);
     },
   },
 }
 </script>
 
 <style scoped>
+
 .dictionary-nav- {
   height: 550px;
   overflow-y: auto;
+  /*overflow: visible !important;*/
 }
 
 .st-text-shift {

@@ -37,8 +37,6 @@ const messages = {
   db: 'database',
   unique: 'unique',
   notUnique: 'not unique',
-  xml: 'xml',
-  excel: 'excel',
   dragFilesHereOr: 'drag files here or',
   chooseFiles: 'choose files',
   invalidTypeFile: 'Invalid type of file. Accepted only',

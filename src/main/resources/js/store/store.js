@@ -984,7 +984,7 @@ export default new Vuex.Store(
                     link.href = window.URL.createObjectURL(blob)
                     const source = payload.vocabulary.source.locale
                     const target = payload.vocabulary.target.locale
-                    link.download = payload.dictionary.name + source + '-' + target + '.xlsx'
+                    link.download = payload.dictionary.name + '-' + source + '-' + target + '.xlsx'
                     link.click();
                 }
             },
@@ -997,7 +997,7 @@ export default new Vuex.Store(
                     link.href = window.URL.createObjectURL(blob)
                     const source = payload.vocabulary.source.locale
                     const target = payload.vocabulary.target.locale
-                    link.download = payload.dictionary.name + source + '-' + target + '.xml'
+                    link.download = payload.dictionary.name + '-' + source + '-' + target + '.xml'
                     link.click();
                 }
             },

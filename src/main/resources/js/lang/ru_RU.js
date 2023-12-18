@@ -37,8 +37,6 @@ const messages = {
   db: 'база данных',
   unique: 'уникальные',
   notUnique: 'неуникальные',
-  xml: 'xml',
-  excel: 'excel',
   dragFilesHereOr: 'перетащите файлы сюда или',
   chooseFiles: 'выберите файлы',
   invalidTypeFile: 'Hеверный тип файла. Допустим только',

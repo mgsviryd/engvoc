@@ -1,85 +1,92 @@
 <template>
-  <div v-if="show" class="card-table- container p-0 m-0">
+  <div v-if="show"
+       class="card-table- container p-0 m-0">
     <table class="table bg-white table-hover table-bordered border-2 border-dark table-sm">
       <thead class="thead-dark"
              style="position: sticky; top: 0;"
-
       >
+
       <tr class="bg-dark border-0"
           style="position: sticky;"
       >
         <th class="border-0 p-0" colspan="10">
-          <div class="btn-group btn-group-sm btn-group-justified">
-            <button v-if="selectedCardIds.length > 0"
-                    :data-delay="deselectAllSetting.tooltip.delay"
-                    :data-placement="deselectAllSetting.tooltip.placement"
-                    :title="getCapitalizeLang(deselectAllSetting.tooltip.title)"
-                    class="btn btn-light shadow-none px-1 py-0"
-                    data-toggle="tooltip"
-                    @click.prevent.s.stop="deselectAll()"
-            >
-              <i class="fa fa-xmark fa-xs text-danger"></i>
-            </button>
+          <b-button-toolbar>
+            <b-button-group size="sm">
+              <b-button
+                  class="shadow-none px-1 py-0"
+                  variant="light"
+                  @click="$refs[ids.tableSettingsModal].showModal()"
+              >
+                <i class="fa fa-gear fa-xs text-secondary"></i>
+              </b-button>
+            </b-button-group>
 
-            <button v-if="selectedCardIds.length === 0"
-                    :data-delay="selectAllSetting.tooltip.delay"
-                    :data-placement="selectAllSetting.tooltip.placement"
-                    :title="getCapitalizeLang(selectAllSetting.tooltip.title)"
-                    class="btn btn-light shadow-none px-1 py-0"
-                    data-toggle="tooltip"
-                    @click.prevent.stop="selectAll()"
-            >
-              <i class="fa fa-check fa-xs text-success"></i>
-            </button>
+            <b-button-group size="sm" class="mx-1">
+              <b-button
+                  v-if="selectedCardIds.length > 0"
+                  :data-delay="deselectAllSetting.tooltip.delay"
+                  :data-placement="deselectAllSetting.tooltip.placement"
+                  :title="getCapitalizeLang(deselectAllSetting.tooltip.title)"
+                  class="shadow-none px-1 py-0"
+                  data-toggle="tooltip"
+                  variant="light"
+                  @click.prevent.s.stop="deselectAll()"
+              >
+                <i class="fa fa-xmark fa-xs text-danger"></i>
+              </b-button>
 
-            <button class="btn btn-light px-0 py-0"
-                    @mousedown.prevent.stop="mousedownSelected()">
+              <b-button
+                  v-if="selectedCardIds.length === 0"
+                  :data-delay="selectAllSetting.tooltip.delay"
+                  :data-placement="selectAllSetting.tooltip.placement"
+                  :title="getCapitalizeLang(selectAllSetting.tooltip.title)"
+                  class="shadow-none px-1 py-0"
+                  data-toggle="tooltip"
+                  variant="light"
+                  @click.prevent.stop="selectAll()"
+              >
+                <i class="fa fa-check fa-xs text-success"></i>
+              </b-button>
+
+              <b-button
+                  v-b-tooltip="{trigger: 'hover focus', delay: { 'show': 800, 'hide': 40 }, placement: 'bottomright'}"
+                  :title="getCapitalizeLang('selected')"
+                  class="px-0 py-0"
+                  variant="light"
+                  @mousedown.prevent.stop="mousedownSelected()"
+              >
               <span class="st-text-shift">
-                {{ getLang('selected') }}
+                {{ getCapitalizeLang('abbrSelected') }}
               </span>
-              <span class="st-right badge bg-white border border-secondary badge-pill">
+                <span class="st-right badge bg-white border border-secondary badge-pill">
+                  <span v-if="selectedCardIds.length<100">&nbsp;</span>
+                  <span v-if="selectedCardIds.length<10">&nbsp;</span>
                 {{ selectedCardIds.length }}
               </span>
-            </button>
+              </b-button>
+            </b-button-group>
 
+            <b-button-group size="sm">
+              <b-button
+                  class="shadow-none px-1 py-0"
+                  variant="light"
+                  @click="$refs[ids.addCardModal].showModal()"
+              >
+                <i class="fa fa-plus fa-xs text-success"></i>
+                {{ getLang('card') }}
+              </b-button>
+            </b-button-group>
 
-          </div>
-          <b-button-group size="sm">
-            <b-button
-                class="shadow-none px-1 py-0"
-                variant="light"
-                @click="$refs[id.tableSettingsModal].showModal()"
-            >
-              <i class="fa fa-gear fa-xs text-secondary"></i>
-            </b-button>
-          </b-button-group>
-          <b-button-group size="sm">
-            <b-button
-                class="shadow-none px-1 py-0"
-                variant="light"
-                @click="$refs[id.addCardModal].showModal()"
-            >
-              <i class="fa fa-plus fa-xs text-success"></i>
-              {{ getLang('card') }}
-            </b-button>
-          </b-button-group>
-          <b-button-group class="border-1 border-secondary shadow-none" size="sm">
-            <b-button
-                id="download-xml-file"
-                v-b-tooltip.hover
-                :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('xml')"
-                class="py-0 px-1 shadow-none" variant="light"
-                @click="downloadXmlFile()">
-              <img alt="..." height="24" src="/static/picture/icon/xml-extension.png" width="24">
-            </b-button>
-            <b-button
-                v-b-tooltip.hover
-                :title="getCapitalizeLang('downloadTo')+ ' ' +getLang('excel')"
-                class="py-0 px-1 shadow-none" variant="light"
-                @click="downloadExcelFile()">
-              <img alt="..." height="24" src="/static/picture/icon/excel.png" width="24">
-            </b-button>
-          </b-button-group>
+            <b-button-group size="sm" class="mx-1">
+              <download-dropdown
+                  :id="ids.downloadDropdown"
+                  :ref="ids.downloadDropdown"
+                  :dictionary="dictionary"
+                  :side="instanceMark"
+                  style="position:fixed;"
+              ></download-dropdown>
+            </b-button-group>
+          </b-button-toolbar>
         </th>
       </tr>
       <tr class="border-0">
@@ -218,8 +225,8 @@
     >
     </div>
     <table-settings-modal
-        :id="id.tableSettingsModal"
-        :ref="id.tableSettingsModal"
+        :id="ids.tableSettingsModal"
+        :ref="ids.tableSettingsModal"
         :closable="true"
         :instance-mark="instanceMark"
         :property-settings="propertySettings"
@@ -228,21 +235,22 @@
     <GlobalEvents @mouseup="mouseupOutside()"/>
 
     <add-card-modal
-        :id="id.addCardModal"
-        :ref="id.addCardModal"
+        :id="ids.addCardModal"
+        :ref="ids.addCardModal"
         :closable="true"
         :dictionary="dictionary"
-        :unrepeated="true"
+        :unrepeated="dictionary.unrepeated"
     ></add-card-modal>
   </div>
 </template>
 
 <script>
-import {mapGetters, mapState} from 'vuex'
-import TableSettingsModal from './TableSettingsModal.vue'
-import AddCardModal from './AddCardModal.vue'
-import PictureStatic from '../../picture/PictureStatic.vue'
-import * as _ from 'lodash'
+import {mapGetters, mapState} from "vuex"
+import * as _ from "lodash"
+import TableSettingsModal from "./TableSettingsModal.vue"
+import AddCardModal from "./AddCardModal.vue"
+import PictureStatic from "../../picture/PictureStatic.vue"
+import DownloadDropdown from "../DownloadDropdown.vue"
 
 export default {
   props: [
@@ -253,6 +261,7 @@ export default {
     TableSettingsModal,
     AddCardModal,
     PictureStatic,
+    DownloadDropdown,
   },
   created() {
     this.$root.$on('dragdrop-init', (payload) => {
@@ -287,9 +296,7 @@ export default {
       'getDictionaryInx',
       'getCardsByDictionaryInx',
     ]),
-    prefixId() {
-      return this.name + "-" + this.instanceMark + "-"
-    },
+
     deselectAllSetting() {
       return {
         tooltip: {
@@ -449,16 +456,19 @@ export default {
           detailPosition: "vertical",
         },
       ]
-    }
+    },
+    ids() {
+      return {
+        addCardModal: this.prefixId() + 'add-card-modal-id',
+        tableSettingsModal: this.prefixId() + "table-settings-modal-id",
+        downloadDropdown: this.prefixId() + 'download-dropdown-id',
+      }
+    },
   },
 
   data() {
     return {
-      name: "cardTable",
-      id: {
-        addCardModal: this.prefixId + 'add-card-modal',
-        tableSettingsModal: this.prefixId + "table-settings-modal"
-      },
+      name: 'CardTable',
       card: {
         word: null,
         translation: null,
@@ -470,7 +480,7 @@ export default {
       showCardDetails: false,
       dictionaryCards: [],
       selectedCardIds: [],
-      blankElemId: this.prefixId + "blank",
+      blankElemId: this.prefixId() + "blank",
 
       groups: ["cardsChangeDictionary"],
       sourceMark: "cards",
@@ -496,6 +506,9 @@ export default {
           this.updateSelected()
         }
       }
+    },
+    prefixId() {
+      return this.name + '-' + this.instanceMark + '-'
     },
     getLang(key) {
       return this.$t(key)
@@ -537,16 +550,16 @@ export default {
       return _.orderBy(propertySettings, ["columnInx"], ["asc"])
     },
     getCardDetailsElemId(id) {
-      return this.prefixId + "card-detail" + id
+      return this.prefixId() + "card-detail" + id
     },
     getCardDetailsButtonElemId(id) {
-      return this.prefixId + "card-detail-b" + id
+      return this.prefixId() + "card-detail-b" + id
     },
     getCardEditButtonElemId(id) {
-      return this.prefixId + "card-edit" + id
+      return this.prefixId() + "card-edit" + id
     },
     getCardDeleteButtonElemId(id) {
-      return this.prefixId + "card-delete" + id
+      return this.prefixId() + "card-delete" + id
     },
     toggleCardDetail(card, i) {
       card.uiShowDetail = typeof card.uiShowDetail === 'undefined' ? true : !card.uiShowDetail
@@ -623,7 +636,7 @@ export default {
       this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)
     },
     getCardElemId(id) {
-      return this.prefixId + "card" + id
+      return this.prefixId() + 'card' + id
     },
 
     selectCard(card) {
