@@ -15,7 +15,7 @@
               @loadDictionary="loadDictionary"
           ></dictionary-nav>
         </div>
-        <div class="col m-0 p-0 d-flex"
+        <div class="col m-0 p-0"
              v-show="instance1.displayTool"
              style="max-width: 25px;"
         >
@@ -88,7 +88,7 @@
          class="m-0 p-0"
     >
       <div class="row justify-content-between no-gutters">
-        <div class="col m-0 p-0 d-flex"
+        <div class="col m-0 p-0"
              v-show="instance2.displayTool"
              style="max-width: 25px;"
         >

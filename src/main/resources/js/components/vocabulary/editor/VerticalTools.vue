@@ -1,51 +1,55 @@
 <template>
-  <div v-if="show" class="btn-group-vertical d-inline-block" style="border: 1px solid #6C757D;">
-    <b-button size="sm"
-              variant="secondary"
-              class="p-1 border-right-0 border-left-0 rounded-0 border-dark shadow-none"
-              @click.prevent.stop="showHideInstance()"
-    >
-      <i class="fa-solid fa-clone fa-xs"></i>
-    </b-button>
-    <b-button size="sm"
-              variant="secondary"
-              class="p-1 border-right-0 border-left-0 rounded-0 border-dark shadow-none"
-    >
-      <i class="fa-solid fa-maximize"></i>
-    </b-button>
-    <b-button size="sm"
-              variant="light"
-              class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
-              @click.prevent.stop="showFullNav()"
-    >
-      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-right"></i>
-      <i v-else class="fa-solid fa-angles-left"></i>
-    </b-button>
-    <b-button size="sm"
-              variant="light"
-              class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
-              @click.prevent.stop="stepUpNav()"
-    >
-      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-right"></i>
-      <i v-else class="fa-solid fa-angle-left"></i>
-    </b-button>
-    <b-button size="sm"
-              variant="light"
-              class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
-              @click.prevent.stop="stepDownNav()"
-    >
-      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-left"></i>
-      <i v-else class="fa-solid fa-angle-right"></i>
-    </b-button>
-    <b-button size="sm"
-              variant="light"
-              class="p-1 border-right-0 border-left-0 rounded-0 border-secondary shadow-none"
-              @click.prevent.stop="hideFullNav()"
-    >
-      <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-left"></i>
-      <i v-else class="fa-solid fa-angles-right"></i>
-    </b-button>
-    </div>
+  <b-button-toolbar
+      v-if="show"
+      >
+    <b-button-group size="sm" vertical>
+      <b-button class="p-1 rounded-0 border-dark shadow-none"
+                size="sm"
+                variant="secondary"
+                @click.prevent.stop="showHideInstance()"
+      >
+        <i class="fa-solid fa-clone fa-xs"></i>
+      </b-button>
+      <b-button class="p-1 rounded-0 border-dark shadow-none"
+                size="sm"
+                variant="secondary"
+      >
+        <i class="fa-solid fa-maximize"></i>
+      </b-button>
+      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+                size="sm"
+                variant="light"
+                @click.prevent.stop="showFullNav()"
+      >
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-right"></i>
+        <i v-else class="fa-solid fa-angles-left"></i>
+      </b-button>
+      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+                size="sm"
+                variant="light"
+                @click.prevent.stop="hideFullNav()"
+      >
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-left"></i>
+        <i v-else class="fa-solid fa-angles-right"></i>
+      </b-button>
+      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+                size="sm"
+                variant="light"
+                @click.prevent.stop="stepUpNav()"
+      >
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-right"></i>
+        <i v-else class="fa-solid fa-angle-left"></i>
+      </b-button>
+      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+                size="sm"
+                variant="light"
+                @click.prevent.stop="stepDownNav()"
+      >
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-left"></i>
+        <i v-else class="fa-solid fa-angle-right"></i>
+      </b-button>
+    </b-button-group>
+  </b-button-toolbar>
 </template>
 
 <script>
@@ -56,9 +60,7 @@ export default {
   props: [
     'instance'
   ],
-  components: {
-
-  },
+  components: {},
   created() {
     this.fetchData()
   },
@@ -72,7 +74,7 @@ export default {
     $route: [
       'fetchData',
     ],
-    instance(newVal){
+    instance(newVal) {
       this.fetchData()
     }
   },
@@ -87,19 +89,19 @@ export default {
 
       this.show = true
     },
-    showHideInstance(){
+    showHideInstance() {
       this.$emit('showHideInstance', this.instance.instanceMark)
     },
-    showFullNav(){
+    showFullNav() {
       this.$emit('showFullNav', this.instance.instanceMark)
     },
-    hideFullNav(){
+    hideFullNav() {
       this.$emit('hideFullNav', this.instance.instanceMark)
     },
-    stepUpNav(){
+    stepUpNav() {
       this.$emit('stepUpNav', this.instance.instanceMark)
     },
-    stepDownNav(){
+    stepDownNav() {
       this.$emit('stepDownNav', this.instance.instanceMark)
     },
   }

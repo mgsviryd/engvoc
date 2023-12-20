@@ -549,8 +549,8 @@ export default {
     getErrors(property) {
       return this.errors.filter(e => e.attribute === property)
     },
-    isBlank(str) {
-      return _.isNil(str) || _.isEmpty(str)
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
     wordError() {
       if (this.isBlank(this.card.word)) return ''

@@ -4,22 +4,25 @@
         class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-1 mb-0 shadow border-bottom border-secondary"
         style=" width:100%;"
     >
-      <b-button-group class="btn-group-justified">
-        <b-button variant="light"
-                  class="shadow-none pb-1 pt-0 mx-1"
-                  @click.prevent.stop="routerMainPage()"
-                  style="width: 130px;"
+      <b-button-group
+          class="btn-group-justified"
+      >
+        <b-button
+            class="shadow-none pb-1 pt-0 mx-1"
+            style="width: 130px;"
+            variant="light"
+            @click.prevent.stop="routerMainPage()"
         >
           <logo-picture></logo-picture>
         </b-button>
 
-        <b-button variant="light"
-                  class="mr-1" v-bind:class="{ active: isButtonActive1}"
-                  href="#tab1" data-toggle="tab" role="tab" aria-controls="tab1"
-                  id="button1"
-                  aria-selected="false"
-                  @click="activateLevel1()"
-                  style="width: 130px;">
+        <b-button id="button1"
+                  aria-controls="tab1" aria-selected="false"
+                  class="mr-1" data-toggle="tab" href="#tab1" role="tab"
+                  style="width: 130px;"
+                  v-bind:class="{ active: isButtonActive1}"
+                  variant="light"
+                  @click="activateLevel1()">
           <small>
             <b>
               {{ getCapitalizeLang('contacts') }}
@@ -28,10 +31,10 @@
         </b-button>
       </b-button-group>
       <b-button-group>
-        <b-button variant="danger"
-                  class="mr-1" v-bind:class="{ active: isButtonActive2}"
-                  @click="routerVocabulary()"
-                  style="width: 130px;">
+        <b-button class="mr-1"
+                  style="width: 130px;" v-bind:class="{ active: isButtonActive2}"
+                  variant="danger"
+                  @click="routerVocabulary()">
           <small>
             <b>
               {{ getCapitalizeLang('vocabulary') }}
@@ -44,30 +47,38 @@
         <lang-multiselect></lang-multiselect>
       </b-button-group>
 
-      <div class="float-right">
-        <b-button variant="outline-light" class="shadow-none"
+      <b-button-group>
+        <b-button class="shadow-none" variant="outline-light"
                   @click.prevent.stop="$refs.sign.openSignUp()"
         >
           <small>{{ getCapitalizeLang('signUp') }}</small>
         </b-button>
-        <b-button v-if="isNoUsersGetter()" variant="outline-light" class="border-0 shadow-none"
-                  @click.prevent.stop="$refs.sign.openSignIn()"
+        <b-button
+            v-if="isNoUsersGetter()"
+            class="border-0 shadow-none"
+            variant="outline-light"
+            @click.prevent.stop="$refs.sign.openSignIn()"
         >
           <small>{{ getCapitalizeLang('signIn') }}</small>
         </b-button>
         <account-dropdown v-else></account-dropdown>
-      </div>
+      </b-button-group>
       <sign
-          ref="sign"
+          :ref="'sign'"
           :closable="true"
           :show="false"
       ></sign>
     </nav>
-    <div class="tab-content" id="tab-content-0 d-inline-block" style="width: 100%">
-      <div class="tab-pane fade bg-light border-1 border-secondary" style="width: 100%"
-           v-bind:class="{ active: isButtonActive1, show: isButtonActive1}"
-           id="tab1"
-           role="tabpanel" aria-labelledby="...">
+    <div id="tab-content-0 d-inline-block"
+         class="tab-content"
+         style="width: 100%"
+    >
+      <div :id="'tab1'"
+           :class="{ active: isButtonActive1, show: isButtonActive1}"
+           aria-labelledby="..." class="tab-pane fade bg-light border-1 border-secondary"
+           role="tabpanel"
+           style="width: 100%"
+      >
       </div>
     </div>
   </div>
@@ -99,9 +110,9 @@ export default {
     ]),
     ...mapGetters([
       'isNoAuthentication',
-        'isNoUsers',
+      'isNoUsers',
     ]),
-    isNoAuthenticationGetter(){
+    isNoAuthenticationGetter() {
       return this.isNoAuthentication
     }
   },

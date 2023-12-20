@@ -7278,17 +7278,17 @@ vue-multiselect@^2.1.6:
   resolved "https://registry.yarnpkg.com/vue-multiselect/-/vue-multiselect-2.1.7.tgz#f27afe3d46482b94810382af7a4826219255c47d"
   integrity sha512-KIegcN+Ntwg3cbkY/jhw2s/+XJUM0Lpi/LcKFYCS8PrZHcWBl2iKCVze7ZCnRj3w8H7/lUJ9v7rj9KQiNxApBw==
 
-vue-outside-events@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/vue-outside-events/-/vue-outside-events-1.1.3.tgz#75b3e3b7856590fbe4455c87075b54f92b2a9654"
-  integrity sha512-8FZqTRy3JUd1L/CFDoUPpuk4uM3piWFX1EixgKp4E3iOwDZfDHZVsnPYORbazs41XFB5u1EVPUOzbrR8iI4ImQ==
-
 vue-property-decorator@^8.0.0:
   version "8.5.1"
   resolved "https://registry.yarnpkg.com/vue-property-decorator/-/vue-property-decorator-8.5.1.tgz#571a91cf8d2b507f537d79bf8275af3184572fff"
   integrity sha512-O6OUN2OMsYTGPvgFtXeBU3jPnX5ffQ9V4I1WfxFQ6dqz6cOUbR3Usou7kgFpfiXDvV7dJQSFcJ5yUPgOtPPm1Q==
   dependencies:
     vue-class-component "^7.1.0"
+
+vue-resizable@1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/vue-resizable/-/vue-resizable-1.2.5.tgz#0bc854fa26fbdc59a31555b9e08cacc447a8ce32"
+  integrity sha512-qtq8a1hiyIS1Q1xag4xanqUiRQvMj64OtwwaHk2lADHGtHjEF5O/o7DlzotvyPQlp1lm4rhOWPySltlIgnBmTQ==
 
 vue-resource@^1.5.1:
   version "1.5.3"

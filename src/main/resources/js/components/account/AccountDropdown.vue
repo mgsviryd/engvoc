@@ -5,8 +5,8 @@
       :ref="prefixId()"
       class="border-0 shadow-none"
       :class="isNoUserGetter?'bg-transparent':'bg-white'"
-      variant="transparent"
       toggle-class="shadow-none rounded-sm px-1"
+      variant="transparent"
       no-caret
       dropleft
       @hide="shown=false"

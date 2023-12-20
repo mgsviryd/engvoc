@@ -300,8 +300,8 @@ export default {
     stateTrue() {
       return this.stateName() && !this.isAnyErrorsShow()
     },
-    isBlank(str) {
-      return _.isNil(str) || _.isEmpty(str)
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
     upperFirst(text) {
       return _.upperFirst(text)

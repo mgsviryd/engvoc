@@ -337,8 +337,8 @@ export default {
     getLang(key) {
       return this.$t(key)
     },
-    isBlank(str) {
-      return _.isNil(str) || _.isEmpty(str)
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
     stateEmail() {
       return !this.isBlank(this.email)

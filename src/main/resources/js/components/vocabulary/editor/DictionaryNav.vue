@@ -11,7 +11,6 @@
         :href="'#'+ids.vocabularyDropdown"
         aria-expanded="false"
         block
-        class="sticky-top"
         data-toggle="collapse"
         menu-class="w-100"
         role="button"
@@ -21,6 +20,8 @@
         split-variant="light"
         toggle-class="shadow-none rounded-0 border-1 border-secondary"
         variant="light"
+        class="sticky-top"
+        style="z-index: 100;"
     >
       <template slot="button-content"
       >
@@ -387,12 +388,17 @@
             @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
         >
           <template #button-content>
-            <div class="text-left px-3 d-flex align-items-center justify-content-between"
-                 @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
+            <b-row class="px-3"
+                   no-gutters
+                   @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
             >
-              <span>{{ getCapitalizeLang('download') }}</span>
-              <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
-            </div>
+              <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
+                  class="fa-solid fa-download"></i></b-col>
+              <b-col class="col-10 d-flex align-items-center justify-content-between">
+                <span>{{ getCapitalizeLang('download') }}</span>
+                <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
+              </b-col>
+            </b-row>
           </template>
 
           <b-dropdown-item
