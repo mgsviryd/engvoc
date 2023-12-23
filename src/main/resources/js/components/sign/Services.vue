@@ -3,6 +3,7 @@
     <b-row class="my-1 text-secondary justify-content-center">
       <small>{{ getLang('useServices') }}</small>
     </b-row>
+
     <b-row class="mb-1 justify-content-center">
       <a href="/login/google"
          tabindex="-1"
@@ -76,7 +77,7 @@ export default {
   },
   data() {
     return {
-      name: "Services",
+      name: 'Services',
     }
   },
 

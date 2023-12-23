@@ -1,6 +1,13 @@
 <template>
   <div>
-    <b-overlay :show="overlay.show" no-wrap rounded="sm">
+    <b-overlay
+        :show="overlay.show"
+        no-fade
+        no-wrap
+        opacity="1"
+        rounded="sm"
+        z-index="1500"
+    >
       <template #overlay>
         <div class="text-center">
           <div class="d-flex justify-content-center">
@@ -10,7 +17,17 @@
       </template>
     </b-overlay>
 
-    <router-view v-if="!overlay.show"></router-view>
+    <greeting-nav
+        :id="ids.header"
+        :ref="ids.header"
+    ></greeting-nav>
+
+    <router-view :style="{height: routerHeight +'px'}"></router-view>
+
+    <footer-nav
+        :id="ids.footer"
+        :ref="ids.footer"
+    ></footer-nav>
   </div>
 </template>
 
@@ -18,12 +35,16 @@
 
 import {mapState} from "vuex"
 import * as _ from "lodash"
-import GoogleCircle from "../components/spinner/GoogleCircle.vue"
 import store from "../store/store"
+import GoogleCircle from "../components/spinner/GoogleCircle.vue"
+import GreetingNav from "../components/greeting/GreetingNav.vue"
+import FooterNav from "../components/footer/FooterNav.vue"
 
 export default {
   components: {
     GoogleCircle,
+    GreetingNav,
+    FooterNav,
   },
   async created() {
     this.overlay.show = true
@@ -31,16 +52,25 @@ export default {
     await this.$store.dispatch('updateFrontendAction')
     this.$cookies.config('365d')
     this.sync()
+    await this.setSizeHeaderFooter()
     this.overlay.show = false
   },
   computed: {
     ...mapState([
       'lang',
-      'frontend',
       'authentication',
     ]),
     main() {
       return document.getElementById("main")
+    },
+    ids() {
+      return {
+        id: this.prefixId(),
+        footer: 'footer-id',
+        header: 'header-id',
+        vocabulary: this.prefixId() + 'vocabulary-id',
+        vocabularyModal: this.prefixId() + 'vocabulary-modal-id',
+      }
     }
   },
   watch: {
@@ -60,12 +90,23 @@ export default {
   },
   data() {
     return {
+      name: 'Main',
+      routerHeight: 0,
       overlay: {
         show: true,
       }
     }
   },
   methods: {
+    prefixId() {
+      return this.name + '-'
+    },
+    async setSizeHeaderFooter() {
+      let heightHeader = document.getElementById(this.ids.header).offsetHeight
+      let heightFooter = document.getElementById(this.ids.footer).offsetHeight
+      this.routerHeight = window.innerHeight - heightHeader - heightFooter
+      this.$store.commit('setHeightHeaderFooterMutation', {header: heightHeader, footer: heightFooter})
+    },
     async sync() {
       let result = false
       await this.sleep(1)
@@ -97,4 +138,8 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+
+</style>
 

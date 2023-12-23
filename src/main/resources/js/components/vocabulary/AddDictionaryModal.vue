@@ -106,7 +106,7 @@
 <script>
 import {mapState} from 'vuex'
 import SinglePictureDropZone from './SinglePictureDropZone.vue'
-import CloseRow from '../../close/CloseRow.vue'
+import CloseRow from '../close/CloseRow.vue'
 import * as _ from 'lodash'
 
 export default {

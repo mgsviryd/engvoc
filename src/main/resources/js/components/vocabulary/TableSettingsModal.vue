@@ -98,8 +98,8 @@
 
 <script>
 import {mapState} from 'vuex'
-import arrayJS from "../../../util/array"
-import CloseRow from "../../close/CloseRow.vue"
+import arrayJS from "../../util/array"
+import CloseRow from "../close/CloseRow.vue"
 import * as _ from "lodash"
 
 export default {

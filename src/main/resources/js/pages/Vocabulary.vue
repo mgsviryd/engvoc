@@ -1,7 +1,9 @@
 <template>
   <div v-if="show">
-    <greeting-nav></greeting-nav>
-    <vocabulary-nav></vocabulary-nav>
+    <editor
+        :id="ids.vocabulary"
+        :ref="ids.vocabulary"
+    ></editor>
     <vocabulary-modal
         :id="ids.vocabularyModal"
         :ref="ids.vocabularyModal"
@@ -14,16 +16,20 @@
 <script>
 
 import {mapState, mapGetters} from "vuex"
-import GreetingNav from "../components/greeting/GreetingNav.vue"
-import VocabularyNav from "../components/vocabulary/VocabularyNav.vue"
-import VocabularyModal from "../components/vocabulary/VocabularyModal.vue"
 import * as _ from "lodash"
+import GreetingNav from "../components/greeting/GreetingNav.vue"
+import FooterNav from "../components/footer/FooterNav.vue"
+import Editor from "../components/vocabulary/Vocabulary.vue"
+import VocabularyModal from "../components/vocabulary/VocabularyModal.vue"
 
 export default {
   components: {
     GreetingNav,
-    VocabularyNav,
+    FooterNav,
+    Editor,
     VocabularyModal,
+  },
+  mounted() {
   },
   created() {
   },
@@ -39,7 +45,8 @@ export default {
     ids() {
       return {
         id: this.prefixId(),
-        vocabularyModal: this.prefixId() + 'vocabulary-modal',
+        vocabulary: this.prefixId() + 'vocabulary-id',
+        vocabularyModal: this.prefixId() + 'vocabulary-modal-id',
       }
     }
   },
@@ -89,5 +96,6 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+
 </style>

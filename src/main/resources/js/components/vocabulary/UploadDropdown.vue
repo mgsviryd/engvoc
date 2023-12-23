@@ -16,7 +16,7 @@
     </template>
 
     <b-dropdown-item
-        @click="uploadXmlFile()"
+        @click.prevent.stop="uploadXmlFile()"
     >
       <b-row no-gutters>
         <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
@@ -28,7 +28,7 @@
     </b-dropdown-item>
 
     <b-dropdown-item
-        @click="uploadExcelFile()"
+        @click.prevent.stop="uploadExcelFile()"
     >
       <b-row no-gutters>
         <b-col class="col-3 d-flex align-items-center justify-content-left text-left">

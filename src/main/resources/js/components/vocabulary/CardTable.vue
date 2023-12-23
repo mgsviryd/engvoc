@@ -1,16 +1,20 @@
 <template>
-  <div v-if="show"
-       class="container p-0 m-0"
+  <div v-if="show" class="container p-0 m-0 parent-for-height-flex"
+       :style="{height: colHeight+'px'}"
   >
-
-    <b-row class="bg-dark d-block border-0" no-gutters
-           style="position: sticky; top:0; left: 0; z-index: 100;"
+    <b-row
+        :id="ids.tools"
+        class="bg-dark d-block border-0 flex-shrink-0"
+        no-gutters
+        style="position: sticky; top:0; left: 0; z-index: 100;"
     >
       <b-button-toolbar>
         <b-button-group size="sm">
           <b-button
-              class="shadow-none px-1 py-0"
               variant="light"
+              class="shadow-none px-1 py-0"
+              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+              :title="getCapitalizeLang('settings')"
               @click="$refs[ids.tableSettingsModal].showModal()"
           >
             <i class="fa fa-gear fa-xs text-secondary"></i>
@@ -20,22 +24,20 @@
         <b-button-group class="mx-1" size="sm">
           <b-button
               v-if="selectedCardIds.length > 0"
-              :data-delay="deselectAllSetting.tooltip.delay"
-              :data-placement="deselectAllSetting.tooltip.placement"
-              :title="getCapitalizeLang(deselectAllSetting.tooltip.title)"
+              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+              :title="getCapitalizeLang('deselectAll')"
               class="shadow-none px-1 py-0"
               data-toggle="tooltip"
               variant="light"
-              @click.prevent.s.stop="deselectAll()"
+              @click.prevent.stop="deselectAll()"
           >
             <i class="fa fa-xmark fa-xs text-danger"></i>
           </b-button>
 
           <b-button
               v-if="selectedCardIds.length === 0"
-              :data-delay="selectAllSetting.tooltip.delay"
-              :data-placement="selectAllSetting.tooltip.placement"
-              :title="getCapitalizeLang(selectAllSetting.tooltip.title)"
+              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+              :title="getCapitalizeLang('selectAll')"
               class="shadow-none px-1 py-0"
               data-toggle="tooltip"
               variant="light"
@@ -45,11 +47,11 @@
           </b-button>
 
           <b-button
-              v-b-tooltip="{trigger: 'hover focus', delay: { 'show': 800, 'hide': 40 }, placement: 'bottomright'}"
+              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
               :title="getCapitalizeLang('selected')"
               class="px-0 py-0"
               variant="light"
-              @mousedown.prevent.stop="mousedownSelected()"
+              @mousedown.prevent="mousedownSelected()"
           >
               <span class="st-text-shift">
                 {{ getCapitalizeLang('abbrSelected') }}
@@ -64,6 +66,8 @@
 
         <b-button-group size="sm">
           <b-button
+              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+              :title="getCapitalizeLang('addCard')"
               class="shadow-none px-1 py-0"
               variant="light"
               @click="$refs[ids.addCardModal].showModal()"
@@ -90,8 +94,10 @@
       </b-button-toolbar>
     </b-row>
 
-    <div class="st-table container px-0 parent-for-filler border border-1 border-secondary">
-      <table class="table bg-white table-hover table-bordered border-2 border-dark table-sm mb-0"
+    <div class="st-table container px-0 parent-for-height-flex"
+      :style="styleTable"
+    >
+      <table class="table bg-white table-hover table-bordered table-sm mb-0 border-0"
              style="z-index: 1;"
       >
         <thead class="thead-dark"
@@ -173,9 +179,9 @@
           <tr :id="getCardElemId(card.id)"
               :key="card.id"
               draggable="true"
-              @mousedown.prevent.stop="mousedown(card, i)"
-              @mouseup.prevent.stop="mouseup(card, i)"
-              @click.prevent="selectCard(card)"
+              @mousedown.prevent="mousedown(card, i)"
+              @mouseup.prevent="mouseup(card, i)"
+              @click.prevent.stop="selectCard(card)"
           >
             <td class="st-squeeze border-1 border-secondary border-left-0">{{ i + 1 }}</td>
             <template v-for="(property, ii) in sortByColumnInx(propertySettings)">
@@ -227,8 +233,8 @@
         </tbody>
       </table>
       <b-row
-          :id="blankElemId"
-          class="child-for-filler p-0 m-0"
+          :id="ids.filler"
+          class="child-for-height-flex p-0 m-0"
           @mouseup="mouseup(null,-1)"
       >
       </b-row>
@@ -258,9 +264,9 @@ import {mapGetters, mapState} from "vuex"
 import * as _ from "lodash"
 import TableSettingsModal from "./TableSettingsModal.vue"
 import AddCardModal from "./AddCardModal.vue"
-import PictureStatic from "../../picture/PictureStatic.vue"
-import DownloadDropdown from "../DownloadDropdown.vue"
-import UploadDropdown from "../UploadDropdown.vue"
+import PictureStatic from "../picture/PictureStatic.vue"
+import DownloadDropdown from "./DownloadDropdown.vue"
+import UploadDropdown from "./UploadDropdown.vue"
 
 export default {
   props: [
@@ -275,7 +281,7 @@ export default {
     UploadDropdown,
   },
   created() {
-    this.keydownListener()
+    this.addListeners()
     this.$root.$on('dragdrop-init', (payload) => {
       this.dragdropInit(payload)
     })
@@ -286,6 +292,9 @@ export default {
       this.fetchData()
     })
     this.fetchData()
+  },
+  destroyed() {
+    this.removeListeners()
   },
   watch: {
     $route: [
@@ -300,6 +309,7 @@ export default {
       'cards',
       'lang',
       'vocabulary',
+        'height',
     ]),
     ...mapGetters([
       'isDictionaryExists',
@@ -307,24 +317,8 @@ export default {
       'getDictionaryInx',
       'getCardsByDictionaryInx',
     ]),
-
-    deselectAllSetting() {
-      return {
-        tooltip: {
-          placement: top,
-          title: "deselectAll",
-          delay: {show: 500, hide: 100}
-        }
-      }
-    },
-    selectAllSetting() {
-      return {
-        tooltip: {
-          placement: top,
-          title: "selectAll",
-          delay: {show: 500, hide: 100}
-        }
-      }
+    colHeight(){
+      return window.innerHeight - this.height.header - this.height.footer
     },
     propertySettings() {
       return [
@@ -470,10 +464,17 @@ export default {
     },
     ids() {
       return {
+        tools: this.prefixId() + 'tools-id',
+        filler: this.prefixId() + 'filler-id',
         addCardModal: this.prefixId() + 'add-card-modal-id',
         tableSettingsModal: this.prefixId() + "table-settings-modal-id",
         downloadDropdown: this.prefixId() + 'download-dropdown-id',
         uploadDropdown: this.prefixId() + 'upload-dropdown-id',
+      }
+    },
+    styleTable(){
+      return {
+        height: this.style.height.table + 'px',
       }
     },
   },
@@ -488,19 +489,23 @@ export default {
         exampleTranslation: null,
       },
       show: true,
+      activeParent: false,
       showCardDetails: false,
       dictionaryCards: [],
       selectedCardIds: [],
-      blankElemId: this.prefixId() + "blank",
-
-      hovered: false,
-      focused: false,
 
       groups: ["cardsChangeDictionary"],
       sourceMark: "cards",
       isMouseInClick: false,
       groupsInProcess: [],
       dragCards: [],
+
+      listeners: [],
+      style:{
+        height:{
+          table: 0,
+        },
+      }
     }
   },
   methods: {
@@ -517,8 +522,14 @@ export default {
           }
           this.groupCards()
           this.updateSelected()
+          this.$nextTick(()=>{
+            this.style.height.table = this.calcHeightTable()
+          })
         }
       }
+    },
+    calcHeightTable(){
+      return this.colHeight - document.getElementById(this.ids.tools).offsetHeight
     },
     prefixId() {
       return this.name + '-' + this.instanceMark + '-'
@@ -708,7 +719,7 @@ export default {
           }
           this.$store.dispatch("dragdropStartAction", start)
         }
-      }, 60)
+      }, 100)
     },
     mousedownSelected() {
       this.isMouseInClick = true
@@ -732,7 +743,7 @@ export default {
           }
           this.$store.dispatch("dragdropStartAction", start)
         }
-      }, 60)
+      }, 100)
     },
     mouseup(card, i) {
       this.isMouseInClick = false
@@ -790,11 +801,11 @@ export default {
     },
     async activateDragoverStyle(cards) {
       cards.forEach(card => $("#" + this.getCardElemId(card.id)).addClass("dragover"))
-      $("#" + this.blankElemId).addClass("dragover")
+      $("#" + this.ids.filler).addClass("dragover")
     },
     async deactivateDragoverStyle(cards) {
       cards.forEach(card => $("#" + this.getCardElemId(card.id)).removeClass("dragover"))
-      $("#" + this.blankElemId).removeClass("dragover")
+      $("#" + this.ids.filler).removeClass("dragover")
     },
     downloadExcelFile() {
       $('download-excel-file').removeClass("active")
@@ -808,14 +819,30 @@ export default {
       )
     },
     keydownListener() {
-      const keydownListener = ({repeat, altKey, key}) => {
-        if (repeat) return
-        // console.info("work: "+key)
-        if (altKey && key === 'c') {
-          this.$refs[this.ids.addCardModal].showModal()
+      return ({repeat, altKey, which}) => {
+        if (this.activeParent) {
+          if (repeat) return
+          if (altKey && which === 67) {
+            this.$refs[this.ids.addCardModal].showModal()
+          }
         }
       }
-      document.addEventListener('keydown', keydownListener);
+    },
+    addListeners() {
+      const keydownListener = this.keydownListener()
+      this.listeners.push({type: 'keydown', listener: keydownListener})
+      this.activateListeners()
+    },
+    removeListeners() {
+      this.listeners.forEach(pair=>{
+        document.removeEventListener(pair.type, pair.listener)
+      })
+      this.listeners = []
+    },
+    activateListeners(){
+      this.listeners.forEach(pair=>{
+        document.addEventListener(pair.type, pair.listener)
+      })
     },
   },
 }
@@ -824,7 +851,7 @@ export default {
 <style scoped>
 
 .st-table {
-  height: 500px;
+
   overflow: scroll;
 }
 
@@ -873,13 +900,15 @@ th, td:not(.st-squeeze, .st-text-shift) {
 .st-cursor-pointer {
   cursor: pointer;
 }
-.parent-for-filler {
+
+.parent-for-height-flex {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
-.child-for-filler {
-  min-height:0;
+
+.child-for-height-flex {
+  min-height: 0;
   width: 100%;
   flex: 1;
 }

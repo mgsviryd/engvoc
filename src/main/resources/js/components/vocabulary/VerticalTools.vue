@@ -1,7 +1,8 @@
 <template>
   <b-button-toolbar
       v-if="show"
-      >
+      class="vertical-tools"
+  >
     <b-button-group size="sm" vertical>
       <b-button class="p-1 rounded-0 border-dark shadow-none"
                 size="sm"
@@ -16,7 +17,7 @@
       >
         <i class="fa-solid fa-maximize"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+      <b-button class="p-1 rounded-0 border-dark shadow-none"
                 size="sm"
                 variant="light"
                 @click.prevent.stop="showFullNav()"
@@ -24,7 +25,7 @@
         <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-right"></i>
         <i v-else class="fa-solid fa-angles-left"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+      <b-button class="p-1 rounded-0 border-dark shadow-none"
                 size="sm"
                 variant="light"
                 @click.prevent.stop="hideFullNav()"
@@ -32,7 +33,7 @@
         <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-left"></i>
         <i v-else class="fa-solid fa-angles-right"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+      <b-button class="p-1 rounded-0 border-dark shadow-none"
                 size="sm"
                 variant="light"
                 @click.prevent.stop="stepUpNav()"
@@ -40,7 +41,7 @@
         <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-right"></i>
         <i v-else class="fa-solid fa-angle-left"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-secondary shadow-none"
+      <b-button class="p-1 rounded-0 border-dark shadow-none"
                 size="sm"
                 variant="light"
                 @click.prevent.stop="stepDownNav()"
@@ -109,5 +110,9 @@ export default {
 </script>
 
 <style scoped>
+.vertical-tools{
+
+}
+
 
 </style>

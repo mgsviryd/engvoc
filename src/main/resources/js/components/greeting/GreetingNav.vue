@@ -1,7 +1,7 @@
 <template>
   <div v-if="show">
     <nav
-        class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-1 mb-0 shadow border-bottom border-secondary"
+        class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top py-1 mb-0 border-bottom border-secondary"
         style=" width:100%;"
     >
       <b-button-group

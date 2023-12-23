@@ -56,6 +56,7 @@ const messages = {
   addDictionary: 'add dictionary',
   addVocabulary: 'add vocabulary',
   addCard: 'add card',
+  addCardsUsingFiles: 'add cards using files',
   tableSettings: 'table settings',
   propertySettings: 'columns and rows',
   hiddenColumns: 'hidden columns',
@@ -148,6 +149,10 @@ const messages = {
   confirmDeleteDictionary: 'delete the dictionary without recovery?',
   accessAllowed: 'access allowed',
   accessDenied: 'access denied',
+  conditions: 'conditions',
+  confidence: 'confidence',
+  connectWithUs: 'connect with us',
+  media: 'media',
 
   dictionaryNotUniqueError:'Dictionary already exists. Change name or parent.',
   cardNotUniqueError:'Card already exists. Change word or translation.',

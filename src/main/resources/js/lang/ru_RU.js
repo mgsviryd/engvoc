@@ -56,6 +56,7 @@ const messages = {
   addVocabulary: 'добавить лексикон',
   addDictionary: 'добавить словарь',
   addCard: 'добавить карточку',
+  addCardsUsingFiles: 'добавить карточки использую файлы',
   tableSettings: 'свойства таблицы',
   propertySettings: 'столбцы и поля',
   hiddenColumns: 'скрытые столбцы',
@@ -148,6 +149,10 @@ const messages = {
   confirmDeleteDictionary: 'удалить словарь без восстановления?',
   accessAllowed: 'доступ разрешен',
   accessDenied: 'доступ запрещен',
+  conditions: 'условия',
+  confidence: 'конфиденциальность',
+  connectWithUs: 'связаться с нами',
+  media: 'медиа',
 
   dictionaryNotUniqueError:'Словарь уже существует. Измените имя или родителя.',
   cardNotUniqueError:'Карточка уже существует. Измените слово или перевод.',

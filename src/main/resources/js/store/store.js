@@ -30,6 +30,7 @@ const persist = new VuexPersistence(
 
         reducer: (state) => (
             {
+                height: state.height,
                 authentication: state.authentication,
                 config: state.config,
                 version: state.version,
@@ -51,6 +52,10 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            height: {
+                header: 0,
+                footer: 0,
+            },
             pageAttributes: {},
             dragdrop: {},
             pictures: [],
@@ -214,6 +219,10 @@ export default new Vuex.Store(
             },
         },
         mutations: {
+            setHeightHeaderFooterMutation(state, payload){
+                state.height.header = payload.header
+                state.height.footer = payload.footer
+            },
             setVocabularyMutation(state, payload) {
                 state.vocabulary.vocabulary = payload.vocabulary
                 state.vocabulary.id = _.now()
