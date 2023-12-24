@@ -22,7 +22,7 @@
         :ref="ids.header"
     ></greeting-nav>
 
-    <router-view :style="{height: routerHeight +'px'}"></router-view>
+    <router-view v-if="!overlay.show" :style="{height: routerHeight +'px'}"></router-view>
 
     <footer-nav
         :id="ids.footer"
@@ -49,6 +49,7 @@ export default {
   async created() {
     this.overlay.show = true
     await store.restored
+    await this.$store.dispatch('resetAction')
     await this.$store.dispatch('updateFrontendAction')
     this.$cookies.config('365d')
     this.sync()

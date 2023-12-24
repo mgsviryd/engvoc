@@ -1,6 +1,5 @@
 <template>
 <div v-if="show">
-  <greeting-nav></greeting-nav>
   <h6>Greeting</h6>
   <h6 v-if="pageAttributes.user">{{pageAttributes.user.username}}</h6>
 </div>

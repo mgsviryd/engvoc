@@ -2,11 +2,13 @@
   <div
       v-if="show"
       :id="ids.id"
-      class="dictionary-nav- parent-for-height-flex"
       :style="{height: colHeight-2+'px'}"
+      class="dictionary-nav- parent-for-height-flex"
   >
 
-    <b-container class="p-0 m-0 flex-shrink-0" fluid
+    <b-container
+        class="p-0 m-0 flex-shrink-0"
+        fluid
     >
       <b-dropdown
           :id="ids.userDropdown"
@@ -34,9 +36,9 @@
 
 
     <b-dropdown
-        :id="'button'+ids.vocabularyDropdown"
-        :aria-controls="ids.vocabularyDropdown"
-        :href="'#'+ids.vocabularyDropdown"
+        :id="ids.dropdownVocabularies"
+        :aria-controls="ids.vocabularies"
+        :href="'#'+ids.vocabularies"
         :split-variant="'light'"
         :variant="'light'"
         aria-expanded="false"
@@ -95,7 +97,7 @@
     >
       <b-button-toolbar class="bg-dark">
         <b-button-group size="sm">
-          <b-button size="sm" class="py-0 px-1">
+          <b-button class="py-0 px-1" size="sm">
             {{}}
           </b-button>
         </b-button-group>
@@ -104,10 +106,11 @@
 
     <b-container
         class="st-dictionaries p-0 m-0 child-for-height-flex"
-                 fluid
+        fluid
     >
       <b-dropdown
-          :id="'button'+ids.unrepeatedDictionaries"
+          :id="ids.dropdownUnrepeatedDictionaries"
+          :ref="ids.dropdownUnrepeatedDictionaries"
           :aria-controls="ids.unrepeatedDictionaries"
           :href="'#'+ids.unrepeatedDictionaries"
           :right="instance.instanceMark === 'right'"
@@ -190,7 +193,7 @@
             @toggle="toggleDropdownRef({ref:getDictionaryElemId(d.id), level: 0})"
             @click.prevent.stop="parentLoadDictionary(d)"
         >
-          <template slot="button-content">
+          <template slot="button-content" >
             <div
                 @mousedown.prevent="mousedown(d.id)"
                 @mouseup.prevent="mouseup(d.id)"
@@ -324,8 +327,8 @@
       </div>
 
       <b-dropdown
-          :id="'button'+ids.nonUnrepeatedDictionaries"
-          :ref="'button'+ids.nonUnrepeatedDictionaries"
+          :id="ids.dropdownNonUnrepeatedDictionaries"
+          :ref="ids.dropdownNonUnrepeatedDictionaries"
           :aria-controls="ids.nonUnrepeatedDictionaries"
           :href="'#'+ids.nonUnrepeatedDictionaries"
           :right="instance.instanceMark === 'right'"
@@ -627,14 +630,6 @@ export default {
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
     })
-    this.$store.watch(this.$store.getters.getActionId, actionId => {
-      this.fetchData()
-    })
-    this.$store.watch(this.$store.getters.getVocabularyId, vocabularyId => {
-      this.$forceNextTick(() => {
-        this.fetchData().then(() => this.goToDictionary())
-      })
-    })
   },
   destroyed() {
     this.removeListeners()
@@ -645,9 +640,10 @@ export default {
       'lang',
       'vocabulary',
       'authentication',
-        'height',
+      'height',
     ]),
     ...mapGetters([
+      'getDictionaryById',
       'getDictionaryIdsByUnrepeated',
       'getUnrepeatedDictionaries',
       'getNonUnrepeatedDictionaries',
@@ -657,7 +653,7 @@ export default {
       'sortArrayByStringProperty',
       'isDictionaryUnrepeated',
     ]),
-    colHeight(){
+    colHeight() {
       return window.innerHeight - this.height.header - this.height.footer
     },
     ids() {
@@ -666,11 +662,14 @@ export default {
         addDictionaryUnrepeatedModal: this.prefixId() + 'add-dictionary-unrepeated-modal-id',
         addDictionaryNonUnrepeatedModal: this.prefixId() + 'add-dictionary-non-repeated-modal-id',
         vocabularyModal: this.prefixId() + 'vocabulary-modal-id',
+        dropdownUnrepeatedDictionaries: this.prefixId() + "dropdown-unrepeated-dictionaries-id",
         unrepeatedDictionaries: this.prefixId() + "unrepeated-dictionaries-id",
+        dropdownNonUnrepeatedDictionaries: this.prefixId() + "dropdown-non-unrepeated-dictionaries-id",
         nonUnrepeatedDictionaries: this.prefixId() + "non-unrepeated-dictionaries-id",
         nonUnrepeatedDictionariesDownload: this.prefixId() + "non-unrepeated-dictionaries-download-id",
         vocabularyMultiselect: this.prefixId() + "vocabulary-multiselect-id",
-        vocabularyDropdown: this.prefixId() + "vocabulary-dropdown-id",
+        dropdownVocabularies: this.prefixId() + 'dropdown-vocabularies-id',
+        vocabularies: this.prefixId() + "vocabularies-id",
         deleteVocabularyDangerModal: this.prefixId() + "delete-vocabulary-danger-modal-id",
         deleteDictionariesUniqueDangerModal: this.prefixId() + "delete-dictionaries-unique-danger-modal-id",
         deleteDictionariesNotUniqueDangerModal: this.prefixId() + "delete-dictionaries-not-unique-danger-modal-id",
@@ -687,25 +686,22 @@ export default {
     }
   },
   watch: {
-    $route: [
-      'fetchData',
-    ],
     dictionaries: {
       handler: function () {
-        this.$forceNextTick(() => {
-          this.fetchData()
-        })
+        this.fetchData()
+        // if (this.isDictionariesFirstLoad){
+        //   this.focusOnDictionary()
+        //   this.isDictionariesFirstLoad = false
+        // }
       },
-      deep: true
+      deep: true,
     },
-    dictionary() {
-    },
-
   },
   data() {
     return {
       name: "DictionaryNav",
       show: true,
+      isDictionariesFirstLoad: true,
       activeParent: false,
       dropdownRefs: [],
       dropdownRef: null,
@@ -714,7 +710,6 @@ export default {
       unrepeatedDictionaries: [],
       nonUnrepeatedDictionaries: [],
       nonUnrepeatedShortLDTs: [],
-      activeDictionaryElemId: null,
 
       groups: ["cardsChangeDictionary"],
       sourceMark: "cards",
@@ -753,17 +748,10 @@ export default {
       return [...new Set(this.getNonUnrepeatedDictionariesPropertyValues("creationLDT").map(ldt => this.getShortLDT(ldt)))]
     },
     getDictionaryElemId(id) {
-      return this.prefixId() + "dictionary" + id
+      return this.prefixId() + "dictionary-" + id
     },
     getShortLDT(ldt) {
       return date.parseISOString(ldt).toLocaleString()
-    },
-    async updateActiveDictionaryElemId(id) {
-      if (this.activeDictionaryElemId) {
-        $("#" + this.activeDictionaryElemId).removeClass("active-dictionary")
-      }
-      this.activeDictionaryElemId = this.getDictionaryElemId(id)
-      $("#" + this.activeDictionaryElemId).addClass("active-dictionary")
     },
     getCountUploadDictionaries(shortLDT) {
       return this.getUploadDictionaries(shortLDT).length
@@ -777,10 +765,9 @@ export default {
       return this.prefixId() + "non-unrepeated-dictionaries-creationLDT" + i
     },
     parentLoadDictionary(d) {
-      this.updateActiveDictionaryElemId(d.id)
-      this.routerEditorDictionaries(d.id)
+      this.routerVocabulary(d.id)
     },
-    routerEditorDictionaries(id) {
+    routerVocabulary(id) {
       let query = {
         left: this.$route.query.left,
         right: this.$route.query.right
@@ -923,21 +910,6 @@ export default {
     async deactivateDragoverStyle(dictionaries) {
       dictionaries.forEach(d => $("#" + this.getDictionaryElemId(d.id)).removeClass("dragover"))
     },
-    goToDictionary() {
-      if (this.instance) {
-        if (this.instance.dictionary) {
-          if (this.instance.dictionary.unrepeated) {
-            $('#' + 'button' + this.ids.unrepeatedDictionaries).click()
-            this.updateActiveDictionaryElemId(this.instance.dictionary.id)
-          } else {
-            $('#' + 'button' + this.ids.nonUnrepeatedDictionaries).click()
-            // console.info(this.getShortLDT(this.instance.dictionary.creationLDT))
-            // $('#' + this.getNonUnrepeatedDictionariesCreationShortLDTElemId(this.getShortLDT(this.instance.dictionary["creationLDT"]))).collapse('show')
-            this.updateActiveDictionaryElemId(this.instance.dictionary.id)
-          }
-        }
-      }
-    },
     downloadDictionariesXmlFilesByUnrepeated(unrepeated) {
       const ids = this.getDictionaryIdsByUnrepeated(unrepeated)
       this.$store.dispatch('downloadDictionaryXmlFilesByIdsAction', {ids: ids})
@@ -1036,6 +1008,31 @@ export default {
         document.addEventListener(pair.type, pair.listener)
       })
     },
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
+    },
+    // activateDictionaries(leftDictionaryId, rightDictionaryId){
+    //   let dictionary = null
+    //   if (this.instance.instanceMark === 'left'){
+    //     dictionary = this.getDictionaryById(leftDictionaryId)
+    //   }
+    //   if (this.instance.instanceMark === 'right'){
+    //     dictionary = this.getDictionaryById(rightDictionaryId)
+    //   }
+    //   if(dictionary){
+    //     if(dictionary.unrepeated){
+    //       console.info('activate unrepeated: ' + dictionary.id)
+    //       // $("#" + this.ids.dropdownUnrepeatedDictionaries).classList.toggle('show')
+    //       // this.$refs[this.ids.dropdownUnrepeatedDictionaries].classList.toggle('show')
+    //       // this.$refs[this.ids.dropdownUnrepeatedDictionaries].setAttribute('aria-expanded', true)
+    //     }else{
+    //       // $("#" + this.ids.dropdownNonUnrepeatedDictionaries).classList.toggle('show')
+    //       // this.$refs[this.ids.dropdownNonUnrepeatedDictionaries].classList.toggle('show')
+    //       // this.$refs[this.ids.dropdownNonUnrepeatedDictionaries].setAttribute('aria-expanded', true)
+    //     }
+    //     this.$refs[this.getDictionaryElemId(dictionary.id)].focus()
+    //   }
+    // },
   },
 }
 </script>
@@ -1043,7 +1040,6 @@ export default {
 <style scoped>
 
 .st-dictionaries {
-  /*height: 450px;*/
   overflow-y: auto;
 }
 
@@ -1066,7 +1062,8 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis
 }
-.st-button-ellipsis{
+
+.st-button-ellipsis {
   display: block;
   width: 50px;
   overflow: hidden;
@@ -1077,11 +1074,6 @@ export default {
 
 i {
   float: right;
-}
-
-.active-dictionary {
-  background-color: gray;
-  color: white;
 }
 
 .dragover:hover {

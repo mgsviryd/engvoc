@@ -32,12 +32,13 @@ export default {
   mounted() {
   },
   created() {
+    this.fetchData()
   },
   computed: {
-    ...mapState({
-      authentication: 'authentication',
-      vocabularyStore: 'vocabulary',
-    }),
+    ...mapState([
+      'authentication',
+      'vocabulary',
+    ]),
     ...mapGetters([
       'isVocabulariesPresent',
       'isUserPresent',
@@ -51,12 +52,14 @@ export default {
     }
   },
   watch: {
-    vocabularyStore: {
+    vocabulary: {
       handler: function () {
+        if (this._vocabulary !== this.vocabulary.vocabulary) {
+          this.fetchData()
+        }
         this.$forceNextTick(() => {
-          this.showVocabularyModal()
-          if (this.vocabularyStore.vocabulary !== this.vocabulary){
-            this.fetchData()
+          if (this.isUserPresent && !this.isVocabulariesPresent) {
+            this.showVocabularyModal()
           }
         })
       },
@@ -67,25 +70,21 @@ export default {
     return {
       name: 'Vocabulary',
       show: true,
-      vocabulary: null,
+      _vocabulary: null,
     }
   },
   methods: {
     prefixId() {
       return this.name + '-'
     },
-    showVocabularyModal(){
-      if(this.isUserPresent && !this.isVocabulariesPresent){
-        this.$refs[this.ids.vocabularyModal].showModal()
-      }
+    showVocabularyModal() {
+      this.$refs[this.ids.vocabularyModal].showModal()
     },
     fetchData() {
       this.show = false
-      this.vocabulary = this.vocabularyStore.vocabulary
-      if (this.isBlank(this.vocabulary)) {
-        this.$store.commit('resetVocabularyDatabaseMutation')
-      } else {
-        this.$store.dispatch('findVocabularyDataAction', this.vocabulary)
+      this._vocabulary = this.vocabulary.vocabulary
+      if (!this.isBlank(this._vocabulary)) {
+        this.$store.dispatch('findVocabularyDataAction', this._vocabulary)
       }
       this.show = true
     },

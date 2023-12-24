@@ -228,9 +228,9 @@ export default new Vuex.Store(
                 state.vocabulary.id = _.now()
             },
             resetVocabularyMutation(state) {
-                state.vocabulary.id = 0
                 state.vocabulary.vocabulary = null
                 state.vocabulary.vocabularies = []
+                state.vocabulary.id = 0
             },
             renewVocabularyMutation(state) {
                 state.vocabulary.vocabularies = state.authentication.user.vocabularies
@@ -499,7 +499,7 @@ export default new Vuex.Store(
                 state.dictionaries = state.dictionaries.filter(d => d.unrepeated !== payload.unrepeated)
             },
 
-            resetVocabularyDatabaseMutation(state) {
+            resetVocabularyDataMutation(state) {
                 state.dictionaries = []
                 state.cards = []
             },
@@ -590,6 +590,10 @@ export default new Vuex.Store(
             },
         },
         actions: {
+            async resetAction({commit}){
+                commit('resetVocabularyMutation')
+                commit('resetVocabularyDataMutation')
+            },
             async updateFrontendAction({commit, state, getters}) {
                 await loadLanguageAsync(state.lang.lang.locale)
                 const result = await frontendApi.getFrontend(
@@ -648,18 +652,6 @@ export default new Vuex.Store(
                     commit('getLanguageListMutation', data)
                 }
             },
-            // async getAuthenticationAction({commit, getters}) {
-            //     const result = await signApi.getUsers(getters.getUsersTokens)
-            //     const data = await result.data
-            //     lock.acquire('authentication', () => {
-            //         if (result.ok) {
-            //             commit('setAuthenticationMutation', data)
-            //             commit('authenticationSyncLocalWithStateMutation')
-            //         }
-            //     }).catch((err) => {
-            //         console.log(err) // output: error
-            //     })
-            // },
 
             // cards
             async uploadCardsByExcelFilesAction({commit}, payload) {

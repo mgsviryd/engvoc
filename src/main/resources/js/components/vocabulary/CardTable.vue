@@ -851,7 +851,6 @@ export default {
 <style scoped>
 
 .st-table {
-
   overflow: scroll;
 }
 
@@ -875,7 +874,6 @@ th, td:not(.st-squeeze, .st-text-shift) {
 }
 
 .st-text-shift {
-  /*width: 150px;*/
   width: 10%;
   overflow-wrap: anywhere;
 }
