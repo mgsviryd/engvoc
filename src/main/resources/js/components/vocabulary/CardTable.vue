@@ -4,10 +4,35 @@
   >
     <b-row
         :id="ids.tools"
-        class="bg-dark d-block border-0 flex-shrink-0"
+        class="bg-dark d-block border-0 flex-shrink-0 pl-1"
         no-gutters
         style="position: sticky; top:0; left: 0; z-index: 100;"
     >
+      <b-row no-gutters>
+        <b-breadcrumb class="p-0 mt-1 mb-2 bg-transparent text-white">
+          <b-breadcrumb-item>
+              <b-button
+                  size="sm"
+                  :variant="dictionary.unrepeated?'info':'warning'"
+                  class="py-0 shadow-none border-2"
+                  @click.prevent.stop="navigateToUnique"
+              >
+                {{dictionary.unrepeated?getLang('unique'):getLang('notUnique')}}
+              </b-button>
+          </b-breadcrumb-item>
+          <b-breadcrumb-item>
+            <b-button
+                size="sm"
+                variant="primary"
+                class="py-0 shadow-none border-2"
+                @click.prevent.stop="navigateToDictionary"
+            >
+              {{ dictionary.name }}
+            </b-button>
+          </b-breadcrumb-item>
+        </b-breadcrumb>
+      </b-row>
+      <b-row no-gutters>
       <b-button-toolbar>
         <b-button-group size="sm">
           <b-button
@@ -92,6 +117,7 @@
           ></upload-dropdown>
         </b-button-group>
       </b-button-toolbar>
+      </b-row>
     </b-row>
 
     <div class="st-table container px-0 parent-for-height-flex"
@@ -318,7 +344,7 @@ export default {
       'getCardsByDictionaryInx',
     ]),
     colHeight(){
-      return window.innerHeight - this.height.header - this.height.footer
+      return window.innerHeight - this.height.header - this.height.footer - 6
     },
     propertySettings() {
       return [
@@ -719,7 +745,7 @@ export default {
           }
           this.$store.dispatch("dragdropStartAction", start)
         }
-      }, 100)
+      }, 200)
     },
     mousedownSelected() {
       this.isMouseInClick = true
@@ -743,7 +769,7 @@ export default {
           }
           this.$store.dispatch("dragdropStartAction", start)
         }
-      }, 100)
+      }, 200)
     },
     mouseup(card, i) {
       this.isMouseInClick = false
@@ -844,11 +870,20 @@ export default {
         document.addEventListener(pair.type, pair.listener)
       })
     },
+    navigateToDictionary(){
+      this.$emit('onNavigateToDictionary', this.instanceMark)
+    },
+    navigateToUnique(){
+      this.$emit('onNavigateToUnique', this.instanceMark)
+    },
   },
 }
 </script>
 
 <style scoped>
+.border-2{
+  border-width: 2px !important;
+}
 
 .st-table {
   overflow: scroll;

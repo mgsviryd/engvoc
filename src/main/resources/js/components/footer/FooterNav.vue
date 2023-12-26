@@ -4,7 +4,6 @@
         class="navbar navbar-expand-lg navbar-dark bg-dark py-0 my-0 border-bottom border-secondary justify-content-between"
         style="position: sticky; bottom: 0; width:100%;"
     >
-<!--      <b-button-toolbar>-->
         <b-button-group size="sm">
           <b-button
               variant="transparent"
@@ -48,7 +47,7 @@
 
         </b-button-group>
         <b-button-group size="sm" class="mx-4">
-          <span class="text-light"><small>{{getCapitalizeLang('connectWithUs')+':'}}</small></span>
+          <span class="text-light"><small>{{getCapitalizeLang('contactUs')+':'}}</small></span>
           <b-button
               variant="transparent"
               size="sm"
@@ -90,7 +89,7 @@
             {{getCapitalizeLang('conditions')}}
           </b-button>
         </b-button-group>
-<!--      </b-button-toolbar>-->
+
       <span class="text-white ml-4">
           <small>
             © {{ getLang('logoStartDate') }}–{{ new Date().getFullYear() }}

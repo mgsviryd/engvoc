@@ -2,7 +2,7 @@
   <div
       v-if="show"
       :id="ids.id"
-      :style="{height: colHeight-2+'px'}"
+      :style="{height: colHeight+'px'}"
       class="dictionary-nav- parent-for-height-flex"
   >
 
@@ -67,8 +67,9 @@
         >
         </vocabulary-modal>
       </template>
-      <b-dropdown-item size="sm"
-                       @click.prevent.stop="$refs[ids.vocabularyModal].showModal()"
+      <b-dropdown-item
+          size="sm"
+          @click.prevent.stop="$refs[ids.vocabularyModal].showModal()"
       >
         <b-row no-gutters>
           <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
@@ -82,8 +83,10 @@
           :header="getCapitalizeLang('dangerZone')"
           header-classes="text-danger"
       >
-        <b-dropdown-item size="sm"
-                         @click.prevent.stop="$refs[ids.deleteVocabularyDangerModal].showModal()">
+        <b-dropdown-item
+            size="sm"
+            @click.prevent.stop="$refs[ids.deleteVocabularyDangerModal].showModal()"
+        >
           <b-row no-gutters>
             <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
                 class="fa fa-trash fa-1x text-danger"></i></b-col>
@@ -96,17 +99,35 @@
     <b-container class="p-0 m-0 flex-shrink-0" fluid
     >
       <b-button-toolbar class="bg-dark">
-        <b-button-group size="sm">
-          <b-button class="py-0 px-1" size="sm">
-            {{}}
+        <b-button-group class="" size="sm">
+          <b-button
+              class="py-0 px-1 shadow-none rounded-0 border-0 text-primary"
+              size="sm"
+              variant="transparent"
+              @click.prevent.stop="navigateToActiveDictionary"
+          >
+            <i class="fa-solid fa-location-crosshairs fa-sm fa-fade"
+               style="--fa-animation-duration: 2s; --fa-fade-opacity: 0.6;"></i>
+          </b-button>
+          <b-button
+              class="py-0 px-1 shadow-none rounded-0 border-0 text-white"
+              size="sm"
+              variant="transparent"
+              @click.prevent.stop="toggleAllDictionaries"
+          >
+            <i v-if="isAllDictionariesCollapsed" class="fa-solid fa-angle-down"></i>
+            <i v-else class="fa-solid fa-angle-up"></i>
           </b-button>
         </b-button-group>
       </b-button-toolbar>
     </b-container>
 
     <b-container
-        class="st-dictionaries p-0 m-0 child-for-height-flex"
+        :id="ids.field"
+        :ref="ids.field"
+        class="p-1 m-0 bg-secondary border border-dark child-for-height-flex"
         fluid
+        style="overflow-y: auto;"
     >
       <b-dropdown
           :id="ids.dropdownUnrepeatedDictionaries"
@@ -122,11 +143,20 @@
           size="sm"
           split
           split-class="text-left shadow-none rounded-0 border-1 border-dark"
-          split-variant="secondary"
+          split-variant="info"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
-          variant="secondary"
+          variant="info"
       >
         <template slot="button-content">
+          <b-button
+              class="py-0 px-1 shadow-none rounded-0 border-0 text-white"
+              size="sm"
+              variant="transparent"
+              @click.prevent.stop="toggleDropdownUnrepeatedDictionaries"
+          >
+            <i v-if="isDropdownUnrepeatedDictionariesCollapsed" class="fa-solid fa-angle-down fa-sm"></i>
+            <i v-else class="fa-solid fa-angle-up fa-sm"></i>
+          </b-button>
           <span class="st-text-shift">{{ getLang('unique') }}</span>
           <span class="st-float-right badge badge-light bg-white badge-pill">{{
               getUnrepeatedDictionaries().length
@@ -169,7 +199,10 @@
       </b-dropdown>
 
 
-      <div :id="ids.unrepeatedDictionaries" class="collapse">
+      <div
+          :id="ids.unrepeatedDictionaries"
+          class="collapse p-0 m-0"
+      >
         <b-dropdown
             v-for="(d,i) in unrepeatedDictionaries"
             :id="getDictionaryElemId(d.id)"
@@ -184,16 +217,17 @@
             role="button"
             size="sm"
             split
-            split-class="text-left shadow-none rounded-0 border-1 border-secondary"
-            split-variant="light"
-            toggle-class="shadow-none rounded-0 border-1 border-secondary"
-            variant="light"
+            split-class="text-left shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
+
+            tabindex="1"
+            toggle-class="shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
+
+            @click="parentLoadDictionary(d)"
             @hide="hideDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
             @show="showDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
             @toggle="toggleDropdownRef({ref:getDictionaryElemId(d.id), level: 0})"
-            @click.prevent.stop="parentLoadDictionary(d)"
         >
-          <template slot="button-content" >
+          <template slot="button-content">
             <div
                 @mousedown.prevent="mousedown(d.id)"
                 @mouseup.prevent="mouseup(d.id)"
@@ -224,7 +258,7 @@
                      @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
               >
                 <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
-                    class="fa-solid fa-download"></i></b-col>
+                    class="fa-solid fa-download text-success"></i></b-col>
                 <b-col class="col-10 d-flex align-items-center justify-content-between">
                   <span>{{ getCapitalizeLang('download') }}</span>
                   <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
@@ -277,7 +311,7 @@
                      @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
               >
                 <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
-                    class="fa-solid fa-upload"></i></b-col>
+                    class="fa-solid fa-upload text-primary"></i></b-col>
                 <b-col class="col-10 d-flex align-items-center justify-content-between">
                   <span>{{ getCapitalizeLang('upload') }}</span>
                   <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
@@ -325,6 +359,8 @@
           </b-dropdown-group>
         </b-dropdown>
       </div>
+      <b-row v-if="!isDropdownUnrepeatedDictionariesCollapsed" class="bg-transparent" no-gutters style="height: 8px;"
+             tabindex="-1"></b-row>
 
       <b-dropdown
           :id="ids.dropdownNonUnrepeatedDictionaries"
@@ -340,11 +376,20 @@
           size="sm"
           split
           split-class="text-left shadow-none rounded-0 border-1 border-dark"
-          split-variant="secondary"
+          split-variant="warning"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
-          variant="secondary"
+          variant="warning"
       >
         <template slot="button-content">
+          <b-button
+              class="py-0 px-1 shadow-none rounded-0 border-0 text-white"
+              size="sm"
+              variant="transparent"
+              @click.prevent.stop="toggleDropdownNonUnrepeatedDictionaries"
+          >
+            <i v-if="isDropdownNonUnrepeatedDictionariesCollapsed" class="fa-solid fa-angle-down fa-sm"></i>
+            <i v-else class="fa-solid fa-angle-up fa-sm"></i>
+          </b-button>
           <span class="st-text-shift">{{ getLang('notUnique') }}</span>
           <span class="st-float-right badge badge-light badge-pill">{{ nonUnrepeatedDictionaries.length }}</span>
         </template>
@@ -385,7 +430,6 @@
         </b-dropdown-group>
       </b-dropdown>
 
-
       <div :id="ids.nonUnrepeatedDictionaries" class="collapse">
         <b-dropdown
             v-for="(d,ii) in nonUnrepeatedDictionaries"
@@ -401,14 +445,15 @@
             role="button"
             size="sm"
             split
-            split-class="text-left shadow-none rounded-0 border-1 border-secondary"
-            split-variant="light"
-            toggle-class="shadow-none rounded-0 border-1 border-secondary"
-            variant="light"
+            split-class="text-left shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
+
+            tabindex="1"
+            toggle-class="shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
+
+            @click="parentLoadDictionary(d)"
             @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
             @show="showDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
             @toggle="toggleDropdownRef({ref: getDictionaryElemId(d.id), level: 0})"
-            @click.prevent.stop="parentLoadDictionary(d)"
         >
           <template slot="button-content">
             <div
@@ -441,7 +486,7 @@
                      @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-download-id', level: 1})"
               >
                 <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
-                    class="fa-solid fa-download"></i></b-col>
+                    class="fa-solid fa-download text-success"></i></b-col>
                 <b-col class="col-10 d-flex align-items-center justify-content-between">
                   <span>{{ getCapitalizeLang('download') }}</span>
                   <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
@@ -494,7 +539,7 @@
                      @click="clickDropdownRef({ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
               >
                 <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
-                    class="fa-solid fa-upload"></i></b-col>
+                    class="fa-solid fa-upload text-primary"></i></b-col>
                 <b-col class="col-10 d-flex align-items-center justify-content-between">
                   <span>{{ getCapitalizeLang('upload') }}</span>
                   <span><i :class="'fa-solid fa-caret-right fa-xs'"></i></span>
@@ -543,6 +588,8 @@
           </b-dropdown-group>
         </b-dropdown>
       </div>
+      <b-row v-if="!isDropdownNonUnrepeatedDictionariesCollapsed" class="bg-transparent" no-gutters style="height: 8px;"
+             tabindex="-1"></b-row>
     </b-container>
 
     <add-dictionary-modal
@@ -614,10 +661,14 @@ export default {
   ],
   mounted() {
     this.dropdownClickOutsideListener()
+    this.addBootstrapListeners()
   },
   created() {
     this.addListeners()
     this.setConfirmActionToDefault()
+    this.$store.watch(this.$store.getters.getActionId, actionId => {
+      this.fetchData()
+    })
     this.$root.$on('confirm-action-with-timer-modal', (payload) => {
       this.confirmAction.confirmId = payload.id
     })
@@ -630,6 +681,7 @@ export default {
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
     })
+    this.isAfterCreated = true
   },
   destroyed() {
     this.removeListeners()
@@ -654,11 +706,12 @@ export default {
       'isDictionaryUnrepeated',
     ]),
     colHeight() {
-      return window.innerHeight - this.height.header - this.height.footer
+      return window.innerHeight - this.height.header - this.height.footer - 6
     },
     ids() {
       return {
         id: this.prefixId(),
+        field: this.prefixId() + 'field-id',
         addDictionaryUnrepeatedModal: this.prefixId() + 'add-dictionary-unrepeated-modal-id',
         addDictionaryNonUnrepeatedModal: this.prefixId() + 'add-dictionary-non-repeated-modal-id',
         vocabularyModal: this.prefixId() + 'vocabulary-modal-id',
@@ -683,16 +736,30 @@ export default {
         confirmId: '',
         rejectId: '',
       }
-    }
+    },
+    isAllDictionariesCollapsed() {
+      return this.isDropdownUnrepeatedDictionariesCollapsed && this.isDropdownNonUnrepeatedDictionariesCollapsed
+    },
   },
   watch: {
     dictionaries: {
       handler: function () {
         this.fetchData()
-        // if (this.isDictionariesFirstLoad){
-        //   this.focusOnDictionary()
-        //   this.isDictionariesFirstLoad = false
-        // }
+        if (this.isAfterCreated) {
+          this.isAfterCreated = false
+          this.$nextTick(() => {
+            const left = this.$route.query.left
+            const right = this.$route.query.right
+            let d = null
+            if (this.instance.instanceMark === 'left') {
+              d = this.getDictionaryById(left)
+            }
+            if (this.instance.instanceMark === 'right') {
+              d = this.getDictionaryById(right)
+            }
+            this.navigateToDictionary(d)
+          })
+        }
       },
       deep: true,
     },
@@ -701,7 +768,9 @@ export default {
     return {
       name: "DictionaryNav",
       show: true,
-      isDictionariesFirstLoad: true,
+      isDropdownUnrepeatedDictionariesCollapsed: true,
+      isDropdownNonUnrepeatedDictionariesCollapsed: true,
+      isAfterCreated: false,
       activeParent: false,
       dropdownRefs: [],
       dropdownRef: null,
@@ -718,6 +787,7 @@ export default {
       dragDictionaryId: null,
 
       listeners: [],
+      activeDictionary: null,
     }
   },
   methods: {
@@ -765,6 +835,7 @@ export default {
       return this.prefixId() + "non-unrepeated-dictionaries-creationLDT" + i
     },
     parentLoadDictionary(d) {
+      this.setDictionaryActive(d)
       this.routerVocabulary(d.id)
     },
     routerVocabulary(id) {
@@ -954,7 +1025,10 @@ export default {
       }
     },
     hideDropdownsOnClick() {
-      document.getElementById(this.ids.id).click()
+      const random = document.getElementById(this.ids.id)
+      if (random) {
+        random.click()
+      }
     },
     hideDropdowns() {
       for (let i = this.dropdownRefs.length - 1; i >= 0; i--) {
@@ -990,6 +1064,21 @@ export default {
         }
       }
     },
+    addBootstrapListeners() {
+      $("#" + this.ids.unrepeatedDictionaries).on('shown.bs.collapse', () => {
+        this.isDropdownUnrepeatedDictionariesCollapsed = false
+      })
+      $("#" + this.ids.unrepeatedDictionaries).on('hidden.bs.collapse', () => {
+        this.isDropdownUnrepeatedDictionariesCollapsed = true
+      })
+
+      $("#" + this.ids.nonUnrepeatedDictionaries).on('shown.bs.collapse', () => {
+        this.isDropdownNonUnrepeatedDictionariesCollapsed = false
+      })
+      $("#" + this.ids.nonUnrepeatedDictionaries).on('hidden.bs.collapse', () => {
+        this.isDropdownNonUnrepeatedDictionariesCollapsed = true
+      })
+    },
     addListeners() {
       const dropdownClickOutsideListener = this.dropdownClickOutsideListener()
       const keydownListener = this.keydownListener()
@@ -1011,37 +1100,116 @@ export default {
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)
     },
-    // activateDictionaries(leftDictionaryId, rightDictionaryId){
-    //   let dictionary = null
-    //   if (this.instance.instanceMark === 'left'){
-    //     dictionary = this.getDictionaryById(leftDictionaryId)
-    //   }
-    //   if (this.instance.instanceMark === 'right'){
-    //     dictionary = this.getDictionaryById(rightDictionaryId)
-    //   }
-    //   if(dictionary){
-    //     if(dictionary.unrepeated){
-    //       console.info('activate unrepeated: ' + dictionary.id)
-    //       // $("#" + this.ids.dropdownUnrepeatedDictionaries).classList.toggle('show')
-    //       // this.$refs[this.ids.dropdownUnrepeatedDictionaries].classList.toggle('show')
-    //       // this.$refs[this.ids.dropdownUnrepeatedDictionaries].setAttribute('aria-expanded', true)
-    //     }else{
-    //       // $("#" + this.ids.dropdownNonUnrepeatedDictionaries).classList.toggle('show')
-    //       // this.$refs[this.ids.dropdownNonUnrepeatedDictionaries].classList.toggle('show')
-    //       // this.$refs[this.ids.dropdownNonUnrepeatedDictionaries].setAttribute('aria-expanded', true)
-    //     }
-    //     this.$refs[this.getDictionaryElemId(dictionary.id)].focus()
-    //   }
-    // },
+    navigateToDictionary(d) {
+      if (d) {
+        if (d.unrepeated) {
+          $("#" + this.ids.unrepeatedDictionaries).collapse('show')
+        } else {
+          $("#" + this.ids.nonUnrepeatedDictionaries).collapse('show')
+        }
+        this.setDictionaryActive(d)
+      }
+    },
+    navigateToUnique(d) {
+      if (d) {
+        if (d.unrepeated) {
+          $("#" + this.ids.unrepeatedDictionaries).collapse('show')
+        } else {
+          $("#" + this.ids.nonUnrepeatedDictionaries).collapse('show')
+        }
+      }
+    },
+    navigateToActiveDictionary() {
+      this.navigateToDictionary(this.activeDictionary)
+      this.scrollToActiveDictionary()
+    },
+    navigateToActiveUnique() {
+      this.navigateToUnique(this.activeDictionary)
+      this.scrollToActiveUnique()
+    },
+    setDictionaryActive(d) {
+      let elemId = null
+      if (this.activeDictionary) {
+        elemId = this.getDictionaryElemId(this.activeDictionary.id)
+        $("#" + elemId + '__BV_toggle_').removeClass('bg-primary border-dark text-white')
+        $("#" + elemId + '__BV_button_').removeClass('bg-primary border-dark text-white')
+        $("#" + elemId + '__BV_toggle_').addClass('bg-white border-secondary text-dark')
+        $("#" + elemId + '__BV_button_').addClass('bg-white border-secondary text-dark')
+      }
+      this.activeDictionary = d
+      elemId = this.getDictionaryElemId(d.id)
+      $("#" + elemId + '__BV_toggle_').removeClass('bg-white border-secondary text-dark')
+      $("#" + elemId + '__BV_button_').removeClass('bg-white border-secondary text-dark')
+      $("#" + elemId + '__BV_toggle_').addClass('bg-primary border-dark text-white')
+      $("#" + elemId + '__BV_button_').addClass('bg-primary border-dark text-white')
+    },
+    toggleAllDictionaries() {
+      if (this.isAllDictionariesCollapsed) {
+        $("#" + this.ids.unrepeatedDictionaries).collapse('show')
+        $("#" + this.ids.nonUnrepeatedDictionaries).collapse('show')
+      } else {
+        $("#" + this.ids.unrepeatedDictionaries).collapse('hide')
+        $("#" + this.ids.nonUnrepeatedDictionaries).collapse('hide')
+      }
+    },
+    toggleDropdownUnrepeatedDictionaries() {
+      if (this.isDropdownUnrepeatedDictionariesCollapsed) {
+        $("#" + this.ids.unrepeatedDictionaries).collapse('show')
+      } else {
+        $("#" + this.ids.unrepeatedDictionaries).collapse('hide')
+      }
+    },
+    toggleDropdownNonUnrepeatedDictionaries() {
+      if (this.isDropdownNonUnrepeatedDictionariesCollapsed) {
+        $("#" + this.ids.nonUnrepeatedDictionaries).collapse('show')
+      } else {
+        $("#" + this.ids.nonUnrepeatedDictionaries).collapse('hide')
+      }
+    },
+    scrollToActiveUnique(){
+      if (this.activeDictionary){
+        let elem = null
+        if (this.activeDictionary.unrepeated) {
+          elem = "#" + this.ids.unrepeatedDictionaries
+        } else {
+          elem = "#" + this.ids.nonUnrepeatedDictionaries
+        }
+        this.scrollToElemInField(elem)
+      }
+    },
+    scrollToActiveDictionary() {
+      if(this.activeDictionary){
+        const elem = "#" + this.getDictionaryElemId(this.activeDictionary.id)
+        this.scrollToElemInField(elem)
+      }
+    },
+    scrollToElemInField(elem) {
+        const options = {
+          container: '#' + this.ids.field,
+          easing: 'ease-in',
+          lazy: false,
+          offset: -60,
+          force: true,
+          cancelable: true,
+          onStart(element) {
+            // scrolling started
+          },
+          onDone(element) {
+            // scrolling is done
+          },
+          onCancel() {
+            // scrolling has been interrupted
+          },
+          x: false,
+          y: true
+        }
+        this.$scrollTo(elem, 500, options)
+    },
   },
 }
 </script>
 
 <style scoped>
-
-.st-dictionaries {
-  overflow-y: auto;
-}
 
 .dictionary-nav- {
   width: 100%;
@@ -1098,6 +1266,15 @@ i {
   min-height: 0;
   width: 100%;
   flex: 1;
+}
+
+.dropdown:hover {
+  z-index: 3;
+  box-shadow: 0 0 0 1px white, 0 0 0 5px lightskyblue !important;
+}
+
+.border-2 {
+  border-width: 2px !important;
 }
 
 </style>

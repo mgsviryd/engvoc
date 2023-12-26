@@ -404,6 +404,9 @@ export default {
   },
   methods: {
     fetchData() {
+      this.show = false
+      this.setDataToDefault()
+      this.show = true
     },
     prefixId() {
       return this.id + '-'

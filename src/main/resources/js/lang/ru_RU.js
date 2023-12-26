@@ -151,7 +151,7 @@ const messages = {
   accessDenied: 'доступ запрещен',
   conditions: 'условия',
   confidence: 'конфиденциальность',
-  connectWithUs: 'связаться с нами',
+  contactUs: 'связаться с нами',
   media: 'медиа',
 
   dictionaryNotUniqueError:'Словарь уже существует. Измените имя или родителя.',

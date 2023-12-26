@@ -151,7 +151,7 @@ const messages = {
   accessDenied: 'access denied',
   conditions: 'conditions',
   confidence: 'confidence',
-  connectWithUs: 'connect with us',
+  contactUs: 'contact us',
   media: 'media',
 
   dictionaryNotUniqueError:'Dictionary already exists. Change name or parent.',

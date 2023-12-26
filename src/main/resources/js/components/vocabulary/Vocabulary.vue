@@ -4,14 +4,14 @@
       class="row m-0 p-0 justify-content-between"
       style="width: 100%"
   >
-    <div v-if="instance1.show"
-         v-show="instance1.displayNav || instance1.displayTool"
-         :class="[instance1.displayNav?'col-'+instance1.navSize:'', activeLeft?'border-primary':'border-secondary']"
-         class="m-0 p-0 border container-fluid"
+    <div v-if="left.show"
+         v-show="left.displayNav || left.displayTool"
+         :class="[left.displayNav?'col-'+left.navSize:'', activeLeft?'border-primary':'border-secondary']"
+         class="m-0 p-0 border border-3 container-fluid"
     >
       <div class="row d-flex justify-content-between no-gutters">
         <div
-            v-show="instance1.displayNav"
+            v-show="left.displayNav"
             :id="ids.left.col.dictionaryNav"
             :ref="ids.left.col.dictionaryNav"
             class="col align-items-stretch p-0 m-0"
@@ -20,20 +20,20 @@
           <dictionary-nav
               :id="ids.left.dictionaryNav"
               :ref="ids.left.dictionaryNav"
-              :instance="instance1"
+              :instance="left"
           ></dictionary-nav>
         </div>
         <div
-            v-show="instance1.displayTool"
+            v-show="left.displayTool"
             :id="ids.left.col.verticalTools"
             :ref="ids.left.col.verticalTools"
-            class="col d-flex m-0 p-0 border border-secondary justify-content-between"
-            style="max-width: 25px;"
+            class="col d-flex m-0 p-0 justify-content-between"
+            style="max-width: 24px;"
         >
           <vertical-tools
               :id="ids.left.verticalTools"
               :ref="ids.left.verticalTools"
-              :instance="instance1"
+              :instance="left"
               @hideFullNav="hideFullNav"
               @showFullNav="showFullNav"
               @showHideInstance="showHideInstance"
@@ -45,23 +45,25 @@
       </div>
     </div>
     <div
-        v-if="instance1.show"
-        v-show="instance1.displayTable"
+        v-if="left.show"
+        v-show="left.displayTable"
         :id="ids.left.col.cardTable"
         :ref="ids.left.col.cardTable"
-        :class="['col-' + instance1.tableSize]"
-        class="m-0 p-0 border border-secondary"
+        :class="['col-' + left.tableSize, activeLeft?'border-primary':'border-secondary']"
+        class="m-0 p-0 border border-left-0 border-3"
         style="width: 100%;"
     >
       <div class="row justify-content-between no-gutters">
-        <div v-if="instance1.dictionary"
+        <div v-if="left.dictionary"
              :class="isTwoSourcePresent()?'st-two-source':'st-one-source'"
              class="col m-0 p-0">
           <card-table
               :id="ids.left.cardTable"
               :ref="ids.left.cardTable"
-              :dictionary="instance1.dictionary"
-              :instanceMark="instance1.instanceMark"
+              :dictionary="left.dictionary"
+              :instanceMark="left.instanceMark"
+              @onNavigateToDictionary="navigateToDictionary"
+              @onNavigateToUnique="navigateToUnique"
           ></card-table>
         </div>
         <div v-else
@@ -78,23 +80,25 @@
     </div>
 
     <div
-        v-if="instance2.show"
-        v-show="instance2.displayTable"
+        v-if="right.show"
+        v-show="right.displayTable"
         :id="ids.right.col.cardTable"
         :ref="ids.right.col.cardTable"
-        :class="['col-' + instance2.tableSize]"
-        class="m-0 p-0 border border-secondary"
+        :class="['col-' + right.tableSize, activeRight?'border-primary':'border-secondary']"
+        class="m-0 p-0 border border-right-0 border-3"
         style="width: 100%;"
     >
       <div class="row justify-content-between no-gutters">
-        <div v-if="instance2.dictionary"
+        <div v-if="right.dictionary"
              :class="isTwoSourcePresent()?'st-two-source':'st-one-source'"
              class="col m-0 p-0">
           <card-table
               :id="ids.right.cardTable"
               :ref="ids.right.cardTable"
-              :dictionary="instance2.dictionary"
-              :instanceMark="instance2.instanceMark"
+              :dictionary="right.dictionary"
+              :instanceMark="right.instanceMark"
+              @onNavigateToDictionary="navigateToDictionary"
+              @onNavigateToUnique="navigateToUnique"
           ></card-table>
         </div>
         <div v-else
@@ -109,22 +113,22 @@
         </div>
       </div>
     </div>
-    <div v-if="instance2.show"
-         v-show="instance2.displayNav || instance2.displayTool"
-         :class="[instance2.displayNav?'col-' + instance2.navSize:'', activeRight?'border-primary':'border-secondary']"
-         class="m-0 p-0 border"
+    <div v-if="right.show"
+         v-show="right.displayNav || right.displayTool"
+         :class="[right.displayNav?'col-' + right.navSize:'', activeRight?'border-primary':'border-secondary']"
+         class="m-0 p-0 border border-3"
     >
       <div class="row d-flex justify-content-between no-gutters">
-        <div v-show="instance2.displayTool"
+        <div v-show="right.displayTool"
              :id="ids.right.col.verticalTools"
              :ref="ids.right.col.verticalTools"
-             class="col d-flex m-0 p-0 border border-secondary justify-content-between"
-             style="max-width: 25px;"
+             class="col d-flex m-0 p-0 justify-content-between"
+             style="max-width: 24px;"
         >
           <vertical-tools
               :id="ids.right.verticalTools"
               :ref="ids.right.verticalTools"
-              :instance="instance2"
+              :instance="right"
               @hideFullNav="hideFullNav"
               @showFullNav="showFullNav"
               @showHideInstance="showHideInstance"
@@ -134,7 +138,7 @@
           </vertical-tools>
         </div>
         <div
-            v-show="instance2.displayNav"
+            v-show="right.displayNav"
             :id="ids.right.col.dictionaryNav"
             :ref="ids.right.col.dictionaryNav"
             class="col m-0 p-0"
@@ -143,7 +147,7 @@
           <dictionary-nav
               :id="ids.right.dictionaryNav"
               :ref="ids.right.dictionaryNav"
-              :instance="instance2"
+              :instance="right"
           ></dictionary-nav>
         </div>
       </div>
@@ -232,7 +236,7 @@ export default {
       activeLeft: false,
       activeRight: false,
 
-      instance1: {
+      left: {
         show: true,
         active: false,
         displayNav: true,
@@ -245,7 +249,7 @@ export default {
         navSize: 2,
         tableSize: 4,
       },
-      instance2: {
+      right: {
         show: true,
         active: false,
         displayNav: true,
@@ -276,40 +280,40 @@ export default {
       this.show = true
     },
     loadDictionary(id, instanceMark) {
-      if (instanceMark === this.instance1.instanceMark) {
-        this.instance1.dictionary = this.getDictionaryById(id)
+      if (instanceMark === this.left.instanceMark) {
+        this.left.dictionary = this.getDictionaryById(id)
       }
-      if (instanceMark === this.instance2.instanceMark) {
-        this.instance2.dictionary = this.getDictionaryById(id)
+      if (instanceMark === this.right.instanceMark) {
+        this.right.dictionary = this.getDictionaryById(id)
       }
       return []
     },
     isTwoSourcePresent() {
-      return this.instance1.dictionary !== null && this.instance2.dictionary !== null
+      return this.left.dictionary !== null && this.right.dictionary !== null
     },
     showHideInstance(instanceMark) {
-      if (instanceMark === this.instance1.instanceMark) {
-        this.instance2.displayNav = !this.instance2.displayNav
-        this.instance2.displayTool = !this.instance2.displayTool
-        this.instance2.displayTable = !this.instance2.displayTable
-        if (this.instance2.displayNav) {
-          this.instance1.tableSize = this.size.half - this.instance1.navSize
+      if (instanceMark === this.left.instanceMark) {
+        this.right.displayNav = !this.right.displayNav
+        this.right.displayTool = !this.right.displayTool
+        this.right.displayTable = !this.right.displayTable
+        if (this.right.displayNav) {
+          this.left.tableSize = this.size.half - this.left.navSize
         } else {
-          this.instance1.tableSize = this.size.all - this.instance1.navSize
+          this.left.tableSize = this.size.all - this.left.navSize
         }
       }
-      if (instanceMark === this.instance2.instanceMark) {
-        this.instance1.displayNav = !this.instance1.displayNav
-        this.instance1.displayTool = !this.instance1.displayTool
-        this.instance1.displayTable = !this.instance1.displayTable
-        if (this.instance1.displayNav) {
-          this.instance2.tableSize = this.size.half - this.instance2.navSize
+      if (instanceMark === this.right.instanceMark) {
+        this.left.displayNav = !this.left.displayNav
+        this.left.displayTool = !this.left.displayTool
+        this.left.displayTable = !this.left.displayTable
+        if (this.left.displayNav) {
+          this.right.tableSize = this.size.half - this.right.navSize
         } else {
-          this.instance2.tableSize = this.size.all - this.instance2.navSize
+          this.right.tableSize = this.size.all - this.right.navSize
         }
-        console.info(this.instance1.displayNav)
-        console.info(this.instance1.displayTool)
-        console.info(this.instance1.displayTable)
+        console.info(this.left.displayNav)
+        console.info(this.left.displayTool)
+        console.info(this.left.displayTable)
       }
     },
     getLang(key) {
@@ -319,45 +323,45 @@ export default {
       return _.capitalize(this.getLang(key))
     },
     showFullNav(mark) {
-      if (this.instance1.instanceMark === mark) {
-        this.instance1.displayTable = true
-        this.instance1.displayNav = true
-        this.instance1.displayTool = true
-        this.instance1.navSize += this.instance1.tableSize
-        const diff = this.instance1.tableSize - this.size.half
-        this.instance1.tableSize = diff > 0 ? diff : 0
-        if (this.instance1.tableSize === 0) {
-          this.instance1.displayTable = false
+      if (this.left.instanceMark === mark) {
+        this.left.displayTable = true
+        this.left.displayNav = true
+        this.left.displayTool = true
+        this.left.navSize += this.left.tableSize
+        const diff = this.left.tableSize - this.size.half
+        this.left.tableSize = diff > 0 ? diff : 0
+        if (this.left.tableSize === 0) {
+          this.left.displayTable = false
         }
       } else {
-        this.instance2.displayTable = true
-        this.instance2.displayNav = true
-        this.instance2.displayTool = true
-        this.instance2.navSize += this.instance2.tableSize
-        const diff = this.instance2.tableSize - this.size.half
-        this.instance2.tableSize = diff > 0 ? diff : 0
-        if (this.instance2.tableSize === 0) {
-          this.instance2.displayTable = false
+        this.right.displayTable = true
+        this.right.displayNav = true
+        this.right.displayTool = true
+        this.right.navSize += this.right.tableSize
+        const diff = this.right.tableSize - this.size.half
+        this.right.tableSize = diff > 0 ? diff : 0
+        if (this.right.tableSize === 0) {
+          this.right.displayTable = false
         }
-        console.info("show nav: " + this.instance2.navSize)
-        console.info("show table: " + this.instance2.tableSize)
+        console.info("show nav: " + this.right.navSize)
+        console.info("show table: " + this.right.tableSize)
       }
     },
     hideFullNav(mark) {
-      if (this.instance1.instanceMark === mark) {
-        this.instance1.displayTable = true
-        this.instance1.displayNav = false
-        this.instance1.displayTool = true
-        this.instance1.tableSize += this.instance1.navSize - 1
-        this.instance1.navSize = 1
+      if (this.left.instanceMark === mark) {
+        this.left.displayTable = true
+        this.left.displayNav = false
+        this.left.displayTool = true
+        this.left.tableSize += this.left.navSize - 1
+        this.left.navSize = 1
       } else {
-        this.instance2.displayTable = true
-        this.instance2.displayNav = false
-        this.instance2.displayTool = true
-        this.instance2.tableSize += this.instance2.navSize - 1
-        this.instance2.navSize = 1
-        console.info("hide nav: " + this.instance2.navSize)
-        console.info("hide table: " + this.instance2.tableSize)
+        this.right.displayTable = true
+        this.right.displayNav = false
+        this.right.displayTool = true
+        this.right.tableSize += this.right.navSize - 1
+        this.right.navSize = 1
+        console.info("hide nav: " + this.right.navSize)
+        console.info("hide table: " + this.right.tableSize)
       }
     },
     stepUpNav(mark) {
@@ -434,6 +438,12 @@ export default {
         document.addEventListener(pair.type, pair.listener)
       })
     },
+    navigateToDictionary(side){
+      this.$refs[this.ids[side].dictionaryNav].navigateToActiveDictionary()
+    },
+    navigateToUnique(side){
+      this.$refs[this.ids[side].dictionaryNav].navigateToActiveUnique()
+    },
   },
 
 }
@@ -443,6 +453,12 @@ export default {
 .empty-table- {
   height: 524px;
   overflow-y: auto;
+}
+.border-2{
+  border-width: 2px !important;
+}
+.border-3{
+  border-width: 3px !important;
 }
 
 </style>

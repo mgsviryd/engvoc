@@ -2,7 +2,7 @@
   <b-dropdown
       v-if="show"
       :id="ids.id"
-      v-b-tooltip="{trigger: 'hover focus', delay: { 'show': 800, 'hide': 40 }, placement: 'bottomright'}"
+      v-b-tooltip="{trigger: 'hover', delay: { 'show': 800, 'hide': 40 }, placement: 'bottomright'}"
       :title="getCapitalizeLang('download')"
       menu-class="w-100"
       role="button"
@@ -12,7 +12,7 @@
   >
     <template slot="button-content"
     >
-      <i class="fa-solid fa-download"></i>
+      <i class="fa-solid fa-download text-success"></i>
     </template>
 
     <b-dropdown-item

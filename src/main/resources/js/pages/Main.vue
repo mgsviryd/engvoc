@@ -72,7 +72,7 @@ export default {
         vocabulary: this.prefixId() + 'vocabulary-id',
         vocabularyModal: this.prefixId() + 'vocabulary-modal-id',
       }
-    }
+    },
   },
   watch: {
     main(newVal) {
@@ -101,6 +101,9 @@ export default {
   methods: {
     prefixId() {
       return this.name + '-'
+    },
+    async fetchData(){
+
     },
     async setSizeHeaderFooter() {
       let heightHeader = document.getElementById(this.ids.header).offsetHeight
