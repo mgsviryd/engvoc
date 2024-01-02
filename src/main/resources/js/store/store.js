@@ -302,11 +302,12 @@ export default new Vuex.Store(
                     payload.card]
             },
             addCardsNotSavedMutation(state, payload) {
-                if (payload.cards === null || payload.cards.length === 0) return
-                state.cardsNotSaved = [
-                    ...state.cardsNotSaved,
-                    ...payload.cards
-                ]
+                if (!_.isNil(payload.cards)) {
+                    state.cardsNotSaved = [
+                        ...state.cardsNotSaved,
+                        ...payload.cards
+                    ]
+                }
             },
             defaultCardsNotSavedMutation(state) {
                 state.cardsNotSaved = []
@@ -318,6 +319,14 @@ export default new Vuex.Store(
             },
 
             // cards
+            addCardsToDictionaryMutation(state, payload){
+                const inx = this.getters.getDictionaryInx(payload.dictionary.id)
+                state.cards[inx] = [
+                    ...state.cards[inx],
+                    ...payload.cards,
+                ]
+                state.action.id = _.now()
+            },
             addCardMutation(state, payload) {
                 const card = payload.card
                 if (card === null) return
@@ -654,6 +663,54 @@ export default new Vuex.Store(
             },
 
             // cards
+            async uploadCardsToDictionaryAction({commit, dispatch}, payload){
+                    if(payload.formData.has('file')){
+                        return await dispatch('uploadCardsToDictionaryByFileAction', payload)
+                    }else if(payload.formData.has('files')){
+                        return await dispatch('uploadCardsToDictionaryByFilesAction', payload)
+                    }
+            },
+            async uploadCardsToDictionaryByFilesAction({commit}, payload){
+                const formData = payload.formData
+                formData.append('dictionaryId',
+                    new Blob([payload.dictionary.id], {type: "application/json"}))
+                formData.append('fileTypeLabel',
+                    new Blob([payload.fileTypeLabel], {type: "application/json"}))
+                const result = await cardApi.uploadCardsToDictionaryByFiles(formData)
+                const data = await result.data
+                if (result.ok) {
+                    lock.acquire('uploadCards', () => {
+                        commit('addCardsToDictionaryMutation', {cards: data.saved, dictionary: payload.dictionary})
+                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
+
+                    }).catch((err) => {
+                        console.log(err)
+                    })
+                    return {errors: data.errors, countSaved: data.saved.length, countNotSaved: data.notSaved.length}
+                } else{return {errors: [], countSaved: 0, countNotSaved: 0}
+                }
+            },
+            async uploadCardsToDictionaryByFileAction({commit}, payload){
+                const formData = payload.formData
+                formData.append('dictionaryId',
+                    new Blob([payload.dictionary.id], {type: "application/json"}))
+                formData.append('fileTypeLabel',
+                    new Blob([payload.fileTypeLabel], {type: "application/json"}))
+                const result = await cardApi.uploadCardsToDictionaryByFile(formData)
+                const data = await result.data
+                if (result.ok) {
+                    lock.acquire('uploadCards', () => {
+                        commit('addCardsToDictionaryMutation', {cards: data.saved, dictionary: payload.dictionary})
+                        commit('addCardsNotSavedMutation', {cards: data.notSaved})
+
+                    }).catch((err) => {
+                        console.log(err)
+                    })
+                    return {errors: data.errors, countSaved: data.saved.length, countNotSaved: data.notSaved.length}
+                } else{return {errors: [], countSaved: 0, countNotSaved: 0}
+            }
+            },
+
             async uploadCardsByExcelFilesAction({commit}, payload) {
                 const formData = payload.formData
                 formData.append('vocabularyId',
@@ -820,7 +877,7 @@ export default new Vuex.Store(
             },
 
             async findVocabularyDataAction({commit, dispatch}, payload) {
-                const result = await vocabularyApi.findData(payload)
+                const result = await vocabularyApi.findData(payload.vocabulary)
                 const data = await result.data
                 if (result.ok) {
                     commit('setVocabularyDataMutation',
@@ -983,9 +1040,7 @@ export default new Vuex.Store(
                     let blob = new Blob([result.blob()], {type: result.headers['content-type']})
                     let link = document.createElement('a')
                     link.href = window.URL.createObjectURL(blob)
-                    const source = payload.vocabulary.source.locale
-                    const target = payload.vocabulary.target.locale
-                    link.download = payload.dictionary.name + '-' + source + '-' + target + '.xlsx'
+                    link.download = payload.dictionary.name + '.xlsx'
                     link.click();
                 }
             },
@@ -996,9 +1051,7 @@ export default new Vuex.Store(
                     let blob = new Blob([data], {type: result.headers['content-type']})
                     let link = document.createElement('a')
                     link.href = window.URL.createObjectURL(blob)
-                    const source = payload.vocabulary.source.locale
-                    const target = payload.vocabulary.target.locale
-                    link.download = payload.dictionary.name + '-' + source + '-' + target + '.xml'
+                    link.download = payload.dictionary.name + '.xml'
                     link.click();
                 }
             },

@@ -3,38 +3,38 @@
       v-if="show"
       :id="prefixId()"
       :ref="prefixId()"
-      class="border-0 shadow-none"
       :class="isNoUserGetter?'bg-transparent':'bg-white'"
+      class="shadow-none border-0 "
+      dropleft
+      no-caret
       toggle-class="shadow-none rounded-sm px-1"
       variant="transparent"
-      no-caret
-      dropleft
       @hide="shown=false"
       @show="shown=true"
   >
-    <b-popover :target="prefixId()"
+    <b-popover :show.sync="isPopover"
+               :target="prefixId()"
                :title="username"
-               :show.sync="isPopover"
                placement="bottomleft"
                variant="success"
     >
-      {{getCapitalizeLang('welcomeTo')+ ' '}}{{getUpperCaseLang('logo')}}
+      {{ getCapitalizeLang('welcomeTo') + ' ' }}{{ getUpperCaseLang('logo') }}
     </b-popover>
     <template #button-content>
-      <i class="fa-solid fa-user"
-         :class="isNoUserGetter?'text-white':'text-success'"></i>
-      <i v-if="shown" class="fa-sharp fa-solid fa-xs fa-caret-up"
-         :class="isNoUserGetter?'text-white':'text-success'"></i>
-      <i v-else class="fa-sharp fa-solid fa-xs fa-caret-down"
-         :class="isNoUserGetter?'text-white':'text-success'"></i>
+      <i :class="isNoUserGetter?'text-white':'text-success'"
+         class="fa-solid fa-user"></i>
+      <i v-if="shown" :class="isNoUserGetter?'text-white':'text-success'"
+         class="fa-sharp fa-solid fa-xs fa-caret-up"></i>
+      <i v-else :class="isNoUserGetter?'text-white':'text-success'"
+         class="fa-sharp fa-solid fa-xs fa-caret-down"></i>
     </template>
 
     <b-dropdown-group v-if="!isNoUserGetter" :header="getCapitalizeLang('account')">
       <b-dropdown-text>
         {{ username }}
         <b-button
-            variant="outline-secondary"
             href="/sign/logout"
+            variant="outline-secondary"
         >
           <i class="fa-solid fa-power-off text-danger"></i>
           {{ getCapitalizeLang('logout') }}
@@ -143,15 +143,15 @@ export default {
       } else {
         this.username = ""
       }
-      if(this.authentication.isNew){
+      if (this.authentication.isNew) {
         this.launchPopover()
       }
       this.users = this.authentication.users
       this.show = true
     },
-    launchPopover(){
+    launchPopover() {
       this.isPopover = true
-      _.delay(()=>{
+      _.delay(() => {
         this.isPopover = false
       }, 4000)
     },

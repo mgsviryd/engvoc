@@ -16,7 +16,7 @@
             <google-circle :heightRem="3" :widthRem="3"></google-circle>
           </div>
           <p>
-            {{ getCapitalizeLang('pleaseWaitTreeDot') }}
+            {{ getCapitalizeLang('pleaseWaitThreeDot') }}
           </p>
         </div>
         <div v-if="overlay.showSignInFailure" class="text-center">
@@ -42,7 +42,7 @@
             <google-circle :heightRem="3" :widthRem="3"></google-circle>
           </div>
           <p id="cancel-label">
-            {{ getCapitalizeLang('pleaseWaitTreeDot') }}
+            {{ getCapitalizeLang('pleaseWaitThreeDot') }}
           </p>
         </div>
         <div v-if="overlay.showSignUpFailure" class="text-center">

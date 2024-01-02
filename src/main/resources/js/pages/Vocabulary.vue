@@ -84,7 +84,7 @@ export default {
       this.show = false
       this._vocabulary = this.vocabulary.vocabulary
       if (!this.isBlank(this._vocabulary)) {
-        this.$store.dispatch('findVocabularyDataAction', this._vocabulary)
+        this.$store.dispatch('findVocabularyDataAction', {vocabulary: this._vocabulary})
       }
       this.show = true
     },

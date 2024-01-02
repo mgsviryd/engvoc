@@ -128,7 +128,7 @@ public final class Views {
             Dictionary {
     }
 
-    public interface VocabularyDictionaryCard extends Vocabulary, Dictionary, Card {
+    public interface VocabularyDictionaryCardAndLocaleMessageException extends Vocabulary, Dictionary, Card, LocaleExceptionMessage {
     }
 
     public interface LastModifiedLDT {

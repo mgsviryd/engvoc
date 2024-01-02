@@ -5,10 +5,13 @@ const configUndefinedJson = {headers: {"Content-Type": "undefined", "Accept": "a
 const cards = Vue.resource('/json/card/{id}')
 
 export default {
-    uploadXmlFile: (formData) => Vue.http.post("/json/card/upload/xml/file", formData, configMultipartJson),
-    uploadXmlFiles: (formData) => Vue.http.post("/json/card/upload/xml/files", formData, configMultipartJson),
-    uploadExcelFile: (formData) => Vue.http.post("/json/card/upload/excel/file", formData, configMultipartJson),
-    uploadExcelFiles: (formData) => Vue.http.post("/json/card/upload/excel/files", formData, configMultipartJson),
+    uploadXmlFile: (formData) => Vue.http.post("/json/card/upload/vocabulary/xml/file", formData, configMultipartJson),
+    uploadXmlFiles: (formData) => Vue.http.post("/json/card/upload/vocabulary/xml/files", formData, configMultipartJson),
+    uploadExcelFile: (formData) => Vue.http.post("/json/card/upload/vocabulary/excel/file", formData, configMultipartJson),
+    uploadExcelFiles: (formData) => Vue.http.post("/json/card/upload/vocabulary/excel/files", formData, configMultipartJson),
+
+    uploadCardsToDictionaryByFile: (formData) => Vue.http.post("/json/card/upload/dictionary/file", formData, configMultipartJson),
+    uploadCardsToDictionaryByFiles: (formData) => Vue.http.post("/json/card/upload/dictionary/files", formData, configMultipartJson),
 
     downloadXmlFile: dictionaryId => Vue.http.get("/json/card/download/xml", {params: {dictionaryId}}),
     downloadXmlFiles: (ids) => Vue.http.post("/json/card/download/xmls", ids, {responseType: 'arraybuffer'}),

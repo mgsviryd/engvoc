@@ -98,7 +98,7 @@ public class VocabularyRestController {
     }
 
     @PostMapping(value = "/findData")
-    @JsonView({Views.VocabularyDictionaryCard.class})
+    @JsonView({Views.VocabularyDictionaryCardAndLocaleMessageException.class})
     public HashMap<Object, Object> findData(
             @AuthenticationPrincipal User user,
             @RequestBody Vocabulary vocabulary

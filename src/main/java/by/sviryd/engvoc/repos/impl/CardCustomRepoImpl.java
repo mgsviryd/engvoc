@@ -57,11 +57,11 @@ class CardCustomRepoImpl implements CardCustomRepo {
         Root<Card> root = cq.from(Card.class);
         List<Predicate> predicatesOR = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
+            Predicate pClient = cb.equal(root.get("client"), client);
             Predicate pWord = cb.equal(root.get("word"), cards.get(i).getWord());
             Predicate pTranslation = cb.equal(root.get("translation"), cards.get(i).getTranslation());
-            Predicate pClient = cb.equal(root.get("client"), client);
             Predicate pUnrepeatedTrue = cb.equal(root.get("unrepeated"), true);
-            Predicate and = cb.and(pWord, pTranslation, pClient, pUnrepeatedTrue);
+            Predicate and = cb.and(pClient, pWord, pTranslation, pUnrepeatedTrue);
             predicatesOR.add(and);
         }
         Predicate or = cb.or(predicatesOR.toArray(new Predicate[predicatesOR.size()]));

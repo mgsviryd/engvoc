@@ -1,6 +1,9 @@
 <template>
-  <div v-if="show" class="container p-0 m-0 parent-for-height-flex"
+  <div v-if="show"
+       :id="ids.id"
+       :ref="ids.id"
        :style="{height: colHeight+'px'}"
+       class="container p-0 m-0 parent-for-height-flex"
   >
     <b-row
         :id="ids.tools"
@@ -9,119 +12,129 @@
         style="position: sticky; top:0; left: 0; z-index: 100;"
     >
       <b-row no-gutters>
-        <b-breadcrumb class="p-0 mt-1 mb-2 bg-transparent text-white">
+        <b-breadcrumb class="p-0 mt-0 mb-1 bg-transparent text-white" size="sm">
           <b-breadcrumb-item>
-              <b-button
-                  size="sm"
-                  :variant="dictionary.unrepeated?'info':'warning'"
-                  class="py-0 shadow-none border-2"
-                  @click.prevent.stop="navigateToUnique"
-              >
-                {{dictionary.unrepeated?getLang('unique'):getLang('notUnique')}}
-              </b-button>
+            <b-button
+                :variant="dictionary.unrepeated?'info':'warning'"
+                class="py-0 shadow-none border border-dark"
+                size="sm"
+                @click.prevent.stop="navigateToUnique"
+            >
+              {{ dictionary.unrepeated ? getLang('unique') : getLang('notUnique') }}
+            </b-button>
           </b-breadcrumb-item>
           <b-breadcrumb-item>
             <b-button
+                class="py-0 shadow-none border border-dark"
                 size="sm"
                 variant="primary"
-                class="py-0 shadow-none border-2"
                 @click.prevent.stop="navigateToDictionary"
             >
               {{ dictionary.name }}
             </b-button>
           </b-breadcrumb-item>
+          <b-breadcrumb-item v-if="activeCard">
+            <b-button
+                class="py-0 shadow-none border-0 text-light"
+                size="sm"
+                variant="transparent"
+                @click.prevent.stop="scrollToActiveCard"
+            >
+              {{ activeCard.word }}
+            </b-button>
+          </b-breadcrumb-item>
         </b-breadcrumb>
       </b-row>
       <b-row no-gutters>
-      <b-button-toolbar>
-        <b-button-group size="sm">
-          <b-button
-              variant="light"
-              class="shadow-none px-1 py-0"
-              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
-              :title="getCapitalizeLang('settings')"
-              @click="$refs[ids.tableSettingsModal].showModal()"
-          >
-            <i class="fa fa-gear fa-xs text-secondary"></i>
-          </b-button>
-        </b-button-group>
+        <b-button-toolbar>
+          <b-button-group class="mr-1" size="sm">
+            <b-button
+                v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                :title="getCapitalizeLang('addCard')"
+                class="px-1 py-0 shadow-none border border-secondary"
+                variant="light"
+                @click="$refs[ids.addCardModal].showModal()"
+            >
+              <i class="fa fa-plus text-success"></i>
+            </b-button>
+          </b-button-group>
 
-        <b-button-group class="mx-1" size="sm">
-          <b-button
-              v-if="selectedCardIds.length > 0"
-              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
-              :title="getCapitalizeLang('deselectAll')"
-              class="shadow-none px-1 py-0"
-              data-toggle="tooltip"
-              variant="light"
-              @click.prevent.stop="deselectAll()"
-          >
-            <i class="fa fa-xmark fa-xs text-danger"></i>
-          </b-button>
+          <b-button-group class="" size="sm">
+            <b-button
+                v-if="countSelected > 0"
+                v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                :title="getCapitalizeLang('deselectAll')"
+                class="px-1 py-0 shadow-none border border-secondary"
+                data-toggle="tooltip"
+                variant="light"
+                @click.prevent.stop="deselectAll()"
+            >
+              <i class="fa-solid fa-square-check text-primary"></i>
+            </b-button>
 
-          <b-button
-              v-if="selectedCardIds.length === 0"
-              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
-              :title="getCapitalizeLang('selectAll')"
-              class="shadow-none px-1 py-0"
-              data-toggle="tooltip"
-              variant="light"
-              @click.prevent.stop="selectAll()"
-          >
-            <i class="fa fa-check fa-xs text-success"></i>
-          </b-button>
+            <b-button
+                v-else
+                v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                :title="getCapitalizeLang('selectAll')"
+                class="px-1 py-0 shadow-none border border-secondary"
+                data-toggle="tooltip"
+                variant="light"
+                @click.prevent.stop="selectAll()"
+            >
+              <i class="fa-regular fa-square"></i>
+            </b-button>
 
-          <b-button
-              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
-              :title="getCapitalizeLang('selected')"
-              class="px-0 py-0"
-              variant="light"
-              @mousedown.prevent="mousedownSelected()"
-          >
-              <span class="st-text-shift">
-                {{ getCapitalizeLang('abbrSelected') }}
-              </span>
+            <b-button
+                v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                :title="getCapitalizeLang('selected')"
+                class="px-0 py-0 shadow-none border border-secondary"
+                variant="light"
+                @mousedown.prevent="mousedownSelected()"
+            >
             <span class="st-right badge bg-white border border-secondary badge-pill">
-                  <span v-if="selectedCardIds.length<100">&nbsp;</span>
-                  <span v-if="selectedCardIds.length<10">&nbsp;</span>
-                {{ selectedCardIds.length }}
+                  <span v-if="countSelected<100">&nbsp;</span>
+                  <span v-if="countSelected<10">&nbsp;</span>
+                {{ countSelected }}
               </span>
-          </b-button>
-        </b-button-group>
+            </b-button>
+          </b-button-group>
 
-        <b-button-group size="sm">
-          <b-button
-              v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
-              :title="getCapitalizeLang('addCard')"
-              class="shadow-none px-1 py-0"
-              variant="light"
-              @click="$refs[ids.addCardModal].showModal()"
-          >
-            <i class="fa fa-plus fa-xs text-success"></i>
-            {{ getLang('card') }}
-          </b-button>
-        </b-button-group>
+          <b-button-group class="mx-1" size="sm">
+            <download-dropdown
+                :id="ids.downloadDropdown"
+                :ref="ids.downloadDropdown"
+                :dictionary="dictionary"
+                :side="instanceMark"
+            ></download-dropdown>
+            <upload-dropdown
+                :id="ids.uploadDropdown"
+                :ref="ids.uploadDropdown"
+                :dictionary="dictionary"
+                :side="instanceMark"
+            ></upload-dropdown>
+          </b-button-group>
 
-        <b-button-group class="mx-1" size="sm">
-          <download-dropdown
-              :id="ids.downloadDropdown"
-              :ref="ids.downloadDropdown"
-              :dictionary="dictionary"
-              :side="instanceMark"
-          ></download-dropdown>
-          <upload-dropdown
-              :id="ids.uploadDropdown"
-              :ref="ids.uploadDropdown"
-              :dictionary="dictionary"
-              :side="instanceMark"
-          ></upload-dropdown>
-        </b-button-group>
-      </b-button-toolbar>
+          <b-button-group size="sm">
+            <b-button
+                v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                :title="getCapitalizeLang('settings')"
+                class="px-1 py-0 shadow-none border border-secondary"
+                variant="light"
+                size="sm"
+                @click="$refs[ids.tableSettingsModal].showModal()"
+            >
+              <i class="fa fa-gear text-secondary"></i>
+            </b-button>
+          </b-button-group>
+        </b-button-toolbar>
       </b-row>
     </b-row>
 
-    <div class="st-table container px-0 parent-for-height-flex"
-      :style="styleTable"
+    <div
+        :id="ids.field"
+        :ref="ids.field"
+        :style="styleField"
+         class="st-field container px-0 parent-for-height-flex"
     >
       <table class="table bg-white table-hover table-bordered table-sm mb-0 border-0"
              style="z-index: 1;"
@@ -131,7 +144,17 @@
         >
         <tr class="border-0">
           <th class="st-squeeze border-0 border-left-0 py-0">
-            {{ getUpperCaseLang('abbrNumber') }}
+            <b-button-group size="sm">
+              <b-button
+                  size="sm"
+                  class="px-1 py-0 shadow-none border-0"
+                  variant="transparent"
+                  @click.prevent.stop="scrollToActiveCard"
+              >
+                <i class="fa-solid fa-location-crosshairs fa-sm fa-fade text-white"
+                   style="--fa-animation-duration: 2s; --fa-fade-opacity: 0.6;"></i>
+              </b-button>
+            </b-button-group>
           </th>
           <template v-for="(property,i) in sortByColumnInx(propertySettings)">
             <th v-if="property.showColumn"
@@ -146,7 +169,7 @@
                      data-toggle="tooltip"
                 >
                   <div v-if="property.showIcon" class="pl-0" v-html="property.icon"></div>
-                  <div v-if="property.showLabel" class="pl-2">
+                  <div v-if="property.showLabel" :class="property.showIcon?'pl-2':''">
                     {{ getCapitalizeLang(property.label) }}
                   </div>
                 </div>
@@ -202,21 +225,29 @@
         <tbody>
         <template v-for="(card,i) in dictionaryCards"
                   v-model="dictionaryCards">
-          <tr :id="getCardElemId(card.id)"
+          <tr
+              :id="getCardElemId(card.id)"
+              :ref="getCardElemId(card.id)"
               :key="card.id"
+              :class="[{'card-selected':card.selected}, {'card-active':activeCard === card} ]"
               draggable="true"
               @mousedown.prevent="mousedown(card, i)"
               @mouseup.prevent="mouseup(card, i)"
-              @click.prevent.stop="selectCard(card)"
+              @click="setActiveCard(card)"
           >
             <td class="st-squeeze border-1 border-secondary border-left-0">{{ i + 1 }}</td>
-            <template v-for="(property, ii) in sortByColumnInx(propertySettings)">
+            <template v-for="(property, ii) in sortByColumnInx(propertySettings)"
+            >
               <td v-if="property.showColumn"
                   :class="property.propertyType === 'boolean'? 'st-squeeze':'st-text-shift'"
                   class="border-1 border-secondary"
               >
-                <input v-if="property.propertyType === 'boolean'" :value="getProperty(card, property.property)"
-                       type="checkbox">
+                <input v-if="property.property === 'selected'" v-model="dictionaryCards[i][property.property]"
+                       type="checkbox" @click="selectCard(card)"
+                >
+                <input v-else-if="property.propertyType === 'boolean'" v-model="dictionaryCards[i][property.property]"
+                       type="checkbox"
+                >
                 <div v-else>{{ getProperty(card, property.property) }}</div>
               </td>
             </template>
@@ -260,7 +291,7 @@
       </table>
       <b-row
           :id="ids.filler"
-          class="child-for-height-flex p-0 m-0"
+          class="child-for-height-flex bg-white p-0 m-0"
           @mouseup="mouseup(null,-1)"
       >
       </b-row>
@@ -335,7 +366,7 @@ export default {
       'cards',
       'lang',
       'vocabulary',
-        'height',
+      'height',
     ]),
     ...mapGetters([
       'isDictionaryExists',
@@ -343,11 +374,34 @@ export default {
       'getDictionaryInx',
       'getCardsByDictionaryInx',
     ]),
-    colHeight(){
+    colHeight() {
       return window.innerHeight - this.height.header - this.height.footer - 6
     },
     propertySettings() {
       return [
+        {
+          property: "selected",
+          propertyType: "boolean",
+          label: this.getUpperCaseLang('abbrSelected'),
+          icon: '<i class="fa-regular fa-square-check"></i>',
+          showLabel: true,
+          showIcon: false,
+          tooltip: {
+            placement: top,
+            title: "selected",
+            delay: {show: 500, hide: 100}
+          },
+          order: null,
+          priority: 0,
+          priorityOrder: 0,
+          sortable: true,
+          showColumn: true,
+          showDetail: false,
+          showDetailLabel: false,
+          columnInx: 0,
+          detailInx: null,
+          detailPosition: "vertical",
+        },
         {
           property: "word",
           propertyType: "string",
@@ -367,7 +421,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 0,
+          columnInx: 1,
           detailInx: null,
           detailPosition: "vertical",
         },
@@ -390,7 +444,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 1,
+          columnInx: 2,
           detailInx: null,
           detailPosition: "vertical",
         },
@@ -413,7 +467,7 @@ export default {
           showColumn: true,
           showDetail: true,
           showDetailLabel: true,
-          columnInx: 2,
+          columnInx: 3,
           detailInx: 1,
           detailPosition: "vertical",
         },
@@ -436,7 +490,7 @@ export default {
           showColumn: true,
           showDetail: true,
           showDetailLabel: true,
-          columnInx: 3,
+          columnInx: 4,
           detailInx: 1,
           detailPosition: "vertical",
         },
@@ -459,7 +513,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 4,
+          columnInx: 5,
           detailInx: null,
           detailPosition: "vertical",
         },
@@ -482,7 +536,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: null,
+          columnInx: 6,
           detailInx: null,
           detailPosition: "vertical",
         },
@@ -490,7 +544,9 @@ export default {
     },
     ids() {
       return {
+        id: this.prefixId(),
         tools: this.prefixId() + 'tools-id',
+        field: this.prefixId() + 'field-id',
         filler: this.prefixId() + 'filler-id',
         addCardModal: this.prefixId() + 'add-card-modal-id',
         tableSettingsModal: this.prefixId() + "table-settings-modal-id",
@@ -498,7 +554,7 @@ export default {
         uploadDropdown: this.prefixId() + 'upload-dropdown-id',
       }
     },
-    styleTable(){
+    styleField() {
       return {
         height: this.style.height.table + 'px',
       }
@@ -518,7 +574,8 @@ export default {
       activeParent: false,
       showCardDetails: false,
       dictionaryCards: [],
-      selectedCardIds: [],
+      countSelected: 0,
+      activeCard: null,
 
       groups: ["cardsChangeDictionary"],
       sourceMark: "cards",
@@ -527,8 +584,8 @@ export default {
       dragCards: [],
 
       listeners: [],
-      style:{
-        height:{
+      style: {
+        height: {
           table: 0,
         },
       }
@@ -540,21 +597,17 @@ export default {
         this.show = false
         if (this.isSourceExists()) {
           this.show = true
-          const cards = this.getCardsByDictionaryId(this.dictionary.id)
-          if (cards) {
-            this.dictionaryCards = [...cards]
-          } else {
-            this.dictionaryCards = []
-          }
+          let cards = _.cloneDeep(this.getCardsByDictionaryId(this.dictionary.id))
+          cards = this.updateSelected(cards, this.dictionaryCards)
+          this.dictionaryCards = cards
           this.groupCards()
-          this.updateSelected()
-          this.$nextTick(()=>{
+          this.$nextTick(() => {
             this.style.height.table = this.calcHeightTable()
           })
         }
       }
     },
-    calcHeightTable(){
+    calcHeightTable() {
       return this.colHeight - document.getElementById(this.ids.tools).offsetHeight
     },
     prefixId() {
@@ -587,11 +640,19 @@ export default {
               } else return null
             }
           }
-          if (s.propertyType === "dateISOString") {
+          if (s.propertyType === "boolean") {
             return (item) => {
               const value = this.getProperty(item, s.property)
               if (value) {
                 return new Date(value)
+              } else return null
+            }
+          }
+          if (s.propertyType === "dateISOString") {
+            return (item) => {
+              const value = this.getProperty(item, s.property)
+              if (value) {
+                return value
               } else return null
             }
           }
@@ -685,39 +746,37 @@ export default {
         this.dictionaryCards = _.orderBy(this.dictionaryCards, sortable.properties, sortable.orders)
       }
     },
-    updateSelected() {
-      this.selectedCardIds = this.selectedCardIds.filter(id => this.dictionaryCards.findIndex(x => x.id === id) >= 0)
+    updateSelected(newCards, oldCards) {
+      let count = 0
+      oldCards.filter(c => c.selected).forEach(c => {
+        let inx = newCards.findIndex(x => x.id === c.id)
+        if (inx >= 0) {
+          count++
+          newCards[inx].selected = true
+        }
+      })
+      this.countSelected = count
+      return newCards
     },
     getCardElemId(id) {
       return this.prefixId() + 'card' + id
     },
 
     selectCard(card) {
-      const inx = this.selectedCardIds.findIndex(id => id === card.id)
-      if (inx < 0) {
-        this.selectedCardIds.push(card.id)
-        $("#" + this.getCardElemId(card.id)).addClass("card-select")
+      if (card.selected) {
+        this.countSelected--
       } else {
-        this.selectedCardIds.splice(inx, 1)
-        $("#" + this.getCardElemId(card.id)).removeClass("card-select")
+        this.countSelected++
       }
     },
-    isSelected() {
-      return this.selectedCardIds.length > 0
-    },
-    isSelectAll() {
-      return this.selectedCardIds.length === this.dictionaryCards.length
-    },
-    isDeselectAll() {
-      return this.selectedCardIds.length === 0
-    },
+
     selectAll() {
-      this.selectedCardIds = this.dictionaryCards.map(c => c.id)
-      this.selectedCardIds.forEach(id => $("#" + this.getCardElemId(id)).addClass("card-select"))
+      this.dictionaryCards.forEach(c => c.selected = true)
+      this.countSelected = this.dictionaryCards.length
     },
     deselectAll() {
-      this.selectedCardIds.forEach(id => $("#" + this.getCardElemId(id)).removeClass("card-select"))
-      this.selectedCardIds = []
+      this.dictionaryCards.forEach(c => c.selected = false)
+      this.countSelected = 0
     },
     isSourceExists() {
       return this.isDictionaryExists(this.dictionary.id)
@@ -751,11 +810,11 @@ export default {
       this.isMouseInClick = true
       setTimeout(() => {
         if (this.isMouseInClick) {
-          if (this.selectedCardIds.length < 1) {
+          this.groupsInProcess = this.groups
+          if (this.countSelected === 0) {
             return
           }
-          this.groupsInProcess = this.groups
-          const items = this.dictionaryCards.filter(card => this.selectedCardIds.findIndex(id => id === card.id) >= 0)
+          const items = this.dictionaryCards.filter(c => c.selected)
           this.dragCards = items
           this.activateDragstartStyle(items)
           this.$root.$emit("dragdrop-init", {groups: this.groups})
@@ -860,32 +919,63 @@ export default {
       this.activateListeners()
     },
     removeListeners() {
-      this.listeners.forEach(pair=>{
+      this.listeners.forEach(pair => {
         document.removeEventListener(pair.type, pair.listener)
       })
       this.listeners = []
     },
-    activateListeners(){
-      this.listeners.forEach(pair=>{
+    activateListeners() {
+      this.listeners.forEach(pair => {
         document.addEventListener(pair.type, pair.listener)
       })
     },
-    navigateToDictionary(){
+    navigateToDictionary() {
       this.$emit('onNavigateToDictionary', this.instanceMark)
     },
-    navigateToUnique(){
+    navigateToUnique() {
       this.$emit('onNavigateToUnique', this.instanceMark)
+    },
+    scrollToActiveCard(){
+      if (this.activeCard) {
+        const elem = "#" + this.getCardElemId(this.activeCard.id)
+        this.scrollToElemInField(elem)
+      }
+    },
+    setActiveCard(card){
+      this.activeCard = card
+    },
+    scrollToElemInField(elem) {
+      const options = {
+        container: '#' + this.ids.field,
+        easing: 'ease-in',
+        lazy: false,
+        offset: -60,
+        force: true,
+        cancelable: true,
+        onStart(element) {
+          // scrolling started
+        },
+        onDone(element) {
+          // scrolling is done
+        },
+        onCancel() {
+          // scrolling has been interrupted
+        },
+        x: false,
+        y: true
+      }
+      this.$scrollTo(elem, 500, options)
     },
   },
 }
 </script>
 
 <style scoped>
-.border-2{
+.border-2 {
   border-width: 2px !important;
 }
 
-.st-table {
+.st-field {
   overflow: scroll;
 }
 
@@ -914,8 +1004,11 @@ th, td:not(.st-squeeze, .st-text-shift) {
 }
 
 
-.card-select {
-  background-color: #eaeaea;
+.card-selected {
+  background-color: #BBDEFB;
+}
+.card-active{
+  background-color: #aedcae;
 }
 
 .dragover:hover {

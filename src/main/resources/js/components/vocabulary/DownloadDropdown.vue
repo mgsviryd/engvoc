@@ -7,8 +7,8 @@
       menu-class="w-100"
       role="button"
       size="sm"
-      toggle-class="py-0 px-1 bg-light shadow-none"
-      variant="transparent"
+      toggle-class="py-0 px-1 shadow-none border border-secondary"
+      variant="light"
   >
     <template slot="button-content"
     >

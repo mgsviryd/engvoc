@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid">
+  <b-container fluid>
     <VueFileAgent
         ref="vueFileAgent"
         :theme="'list'"
@@ -19,20 +19,21 @@
         @delete="fileDeleted($event)"
         v-model="fileRecords"
     ></VueFileAgent>
-  </div>
+  </b-container>
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState} from "vuex"
+import * as _ from "lodash"
 
 export default {
+  components: {},
+  props: [],
   created() {
     this.$root.$on('setDefaultDropZone', () => {
       this.setDefaultDropZone()
     })
   },
-  props: [],
-  components: {},
   watch: {
     fileRecordsForUpload(newVal, oldVal) {
       if (newVal.length === 1) {
@@ -45,13 +46,13 @@ export default {
       'lang',
     ]),
     type() {
-      return this.$t('invalidTypeFile') + " " + this.props.accept + "."
+      return this.getCapitalizeLang('invalidTypeFile') + " " + this.props.accept + "."
     },
     size() {
-      return this.$t('sizeExceed') + " " + this.props.size + "."
+      return this.getCapitalizeLang('sizeExceed') + ": " + this.props.size + "."
     },
     choose() {
-      return this.$t('chooseFileWithExtension') + " " + this.props.accept + "."
+      return this.getCapitalizeLang('dragFileWithExtension') + " " + this.props.accept + "."
     }
   },
   data() {
@@ -69,6 +70,12 @@ export default {
     };
   },
   methods: {
+    getCapitalizeLang(key) {
+      return _.capitalize(this.getLang(key))
+    },
+    getLang(key) {
+      return this.$t(key)
+    },
     setDefaultDropZone() {
       this.fileRecordsForUpload = []
       this.fileRecords = []

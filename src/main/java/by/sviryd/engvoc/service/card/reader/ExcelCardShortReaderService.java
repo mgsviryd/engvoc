@@ -19,13 +19,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Service
-public class ExcelCardShortReaderService {
+public class ExcelCardShortReaderService implements MultipartCardReader {
     @Autowired
     private ExcelCardRowConfig rowConfig;
     @Autowired
@@ -73,15 +74,11 @@ public class ExcelCardShortReaderService {
         }
     }
 
-    public List<Card> extract(MultipartFile file) {
+    public List<Card> extract(MultipartFile file) throws IOException {
         try (InputStream is = file.getInputStream();
              XSSFWorkbook workbook = new XSSFWorkbook(is)) {
             return extract(workbook);
-        } catch (EmptyFileException e) {
-            return Collections.emptyList();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Something wrong with " + file.getOriginalFilename());
-        }
+        }catch (Exception e){throw e;}
     }
 
     public List<Card> extract(XSSFWorkbook workbook) {

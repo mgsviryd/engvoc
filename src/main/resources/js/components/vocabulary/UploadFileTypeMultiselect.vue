@@ -13,48 +13,34 @@
       :option-height="100"
       :options="options"
       :searchable="false"
-      :placeholder="getCapitalizeLang('enterName')"
-      :preselectFirst="false"
-      :preserveSearch="false"
-      :preventAutofocus="false"
-      :show-no-results="false"
+      :show-no-results="true"
       :showLabels="false"
       :tabindex="-1"
-      track-by="lang"
-      :value="this.lang.langs"
+      :track-by="trackBy"
       @select="onSelect"
-
   >
     <template slot="singleLabel"
               slot-scope="props">
-      <small :id="ids.singleLabel">
-        <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
-        <span>{{ getUpperCase(props.option.lang) }}</span>
-      </small>
-
-      <b-popover
-          :delay="{ show: 800, hide: 40 }"
-          :placement="'bottom'"
-          :target="ids.singleLabel"
-          no-fade
-          triggers="hover focus"
-      >
-        <b-row no-gutters>
-          <small>
-            <span>{{ getLanguageByLangAndCountry(props.option) }}</span>
-          </small>
-        </b-row>
-      </b-popover>
+        <small>
+          <span>
+              <img alt="..." height="24"
+                   :src="props.option.imgSource"
+                   width="24">
+            {{ getCapitalizeLang(props.option.label) }}
+          </span>
+        </small>
     </template>
-
 
     <template slot="option"
               slot-scope="props">
-      <small>
-        <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
-        <span>{{ getUpperCase(props.option.lang) }}</span>
-        <span>{{ ': ' + getLanguageByLangAndCountry(props.option) }}</span>
-      </small>
+        <small>
+          <span>
+              <img alt="..." height="24"
+                   :src="props.option.imgSource"
+                   width="24">
+            {{ getCapitalizeLang(props.option.label) }}
+          </span>
+        </small>
     </template>
   </multiselect>
 </template>
@@ -65,57 +51,59 @@ import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
 
 export default {
-  components: {},
+  props: [
+    'id',
+    'data',
+  ],
   mounted() {
 
   },
   created() {
     this.fetchData()
   },
+  components: {},
   computed: {
     ...mapState([
-      'lang',
+
     ]),
+
     ids() {
       return {
         id: this.prefixId(),
         singleLabel: this.prefixId() + 'single-label-id',
+        option: this.prefixId() + 'option-id',
       }
     }
   },
   watch: {
-    $route: [
-      'fetchData',
-    ],
-    lang: {
-      handler: function () {
-        this.$forceNextTick(() => {
-          this.fetchData()
-        })
-      },
-      deep: true
-    }
+    data(){
+      this.fetchData()
+    },
   },
   data() {
     return {
-      name: "LangMultiselect",
+      name: 'VocabularyMultiselect',
       show: false,
       value: null,
       options: [],
+      trackBy: 'label',
     }
   },
   methods: {
+    prefixId() {
+      return this.name + '-' + this.id + '-'
+    },
     fetchData() {
       this.show = false
-      this.value = this.lang.lang
-      this.options = this.lang.langs
+      this.value = this.data.value
+      this.options = this.data.options
       this.show = true
     },
-    prefixId() {
-      return this.name + '-'
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
-    onSelect(lang) {
-      this.$store.dispatch('changeLangAction', lang)
+    onSelect() {
+      this.$emit('onSelect', this.value)
     },
     getLanguageByLangAndCountry(lang) {
       return LocaleJS.getLanguageByLangAndCountry(lang)
@@ -143,9 +131,10 @@ export default {
 
 </script>
 
-<style>
+<style scoped>
 .multiselect {
-  width: fit-content;
+  /*width: fit-content;*/
+  width: auto;
 }
 
 .multiselect .multiselect__content-wrapper {
@@ -159,4 +148,5 @@ export default {
 .multiselect--active .multiselect__tags {
   border-bottom: none;
 }
+
 </style>

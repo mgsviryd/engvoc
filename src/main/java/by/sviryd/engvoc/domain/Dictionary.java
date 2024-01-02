@@ -31,7 +31,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@JsonIgnoreProperties(value = {"user", "cards"})
+@JsonIgnoreProperties(value = {"user", "cards"}, ignoreUnknown = true)
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"author_id", "vocabulary_id", "name", "unrepeated", "creationLDT"}))
 public class Dictionary implements Serializable {

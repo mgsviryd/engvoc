@@ -21,6 +21,7 @@
               :id="ids.left.dictionaryNav"
               :ref="ids.left.dictionaryNav"
               :instance="left"
+              :dictionary="left.dictionary"
           ></dictionary-nav>
         </div>
         <div
@@ -148,6 +149,7 @@
               :id="ids.right.dictionaryNav"
               :ref="ids.right.dictionaryNav"
               :instance="right"
+              :dictionary="right.dictionary"
           ></dictionary-nav>
         </div>
       </div>

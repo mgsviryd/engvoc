@@ -12,14 +12,14 @@ public class CardUnrepeatedService {
     private static final Comparator<Card> CARD_COMPARATOR_BY_WORD_THEN_TRANSLATION = Comparator.comparing(Card::getWord).thenComparing(Card::getTranslation);
     private static final Comparator<Card> CARD_COMPARATOR_BY_WORD = Comparator.comparing(Card::getWord);
 
-    public List<Card> getRepeatedByWordAndTranslation(List<Card> cards, List<Card> source){
+    public List<Card> getRepeatedByWordAndTranslation(List<Card> cards, List<Card> unrepeated){
         Set<Card> set= new ConcurrentSkipListSet<>(CARD_COMPARATOR_BY_WORD_THEN_TRANSLATION);
-        set.addAll(source);
+        set.addAll(unrepeated);
         return cards.stream().filter(c-> !set.add(c)).collect(Collectors.toList());
     }
-    public List<Card> getUnrepeatedByWordAndTranslation(List<Card> cards, List<Card> source){
+    public List<Card> getUnrepeatedByWordAndTranslation(List<Card> cards, List<Card> repeated){
         Set<Card> set= new ConcurrentSkipListSet<>(CARD_COMPARATOR_BY_WORD_THEN_TRANSLATION);
-        set.addAll(source);
+        set.addAll(repeated);
         return cards.stream().filter(c-> set.add(c)).collect(Collectors.toList());
     }
 

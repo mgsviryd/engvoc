@@ -36,7 +36,7 @@ public class CardDownloadRestController {
     @Autowired
     private CardService cardService;
 
-    //TODO: excel file is not opened correctly
+    // TODO: excel file is not opened correctly
     @GetMapping("/download/excel")
     public ResponseEntity<Resource> excel(
             @RequestParam("dictionaryId") Dictionary dictionary

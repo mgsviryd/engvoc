@@ -57,7 +57,7 @@ import java.util.UUID;
                         })
         }
 )
-@JsonIgnoreProperties(value = {"cards"})
+@JsonIgnoreProperties(value = {"cards"}, ignoreUnknown = true)
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"client_id", "word", "translation", "unrepeated", "creationLDT", "dictionary_id"}))
 public class Card implements Serializable {
@@ -91,9 +91,8 @@ public class Card implements Serializable {
     @JsonView(Views.Unrepeated.class)
     private boolean unrepeated;
 
-
-    @Column(length = 100)
-    @Length(max = 100)
+    @Column(length = 255)
+    @Length(max = 255)
     @NotBlank
     @Fields({
             @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram1")),
@@ -102,8 +101,8 @@ public class Card implements Serializable {
     @JsonView(Views.Word.class)
     private String word;
 
-    @Column(length = 100)
-    @Length(max = 100)
+    @Column(length = 255)
+    @Length(max = 255)
     @NotBlank
     @Fields({
             @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram1")),
@@ -112,8 +111,8 @@ public class Card implements Serializable {
     @JsonView(Views.Translation.class)
     private String translation;
 
-    @Column(length = 500)
-    @Length(max = 500)
+    @Column(length = 510)
+    @Length(max = 510)
     @Fields({
             @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram1")),
             @Field(name = "name_ascii1", analyze = Analyze.YES, normalizer = @Normalizer(definition = "ascii1"), store = Store.NO)
@@ -121,8 +120,8 @@ public class Card implements Serializable {
     @JsonView(Views.Example.class)
     private String example;
 
-    @Column(length = 500)
-    @Length(max = 500)
+    @Column(length = 510)
+    @Length(max = 510)
     @Fields({
             @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO, analyzer = @Analyzer(definition = "ngram1")),
             @Field(name = "name_ascii1", analyze = Analyze.YES, normalizer = @Normalizer(definition = "ascii1"), store = Store.NO)
@@ -130,13 +129,13 @@ public class Card implements Serializable {
     @JsonView(Views.ExampleTranslation.class)
     private String exampleTranslation;
 
-    @Column(length = 100)
-    @Length(max = 100)
+    @Column(length = 255)
+    @Length(max = 255)
     @JsonView(Views.Transcription.class)
     private String transcription;
 
-    @Column(length = 500)
-    @Length(max = 500)
+    @Column(length = 50)
+    @Length(max = 50)
     @JsonView(Views.Sound.class)
     private String sound;
 

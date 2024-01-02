@@ -23,8 +23,6 @@
               slot-scope="props">
       <div
           :id="ids.singleLabel"
-          class="text-truncate"
-          style="position: absolute; width: 100%;"
       >
         <small>
           <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
@@ -64,8 +62,6 @@
     <template slot="option"
               slot-scope="props">
       <div :id="ids.option+'-'+props.option.source.lang+'-'+props.option.target.lang+'-'+props.option.name"
-           class="text-truncate"
-           style="position: absolute; width: 80%;"
       >
         <small>
           <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
@@ -101,9 +97,6 @@
       </b-popover>
     </template>
   </multiselect>
-  <div v-else>
-
-  </div>
 </template>
 
 <script>
@@ -115,6 +108,7 @@ export default {
   props: [
     'id',
     'side',
+    'data',
   ],
   mounted() {
 
@@ -125,8 +119,9 @@ export default {
   components: {},
   computed: {
     ...mapState([
-      'vocabulary',
+
     ]),
+
     ids() {
       return {
         id: this.prefixId(),
@@ -136,18 +131,9 @@ export default {
     }
   },
   watch: {
-    $route: [
-      'fetchData',
-    ],
-    vocabulary: {
-      handler: function () {
-        this.show = false
-        this.$forceNextTick(() => {
-          this.fetchData()
-        })
-      },
-      deep: true
-    }
+    data(){
+      this.fetchData()
+    },
   },
   data() {
     return {
@@ -163,17 +149,15 @@ export default {
     },
     fetchData() {
       this.show = false
-      if (!this.isBlank(this.vocabulary.vocabulary)) {
-        this.value = this.vocabulary.vocabulary
-        this.options = this.vocabulary.vocabularies
-        this.show = true
-      }
+      this.value = this.data.value
+      this.options = this.data.options
+      this.show = true
     },
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)
     },
     onSelect() {
-      this.$store.commit('setVocabularyMutation', {vocabulary: this.value})
+      this.$emit('onSelect', this.value)
     },
     getLanguageByLangAndCountry(lang) {
       return LocaleJS.getLanguageByLangAndCountry(lang)

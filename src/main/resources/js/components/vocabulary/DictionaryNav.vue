@@ -55,11 +55,12 @@
     >
       <template slot="button-content"
       >
-        <vocabulary-multiselect
-            :id="ids.vocabularyMultiselect"
-            :ref="ids.vocabularyMultiselect"
-            :side="instance.instanceMark"
-        ></vocabulary-multiselect>
+        <vocabulary-multiselect-store
+          :id="ids.vocabularyMultiselect"
+          :ref="ids.vocabularyMultiselect"
+          :side="instance.instanceMark"
+          >
+        </vocabulary-multiselect-store>
         <vocabulary-modal
             :id="ids.vocabularyModal"
             :ref="ids.vocabularyModal"
@@ -96,27 +97,30 @@
       </b-dropdown-group>
     </b-dropdown>
 
-    <b-container class="p-0 m-0 flex-shrink-0" fluid
+    <b-container class="p-0 m-0 bg-secondary border border-dark flex-shrink-0"
+                 fluid
     >
-      <b-button-toolbar class="bg-dark">
+      <b-button-toolbar class="bg-secondary mx-1">
         <b-button-group class="" size="sm">
           <b-button
-              class="py-0 px-1 shadow-none rounded-0 border-0 text-primary"
+              class="px-1 py-1 shadow-none border border-dark"
               size="sm"
-              variant="transparent"
-              @click.prevent.stop="navigateToActiveDictionary"
-          >
-            <i class="fa-solid fa-location-crosshairs fa-sm fa-fade"
-               style="--fa-animation-duration: 2s; --fa-fade-opacity: 0.6;"></i>
-          </b-button>
-          <b-button
-              class="py-0 px-1 shadow-none rounded-0 border-0 text-white"
-              size="sm"
-              variant="transparent"
+              variant="secondary"
               @click.prevent.stop="toggleAllDictionaries"
           >
-            <i v-if="isAllDictionariesCollapsed" class="fa-solid fa-angle-down"></i>
-            <i v-else class="fa-solid fa-angle-up"></i>
+            <i v-if="isAllDictionariesCollapsed" class="fa-solid fa-angle-down text-white"></i>
+            <i v-else class="fa-solid fa-angle-up text-white"></i>
+          </b-button>
+        </b-button-group>
+        <b-button-group class="" size="sm">
+          <b-button
+              class="shadow-none border border-dark px-1 py-1"
+              size="sm"
+              variant="secondary"
+              @click.prevent.stop="navigateToActiveDictionary"
+          >
+            <i class="fa-solid fa-location-crosshairs fa-sm fa-fade text-white"
+               style="--fa-animation-duration: 2s; --fa-fade-opacity: 0.6;"></i>
           </b-button>
         </b-button-group>
       </b-button-toolbar>
@@ -125,7 +129,7 @@
     <b-container
         :id="ids.field"
         :ref="ids.field"
-        class="p-1 m-0 bg-secondary border border-dark child-for-height-flex"
+        class="p-1 m-0 bg-white border border-dark child-for-height-flex"
         fluid
         style="overflow-y: auto;"
     >
@@ -142,10 +146,11 @@
           role="button"
           size="sm"
           split
-          split-class="text-left shadow-none rounded-0 border-1 border-dark"
+          split-class="text-left shadow-none rounded-0 border-1 border-dark pl-1"
           split-variant="info"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
           variant="info"
+          :class="[{'shadow-sm':!isAllDictionariesCollapsed && isDropdownUnrepeatedDictionariesCollapsed}]"
       >
         <template slot="button-content">
           <b-button
@@ -154,8 +159,8 @@
               variant="transparent"
               @click.prevent.stop="toggleDropdownUnrepeatedDictionaries"
           >
-            <i v-if="isDropdownUnrepeatedDictionariesCollapsed" class="fa-solid fa-angle-down fa-sm"></i>
-            <i v-else class="fa-solid fa-angle-up fa-sm"></i>
+            <i v-if="isDropdownUnrepeatedDictionariesCollapsed" class="fa-solid fa-angle-down fa-sm text-white"></i>
+            <i v-else class="fa-solid fa-angle-up fa-sm text-white"></i>
           </b-button>
           <span class="st-text-shift">{{ getLang('unique') }}</span>
           <span class="st-float-right badge badge-light bg-white badge-pill">{{
@@ -203,6 +208,7 @@
           :id="ids.unrepeatedDictionaries"
           class="collapse p-0 m-0"
       >
+        <b-container fluid :class="[{'shadow-sm':!isDropdownUnrepeatedDictionariesCollapsed}, 'p-0 m-0']">
         <b-dropdown
             v-for="(d,i) in unrepeatedDictionaries"
             :id="getDictionaryElemId(d.id)"
@@ -222,7 +228,7 @@
             tabindex="1"
             toggle-class="shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
 
-            @click="parentLoadDictionary(d)"
+            @click="routerVocabulary(d.id)"
             @hide="hideDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
             @show="showDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
             @toggle="toggleDropdownRef({ref:getDictionaryElemId(d.id), level: 0})"
@@ -358,9 +364,8 @@
             </b-dropdown-item>
           </b-dropdown-group>
         </b-dropdown>
+        </b-container>
       </div>
-      <b-row v-if="!isDropdownUnrepeatedDictionariesCollapsed" class="bg-transparent" no-gutters style="height: 8px;"
-             tabindex="-1"></b-row>
 
       <b-dropdown
           :id="ids.dropdownNonUnrepeatedDictionaries"
@@ -375,10 +380,11 @@
           role="button"
           size="sm"
           split
-          split-class="text-left shadow-none rounded-0 border-1 border-dark"
+          split-class="text-left shadow-none rounded-0 border-1 border-dark pl-1"
           split-variant="warning"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
           variant="warning"
+          :class="[{'mt-3':!isAllDictionariesCollapsed}, {'shadow-sm':!isAllDictionariesCollapsed && isDropdownNonUnrepeatedDictionariesCollapsed}]"
       >
         <template slot="button-content">
           <b-button
@@ -387,8 +393,8 @@
               variant="transparent"
               @click.prevent.stop="toggleDropdownNonUnrepeatedDictionaries"
           >
-            <i v-if="isDropdownNonUnrepeatedDictionariesCollapsed" class="fa-solid fa-angle-down fa-sm"></i>
-            <i v-else class="fa-solid fa-angle-up fa-sm"></i>
+            <i v-if="isDropdownNonUnrepeatedDictionariesCollapsed" class="fa-solid fa-angle-down fa-sm text-white"></i>
+            <i v-else class="fa-solid fa-angle-up fa-sm text-white"></i>
           </b-button>
           <span class="st-text-shift">{{ getLang('notUnique') }}</span>
           <span class="st-float-right badge badge-light badge-pill">{{ nonUnrepeatedDictionaries.length }}</span>
@@ -430,7 +436,11 @@
         </b-dropdown-group>
       </b-dropdown>
 
-      <div :id="ids.nonUnrepeatedDictionaries" class="collapse">
+      <div
+          :id="ids.nonUnrepeatedDictionaries"
+           class="collapse"
+      >
+        <b-container fluid :class="[{'shadow-sm':!isDropdownNonUnrepeatedDictionariesCollapsed}, 'p-0 m-0']">
         <b-dropdown
             v-for="(d,ii) in nonUnrepeatedDictionaries"
             :id="getDictionaryElemId(d.id)"
@@ -450,7 +460,7 @@
             tabindex="1"
             toggle-class="shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
 
-            @click="parentLoadDictionary(d)"
+            @click="routerVocabulary(d.id)"
             @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
             @show="showDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
             @toggle="toggleDropdownRef({ref: getDictionaryElemId(d.id), level: 0})"
@@ -587,9 +597,8 @@
             </b-dropdown-item>
           </b-dropdown-group>
         </b-dropdown>
+        </b-container>
       </div>
-      <b-row v-if="!isDropdownNonUnrepeatedDictionariesCollapsed" class="bg-transparent" no-gutters style="height: 8px;"
-             tabindex="-1"></b-row>
     </b-container>
 
     <add-dictionary-modal
@@ -641,7 +650,7 @@ import {mapState, mapGetters} from "vuex"
 import * as _ from "lodash"
 import date from "../../util/date"
 import AddDictionaryModal from "./AddDictionaryModal.vue"
-import VocabularyMultiselect from "./VocabularyMultiselect.vue"
+import VocabularyMultiselectStore from "./VocabularyMultiselectStore.vue"
 import VocabularyModal from "./VocabularyModal.vue"
 import DeleteVocabularyDangerModal from "../modal/DeleteVocabularyDangerModal.vue"
 import DeleteDictionariesDangerModal from "../modal/DeleteDictionariesDangerModal.vue"
@@ -650,7 +659,7 @@ import ConfirmActionWithTimerModal from "../modal/ConfirmActionWithTimerModal.vu
 export default {
   components: {
     AddDictionaryModal,
-    VocabularyMultiselect,
+    VocabularyMultiselectStore,
     VocabularyModal,
     DeleteVocabularyDangerModal,
     DeleteDictionariesDangerModal,
@@ -658,6 +667,7 @@ export default {
   },
   props: [
     'instance',
+      'dictionary',
   ],
   mounted() {
     this.dropdownClickOutsideListener()
@@ -742,23 +752,19 @@ export default {
     },
   },
   watch: {
+    dictionary: {
+      handler: async function (newVal, oldVal) {
+        await this.fetchData()
+        this.setDictionaryActive(newVal, oldVal)
+        this.navigateToActiveDictionary()
+      }
+    },
     dictionaries: {
-      handler: function () {
-        this.fetchData()
+      handler: async function () {
+        await this.fetchData()
         if (this.isAfterCreated) {
           this.isAfterCreated = false
-          this.$nextTick(() => {
-            const left = this.$route.query.left
-            const right = this.$route.query.right
-            let d = null
-            if (this.instance.instanceMark === 'left') {
-              d = this.getDictionaryById(left)
-            }
-            if (this.instance.instanceMark === 'right') {
-              d = this.getDictionaryById(right)
-            }
-            this.navigateToDictionary(d)
-          })
+          this.navigateToActiveDictionary()
         }
       },
       deep: true,
@@ -833,10 +839,6 @@ export default {
     },
     getNonUnrepeatedDictionariesCreationShortLDTElemId(i) {
       return this.prefixId() + "non-unrepeated-dictionaries-creationLDT" + i
-    },
-    parentLoadDictionary(d) {
-      this.setDictionaryActive(d)
-      this.routerVocabulary(d.id)
     },
     routerVocabulary(id) {
       let query = {
@@ -1107,7 +1109,6 @@ export default {
         } else {
           $("#" + this.ids.nonUnrepeatedDictionaries).collapse('show')
         }
-        this.setDictionaryActive(d)
       }
     },
     navigateToUnique(d) {
@@ -1120,28 +1121,29 @@ export default {
       }
     },
     navigateToActiveDictionary() {
-      this.navigateToDictionary(this.activeDictionary)
+      this.navigateToDictionary(this.dictionary)
       this.scrollToActiveDictionary()
     },
     navigateToActiveUnique() {
-      this.navigateToUnique(this.activeDictionary)
+      this.navigateToUnique(this.dictionary)
       this.scrollToActiveUnique()
     },
-    setDictionaryActive(d) {
+    setDictionaryActive(newD, oldD) {
       let elemId = null
-      if (this.activeDictionary) {
-        elemId = this.getDictionaryElemId(this.activeDictionary.id)
+      if (oldD) {
+        elemId = this.getDictionaryElemId(oldD.id)
         $("#" + elemId + '__BV_toggle_').removeClass('bg-primary border-dark text-white')
         $("#" + elemId + '__BV_button_').removeClass('bg-primary border-dark text-white')
         $("#" + elemId + '__BV_toggle_').addClass('bg-white border-secondary text-dark')
         $("#" + elemId + '__BV_button_').addClass('bg-white border-secondary text-dark')
       }
-      this.activeDictionary = d
-      elemId = this.getDictionaryElemId(d.id)
-      $("#" + elemId + '__BV_toggle_').removeClass('bg-white border-secondary text-dark')
-      $("#" + elemId + '__BV_button_').removeClass('bg-white border-secondary text-dark')
-      $("#" + elemId + '__BV_toggle_').addClass('bg-primary border-dark text-white')
-      $("#" + elemId + '__BV_button_').addClass('bg-primary border-dark text-white')
+      if (newD){
+        elemId = this.getDictionaryElemId(newD.id)
+        $("#" + elemId + '__BV_toggle_').removeClass('bg-white border-secondary text-dark')
+        $("#" + elemId + '__BV_button_').removeClass('bg-white border-secondary text-dark')
+        $("#" + elemId + '__BV_toggle_').addClass('bg-primary border-dark text-white')
+        $("#" + elemId + '__BV_button_').addClass('bg-primary border-dark text-white')
+      }
     },
     toggleAllDictionaries() {
       if (this.isAllDictionariesCollapsed) {
@@ -1166,10 +1168,10 @@ export default {
         $("#" + this.ids.nonUnrepeatedDictionaries).collapse('hide')
       }
     },
-    scrollToActiveUnique(){
-      if (this.activeDictionary){
+    scrollToActiveUnique() {
+      if (this.dictionary) {
         let elem = null
-        if (this.activeDictionary.unrepeated) {
+        if (this.dictionary.unrepeated) {
           elem = "#" + this.ids.unrepeatedDictionaries
         } else {
           elem = "#" + this.ids.nonUnrepeatedDictionaries
@@ -1178,32 +1180,32 @@ export default {
       }
     },
     scrollToActiveDictionary() {
-      if(this.activeDictionary){
-        const elem = "#" + this.getDictionaryElemId(this.activeDictionary.id)
+      if (this.dictionary) {
+        const elem = "#" + this.getDictionaryElemId(this.dictionary.id)
         this.scrollToElemInField(elem)
       }
     },
     scrollToElemInField(elem) {
-        const options = {
-          container: '#' + this.ids.field,
-          easing: 'ease-in',
-          lazy: false,
-          offset: -60,
-          force: true,
-          cancelable: true,
-          onStart(element) {
-            // scrolling started
-          },
-          onDone(element) {
-            // scrolling is done
-          },
-          onCancel() {
-            // scrolling has been interrupted
-          },
-          x: false,
-          y: true
-        }
-        this.$scrollTo(elem, 500, options)
+      const options = {
+        container: '#' + this.ids.field,
+        easing: 'ease-in',
+        lazy: false,
+        offset: -60,
+        force: true,
+        cancelable: true,
+        onStart(element) {
+          // scrolling started
+        },
+        onDone(element) {
+          // scrolling is done
+        },
+        onCancel() {
+          // scrolling has been interrupted
+        },
+        x: false,
+        y: true
+      }
+      this.$scrollTo(elem, 500, options)
     },
   },
 }

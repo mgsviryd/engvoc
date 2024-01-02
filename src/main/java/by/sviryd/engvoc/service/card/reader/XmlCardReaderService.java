@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 @Service
-public class XmlCardReaderService {
+public class XmlCardReaderService implements MultipartCardReader {
     private static final String EMPTY = "";
     private static final String CARD = "card";
     private static final String WORD = "word";

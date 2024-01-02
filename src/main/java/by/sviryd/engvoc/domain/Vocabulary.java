@@ -25,7 +25,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@JsonIgnoreProperties(value = {"author", "dictionaries", "cards"})
+@JsonIgnoreProperties(value = {"author", "dictionaries", "cards"}, ignoreUnknown = true)
 @Entity
 @Table
 public class Vocabulary implements Serializable {

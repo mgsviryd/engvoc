@@ -8,5 +8,6 @@ const messages ={
   abbrSelected: 's',
   xml: 'xml',
   excel: 'excel',
+  typoNote: '***',
 }
 module.exports = messages

@@ -46,6 +46,8 @@ export default {
     GreetingNav,
     FooterNav,
   },
+  async mounted(){
+  },
   async created() {
     this.overlay.show = true
     await store.restored

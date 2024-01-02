@@ -7,8 +7,8 @@
       menu-class="w-100"
       role="button"
       size="sm"
-      toggle-class="py-0 px-1 bg-light shadow-none"
-      variant="transparent"
+      toggle-class="py-0 px-1 shadow-none border border-secondary"
+      variant="light"
   >
     <template slot="button-content"
     >
@@ -16,35 +16,30 @@
     </template>
 
     <b-dropdown-item
-        @click.prevent.stop="uploadXmlFile()"
+        v-for="(item, i) in fileTypes"
+        @click.prevent.stop="onSelect(item)"
     >
       <b-row no-gutters>
         <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
           <img alt="..." height="24"
-               src="/static/picture/icon/xml-extension.png"
+               :src="item.imgSource"
                width="24"></b-col>
-        <b-col class="col-9"><small>{{ getCapitalizeLang('xml') }}</small></b-col>
+        <b-col class="col-9"><small>{{ getCapitalizeLang(item.label) }}</small></b-col>
       </b-row>
     </b-dropdown-item>
 
-    <b-dropdown-item
-        @click.prevent.stop="uploadExcelFile()"
-    >
-      <b-row no-gutters>
-        <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
-          <img alt="..." height="24"
-               src="/static/picture/icon/excel.png"
-               width="24">
-        </b-col>
-        <b-col class="col-9"><small>{{ getCapitalizeLang('excel') }}</small></b-col>
-      </b-row>
-    </b-dropdown-item>
+    <upload-cards-modal
+        :id="ids.uploadCardsModal"
+        :ref="ids.uploadCardsModal"
+        :closable="true"
+    ></upload-cards-modal>
   </b-dropdown>
 </template>
 
 <script>
 import {mapState} from "vuex"
 import * as _ from "lodash"
+import UploadCardsModal from "../upload/UploadCardsReusableModal.vue"
 
 export default {
   props: [
@@ -58,7 +53,9 @@ export default {
   created() {
     this.fetchData()
   },
-  components: {},
+  components: {
+    UploadCardsModal,
+  },
   computed: {
     ...mapState({
       vocabularyStore: 'vocabulary',
@@ -66,6 +63,7 @@ export default {
     ids() {
       return {
         id: this.prefixId(),
+        uploadCardsModal: this.prefixId() + 'upload-cards-modal-id',
       }
     }
   },
@@ -73,9 +71,8 @@ export default {
     $route: [
       'fetchData',
     ],
-    vocabularyStore: {
+    dictionary: {
       handler: function () {
-        this.show = false
         this.fetchData()
       },
       deep: true
@@ -87,12 +84,31 @@ export default {
       name: 'UploadDropdown',
       show: false,
       vocabulary: null,
-      oppositeSide: '',
-    }
+      oppositeSide: null,
+      fileTypes:[
+        {
+          label: 'xml',
+          imgSource: '/static/picture/icon/xml-extension.png',
+        } ,
+        {
+          label: 'excel',
+          imgSource: '/static/picture/icon/excel.png',
+        },
+      ],
+  }
   },
   methods: {
     prefixId() {
       return this.name + '-' + this.id + '-'
+    },
+    onSelect(fileType){
+      const data = {
+        vocabulary: this.vocabulary,
+        dictionary: this.dictionary,
+        unrepeated: this.dictionary.unrepeated,
+        fileType: fileType,
+      }
+      this.$refs[this.ids.uploadCardsModal].setDataAndShowModal(data)
     },
     fetchData() {
       this.show = false
@@ -102,13 +118,6 @@ export default {
         this.show = true
       }
     },
-    uploadExcelFile(d) {
-      // TODO
-    },
-    uploadXmlFile(d) {
-      // TODO
-    },
-
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)
     },
