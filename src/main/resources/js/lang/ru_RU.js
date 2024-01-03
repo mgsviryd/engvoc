@@ -156,6 +156,7 @@ const messages = {
   media: 'медиа',
   listEmpty: 'список пуст',
   fileType: 'тип файла',
+  sheet: 'лист',
   target: 'назначение',
   source: 'источник',
   size: 'размер',
@@ -178,7 +179,14 @@ const messages = {
   countNotUploadedFiles: 'количество незагруженных файлов',
   countUploadedCards: 'количество незагруженных карточек',
   countNotUploadedCards: 'количество незагруженных карточек',
-
+  requirements: 'требования',
+  all: 'все',
+  cannotDeselect: 'нельзя отменить выбор',
+  enterType: 'введите тип',
+  enterLang: 'введите язык',
+  nothingFound: 'Упс! Ничего не найдено.',
+  loaded: 'загружено',
+  notLoaded: 'не загружено',
 
   dictionaryNotUniqueError:'Словарь уже существует. Измените имя или родителя.',
   cardNotUniqueError:'Карточка уже существует. Измените слово или перевод.',

@@ -81,5 +81,8 @@ module.exports = {
             path.join(__dirname, 'node_modules'),
         ],
     },
-
+    externals: {
+        // Stubs out `require('vue')` so it returns `global.Vue`
+        vue: 'Vue',
+    },
 }

@@ -16,6 +16,7 @@ import VocabularyMultiselect from "./VocabularyMultiselect.vue"
 
 export default {
   props: [
+      'id',
       'side',
   ],
   mounted() {

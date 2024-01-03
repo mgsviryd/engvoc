@@ -1,35 +1,41 @@
 import Vue from "vue"
 import "api/resource"
-import router from 'router/router'
+import router from "router/router"
 import Main from "pages/Main.vue"
 import "@babel/polyfill"
 import store from "store/store"
 import "bootstrap"
-import vueHeadful from 'vue-headful'
-import Multiselect from 'vue-multiselect'
-import VueCookies from 'vue-cookies'
-import VueWait from 'vue-wait'
+import vueHeadful from "vue-headful"
+import Multiselect from "vue-multiselect"
+import VueCookies from "vue-cookies"
+import VueWait from "vue-wait"
 const VueScrollTo = require('vue-scrollto');
-import VueSlider from 'vue-slider-component'
-import 'vue-slider-component/theme/default.css'
-import BootstrapVue from 'bootstrap-vue'
-import IconsPlugin from 'bootstrap-vue'
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faTwitter } from '@fortawesome/free-brands-svg-icons'
-import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
-import VueFileAgent from 'vue-file-agent'
-import VueFileAgentStyles from 'vue-file-agent/dist/vue-file-agent.css'
-import GlobalEvents from 'vue-global-events'
-import VueForceNextTick from 'vue-force-next-tick'
+import VueSlider from "vue-slider-component"
+import "vue-slider-component/theme/default.css"
+import BootstrapVue from "bootstrap-vue"
+import IconsPlugin from "bootstrap-vue"
+import "bootstrap/dist/css/bootstrap.css"
+import "bootstrap-vue/dist/bootstrap-vue.css"
+import { library } from "@fortawesome/fontawesome-svg-core"
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons"
+import { faUserSecret } from "@fortawesome/free-solid-svg-icons"
+import VueFileAgent from "vue-file-agent"
+import VueFileAgentStyles from "vue-file-agent/dist/vue-file-agent.css"
+import GlobalEvents from "vue-global-events"
+import VueForceNextTick from "vue-force-next-tick"
 import {i18n} from "./setup/i18n-setup"
 
+import $ from "jquery"
+window.jQuery = $
+window.$ = $
 
-import $ from 'jquery';
-window.jQuery = $;
-window.$ = $;
+/* XLSX */
+import { read, writeFileXLSX } from "xlsx"
+/* load the codepage support library for extended support with older formats  */
+import { set_cptable } from "xlsx"
+import * as cptable from "xlsx/dist/cpexcel.full.mjs"
+set_cptable(cptable)
 
 Vue.component('vue-headful', vueHeadful);
 Vue.component('multiselect', Multiselect)

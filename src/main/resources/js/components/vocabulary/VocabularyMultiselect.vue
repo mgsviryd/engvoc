@@ -7,17 +7,25 @@
       :allow-empty="false"
       :clear-on-select="true"
       :close-on-select="true"
+      :deselect-label="getCapitalizeLang('cannotDeselect')"
       :hide-selected="false"
-      :limit="15"
+      :internal-search="false"
+      :limit="20"
       :multiple="false"
       :option-height="100"
       :options="options"
-      :searchable="false"
+      :options-limit="1000"
+      :placeholder="getCapitalizeLang('enterType')"
+      :preselect-first="true"
+      :preselectFirst="false"
+      :preserveSearch="false"
+      :preventAutofocus="false"
+      :searchable="true"
       :show-no-results="true"
       :showLabels="false"
-      :tabindex="-1"
-      track-by="source"
+      :track-by="trackBy"
       @select="onSelect"
+      @search-change="asyncFind"
   >
     <template slot="singleLabel"
               slot-scope="props">
@@ -29,7 +37,7 @@
           <span>{{ getUpperCase(props.option.source.lang) }}</span>
           <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
           <span>{{ getUpperCase(props.option.target.lang) }}</span>
-          <span class="text-secondary pl-1">{{'|'}}</span>
+          <span class="text-secondary pl-1">{{ '|' }}</span>
           <span>{{ props.option.name }}</span>
         </small>
       </div>
@@ -38,8 +46,8 @@
           :delay="{ show: 1500, hide: 40 }"
           :placement="'bottom'+side"
           :target="ids.singleLabel"
-          triggers="hover focus"
           no-fade
+          triggers="hover focus"
       >
         <template #title>
           <span>{{ props.option.name }}</span>
@@ -47,13 +55,13 @@
         <b-row no-gutters>
           <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
           <span class="px-1">
-            {{getUpperCase(props.option.source.lang) + ': ' + getLanguageByLangAndCountry(props.option.source) }}
+            {{ getUpperCase(props.option.source.lang) + ': ' + getLanguageByLangAndCountry(props.option.source) }}
           </span>
         </b-row>
         <b-row no-gutters>
           <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
           <span class="px-1">
-            {{getUpperCase(props.option.target.lang) + ': ' + getLanguageByLangAndCountry(props.option.target) }}
+            {{ getUpperCase(props.option.target.lang) + ': ' + getLanguageByLangAndCountry(props.option.target) }}
           </span>
         </b-row>
       </b-popover>
@@ -68,16 +76,16 @@
           <span>{{ getUpperCase(props.option.source.lang) }}</span>
           <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
           <span>{{ getUpperCase(props.option.target.lang) }}</span>
-          <span class="text-secondary pl-1">{{'|'}}</span>
-          <span>{{props.option.name }}</span>
+          <span class="text-secondary pl-1">{{ '|' }}</span>
+          <span>{{ props.option.name }}</span>
         </small>
       </div>
       <b-popover
           :delay="{ show: 1500, hide: 40 }"
           :placement="'top'+side"
           :target="ids.option+'-'+props.option.source.lang+'-'+props.option.target.lang+'-'+props.option.name"
-          triggers="hover focus"
           no-fade
+          triggers="hover focus"
       >
         <template #title>
           <span>{{ props.option.name }}</span>
@@ -91,7 +99,7 @@
         <b-row no-gutters>
           <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
           <span class="px-1">
-            {{getUpperCase(props.option.target.lang) + ': ' + getLanguageByLangAndCountry(props.option.target) }}
+            {{ getUpperCase(props.option.target.lang) + ': ' + getLanguageByLangAndCountry(props.option.target) }}
           </span>
         </b-row>
       </b-popover>
@@ -103,6 +111,7 @@
 import {mapState} from "vuex"
 import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
+import CompareJS from "../../util/compare";
 
 export default {
   props: [
@@ -110,17 +119,15 @@ export default {
     'side',
     'data',
   ],
+  components: {},
   mounted() {
 
   },
   created() {
     this.fetchData()
   },
-  components: {},
   computed: {
-    ...mapState([
-
-    ]),
+    ...mapState([]),
 
     ids() {
       return {
@@ -131,15 +138,20 @@ export default {
     }
   },
   watch: {
-    data(){
-      this.fetchData()
+    data: {
+      handler: function () {
+        this.fetchData()
+      },
+      deep: true
     },
   },
   data() {
     return {
       name: 'VocabularyMultiselect',
       show: false,
+      trackBy: 'source',
       value: null,
+      allOptions: [],
       options: [],
     }
   },
@@ -150,8 +162,17 @@ export default {
     fetchData() {
       this.show = false
       this.value = this.data.value
-      this.options = this.data.options
+      this.allOptions = _.cloneDeep(this.data.options)
+      this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'name'))
+      this.options = this.allOptions
       this.show = true
+    },
+    asyncFind(query) {
+      if (query === '') {
+        this.options = this.allOptions
+      } else {
+        this.options = this.allOptions.filter(o => _.startsWith(o.name, query))
+      }
     },
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)

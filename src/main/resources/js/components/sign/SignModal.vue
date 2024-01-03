@@ -109,7 +109,12 @@
             </button>
           </b-col>
           <b-col class="ml-auto" cols="auto">
-            <lang-multiselect></lang-multiselect>
+            <lang-multiselect
+                :id="ids.langMultiselect"
+                :ref="ids.langMultiselect"
+                :data="{value: lang.lang, options: lang.langs}"
+                @onSelect="onSelectLang"
+            ></lang-multiselect>
           </b-col>
         </b-row>
       </b-container>
@@ -202,12 +207,6 @@ export default {
     'closable',
     'show',
   ],
-  mounted() {
-    this.switchModal(this.show)
-  },
-  created() {
-
-  },
   components: {
     SignIn,
     SignUp,
@@ -216,11 +215,23 @@ export default {
     LogoPicture,
     CloseRow,
   },
+  mounted() {
+    this.switchModal(this.show)
+  },
+  created() {
+
+  },
   computed: {
     ...mapState([
       'lang',
       'authentication',
     ]),
+    ids(){
+      return{
+        id: this.prefixId(),
+        langMultiselect: this.prefixId() + 'lang-multiselect-id',
+      }
+    },
   },
   watch: {
     '$route.params.mark': {
@@ -237,6 +248,7 @@ export default {
   },
   data() {
     return {
+      name: 'SignModal',
       shown: false,
       overlay: {
         showOverlay: false,
@@ -252,6 +264,9 @@ export default {
     }
   },
   methods: {
+    prefixId(){
+      return this.name + '-'
+    },
     showModal() {
       this.$refs.sign.show()
     },
@@ -374,6 +389,9 @@ export default {
     },
     getLang(key) {
       return this.$t(key)
+    },
+    onSelectLang(lang){
+      this.$store.dispatch('changeLangAction', lang)
     },
   },
 

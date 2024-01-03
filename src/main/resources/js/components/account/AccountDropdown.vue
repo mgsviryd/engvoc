@@ -1,8 +1,8 @@
 <template>
   <b-dropdown
       v-if="show"
-      :id="prefixId()"
-      :ref="prefixId()"
+      :id="ids.id"
+      :ref="ids.id"
       :class="isNoUserGetter?'bg-transparent':'bg-white'"
       class="shadow-none border-0 "
       dropleft
@@ -13,7 +13,7 @@
       @show="shown=true"
   >
     <b-popover :show.sync="isPopover"
-               :target="prefixId()"
+               :target="ids.id"
                :title="username"
                placement="bottomleft"
                variant="success"
@@ -104,6 +104,12 @@ export default {
       'isNoUser',
       'isNoUsers'
     ]),
+    ids(){
+      return {
+        id: this.prefixId(),
+
+      }
+    }
   },
   watch: {
     $route: [
@@ -149,6 +155,9 @@ export default {
       this.users = this.authentication.users
       this.show = true
     },
+    prefixId() {
+      return this.name + "-"
+    },
     launchPopover() {
       this.isPopover = true
       _.delay(() => {
@@ -171,11 +180,8 @@ export default {
       return this.$t(key)
     },
     signIn(email) {
-      this.$refs[this.prefixId()].hide()
+      this.$refs[this.ids.id].hide()
       this.$refs.sign.openSignInWithEmail(email)
-    },
-    prefixId() {
-      return this.name + "-"
     },
     isCurrent(user) {
       if (this.authentication.user && user) {

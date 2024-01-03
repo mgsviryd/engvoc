@@ -7,24 +7,29 @@
       :allow-empty="false"
       :clear-on-select="true"
       :close-on-select="true"
+      :deselect-label="getCapitalizeLang('cannotDeselect')"
       :hide-selected="false"
-      :limit="15"
+      :internal-search="false"
+      :limit="20"
       :multiple="false"
       :option-height="100"
       :options="options"
-      :searchable="false"
-      :placeholder="getCapitalizeLang('enterName')"
+      :options-limit="1000"
+      :placeholder="getCapitalizeLang('enterLang')"
+      :preselect-first="true"
       :preselectFirst="false"
       :preserveSearch="false"
       :preventAutofocus="false"
-      :show-no-results="false"
+      :searchable="true"
+      :show-no-results="true"
       :showLabels="false"
-      :tabindex="-1"
-      track-by="lang"
-      :value="this.lang.langs"
+      :track-by="trackBy"
+      :value="value"
       @select="onSelect"
+      @search-change="asyncFind"
 
   >
+    <span slot="noResult">{{ getCapitalizeLang('nothingFound') }}</span>
     <template slot="singleLabel"
               slot-scope="props">
       <small :id="ids.singleLabel">
@@ -63,8 +68,13 @@
 import {mapState} from "vuex"
 import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
+import CompareJS from "../../util/compare";
 
 export default {
+  props: [
+    'id',
+    'data',
+  ],
   components: {},
   mounted() {
 
@@ -87,35 +97,44 @@ export default {
     $route: [
       'fetchData',
     ],
-    lang: {
+    data: {
       handler: function () {
-        this.$forceNextTick(() => {
-          this.fetchData()
-        })
+        this.fetchData()
       },
       deep: true
-    }
+    },
   },
   data() {
     return {
       name: "LangMultiselect",
       show: false,
+      trackBy: 'lang',
       value: null,
+      allOptions: [],
       options: [],
     }
   },
   methods: {
     fetchData() {
       this.show = false
-      this.value = this.lang.lang
-      this.options = this.lang.langs
+      this.value = this.data.value
+      this.allOptions = _.cloneDeep(this.data.options)
+      this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'locale'))
+      this.options = this.allOptions
       this.show = true
     },
+    asyncFind(query) {
+      if (query === '') {
+        this.options = this.allOptions
+      } else {
+        this.options = this.allOptions.filter(o => _.startsWith(o.locale, query) || _.includes(_.lowerCase(this.getLanguageByLangAndCountry(o)), _.lowerCase(query)))
+      }
+    },
     prefixId() {
-      return this.name + '-'
+      return this.id + '-' + this.name + '-'
     },
     onSelect(lang) {
-      this.$store.dispatch('changeLangAction', lang)
+      this.$emit('onSelect', lang)
     },
     getLanguageByLangAndCountry(lang) {
       return LocaleJS.getLanguageByLangAndCountry(lang)

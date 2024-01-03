@@ -126,15 +126,12 @@ export default {
       'lang',
     ]),
     currentPropertySettingsElemId() {
-      return this.prefixId + "propertySettings"
-    },
-    prefixId() {
-      return this.name + "-" + this.instanceMark + "-"
+      return this.prefixId() + 'propertySettings'
     },
   },
   data() {
     return {
-      name: "tableSettingsModal",
+      name: 'TableSettingsModal',
       show: true,
       currentPropertySettings: [],
       isMouseInClick: false,
@@ -151,6 +148,9 @@ export default {
     fetchData() {
       this.currentPropertySettings = this.propertySettings
       this.orderCurrentPropertySettings()
+    },
+    prefixId() {
+      return this.name + '-' + this.instanceMark + '-'
     },
     showModal() {
       this.$refs[this.id].show()
@@ -241,10 +241,10 @@ export default {
       this.dto.column = null
     },
     getColumnsElemId(show) {
-      return this.prefixId + "columns" + "-" + show
+      return this.prefixId() + 'columns' + '-' + show
     },
     getPropertySettingElementId(i) {
-      return this.prefixId + "propertySetting" + i
+      return this.prefixId() + 'propertySetting' + i
     },
   }
 }

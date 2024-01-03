@@ -95,43 +95,13 @@
             label-cols-lg="3"
             label-cols-sm="3"
         >
-          <multiselect
+          <lang-multiselect
               :id="ids.multiselectSource"
               :ref="ids.multiselectSource"
-              v-model="source"
-              track-by="lang"
-              :allow-empty="false"
-              :clear-on-select="true"
-              :close-on-select="true"
-              :hide-selected="false"
-              :multiple="false"
-              :option-height="100"
-              :options="options"
-              :searchable="false"
-              :show-no-results="false"
-              :showLabels="false"
-              :limit="15"
-              :tabindex="-1"
-              @select="onSelectSource"
+              :data="{value: lang.lang, options: lang.langs}"
+              @onSelect="onSelectSource"
           >
-            <template slot="singleLabel"
-                      slot-scope="props">
-              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
-              <small>
-                <span>{{ getUpperCase(props.option.lang) }}</span>
-                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
-              </small>
-            </template>
-
-            <template slot="option"
-                      slot-scope="props">
-              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
-              <small>
-                <span>{{ getUpperCase(props.option.lang) }}</span>
-                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
-              </small>
-            </template>
-          </multiselect>
+          </lang-multiselect>
         </b-form-group>
       </b-col>
     </b-row>
@@ -146,43 +116,13 @@
             label-cols-lg="3"
             label-cols-sm="3"
         >
-          <multiselect
+          <lang-multiselect
               :id="ids.multiselectTarget"
               :ref="ids.multiselectTarget"
-              v-model="target"
-              track-by="lang"
-              :allow-empty="false"
-              :clear-on-select="true"
-              :close-on-select="true"
-              :hide-selected="false"
-              :multiple="false"
-              :option-height="100"
-              :options="options"
-              :searchable="false"
-              :show-no-results="false"
-              :showLabels="false"
-              :limit="15"
-              :tabindex="-1"
-              @select="onSelectTarget"
+              :data="{value: lang.lang, options: lang.langs}"
+              @onSelect="onSelectTarget"
           >
-            <template slot="singleLabel"
-                      slot-scope="props">
-              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
-              <small>
-                <span>{{ getUpperCase(props.option.lang) }}</span>
-                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
-              </small>
-            </template>
-
-            <template slot="option"
-                      slot-scope="props">
-              <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
-              <small>
-                <span>{{ getUpperCase(props.option.lang) }}</span>
-                <span>{{ ': '+getLanguageByLangAndCountry(props.option) }}</span>
-              </small>
-            </template>
-          </multiselect>
+          </lang-multiselect>
         </b-form-group>
       </b-col>
     </b-row>
@@ -209,6 +149,7 @@ import {mapState} from "vuex"
 import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
 import CloseRow from "../close/CloseRow.vue"
+import LangMultiselect from "../lang/LangMultiselect.vue"
 
 export default {
   props: [
@@ -221,6 +162,7 @@ export default {
   },
   components: {
     CloseRow,
+    LangMultiselect,
   },
   computed: {
     ...mapState([
@@ -291,9 +233,11 @@ export default {
       this.options = this.lang.langs
       this.show = true
     },
-    onSelectSource() {
+    onSelectSource(value) {
+      this.source = value
     },
-    onSelectTarget() {
+    onSelectTarget(value) {
+      this.target = value
     },
     focusName() {
       this.$refs[this.properties.name.inputId].focus()

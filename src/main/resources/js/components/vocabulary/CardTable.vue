@@ -282,7 +282,7 @@
             </td>
           </tr>
           <tr :id="getCardDetailsElemId(card.id)" class="collapse">
-            <td class="st-squeeze border-1 border-secondary border-right-0" colspan="5">
+            <td class="st-squeeze border-1 border-secondary border-right-0" colspan="100%">
               {{ getUpperCaseLang('details') }}
             </td>
           </tr>
@@ -349,6 +349,14 @@ export default {
       this.fetchData()
     })
     this.fetchData()
+  },
+  beforeDestroy () {
+    this.TableSettingsModal.destroy()
+    this.AddCardModal.destroy()
+    this.PictureStatic.destroy()
+    this.DownloadDropdown.destroy()
+    this.UploadDropdown.destroy()
+    clearInterval(this.dictionaryCards)
   },
   destroyed() {
     this.removeListeners()
@@ -596,16 +604,17 @@ export default {
       if (this.dictionary) {
         this.show = false
         if (this.isSourceExists()) {
+          this.$nextTick(() => {
+            this.style.height.table = this.calcHeightTable()
+          })
           this.show = true
           let cards = _.cloneDeep(this.getCardsByDictionaryId(this.dictionary.id))
           cards = this.updateSelected(cards, this.dictionaryCards)
           this.dictionaryCards = cards
           this.groupCards()
-          this.$nextTick(() => {
-            this.style.height.table = this.calcHeightTable()
-          })
         }
       }
+      this.activeCard = null
     },
     calcHeightTable() {
       return this.colHeight - document.getElementById(this.ids.tools).offsetHeight
@@ -748,6 +757,7 @@ export default {
     },
     updateSelected(newCards, oldCards) {
       let count = 0
+      newCards.forEach(c=>c.selected = false)
       oldCards.filter(c => c.selected).forEach(c => {
         let inx = newCards.findIndex(x => x.id === c.id)
         if (inx >= 0) {

@@ -7,47 +7,48 @@
       :allow-empty="false"
       :clear-on-select="true"
       :close-on-select="true"
-      :deselect-label="getCapitalizeLang('cannotDeselect')"
       :hide-selected="false"
-      :internal-search="false"
-      :limit="20"
+      :limit="15"
       :multiple="false"
       :option-height="100"
       :options="options"
-      :options-limit="1000"
-      :placeholder="getCapitalizeLang('enterType')"
-      :preselect-first="true"
-      :preselectFirst="false"
-      :preserveSearch="false"
-      :preventAutofocus="false"
-      :searchable="true"
+      :searchable="false"
       :show-no-results="true"
       :showLabels="false"
+      :tabindex="-1"
       :track-by="trackBy"
       @select="onSelect"
-      @search-change="asyncFind"
   >
-    <span slot="noResult">{{ getCapitalizeLang('nothingFound') }}</span>
     <template slot="singleLabel"
               slot-scope="props">
-      <small>
+        <small class="d-flex">
           <span>
-              <img :src="props.option.imgSource" alt="..."
-                   height="24"
-                   width="24">
+            <i class="fa-solid fa-table text-success"></i>
             {{ getCapitalizeLang(props.option.label) }}
           </span>
-      </small>
+          <span v-if="props.option.progress === 0" class="ml-auto font-weight-bold text-danger">
+            {{getUpperCaseLang('notLoaded')}}
+            <i class="fa-solid fa-circle-info"></i>
+          </span>
+          <span v-if="props.option.progress === 100" class="ml-auto font-weight-bold text-success">
+            {{getUpperCaseLang('loaded')}}
+          </span>
+        </small>
     </template>
 
     <template slot="option"
               slot-scope="props">
-      <small>
+      <small class="d-flex">
           <span>
-              <img :src="props.option.imgSource" alt="..."
-                   height="24"
-                   width="24">
+            <i class="fa-solid fa-table text-success"></i>
             {{ getCapitalizeLang(props.option.label) }}
+          </span>
+        <span v-if="props.option.progress === 0" class="ml-auto font-weight-bold text-danger">
+            {{getUpperCaseLang('notLoaded')}}
+            <i class="fa-solid fa-circle-info"></i>
+          </span>
+        <span v-if="props.option.progress === 100" class="ml-auto font-weight-bold text-success">
+            {{getUpperCaseLang('loaded')}}
           </span>
       </small>
     </template>
@@ -57,7 +58,6 @@
 <script>
 import {mapState} from "vuex"
 import * as _ from "lodash"
-import CompareJS from "../../util/compare"
 
 export default {
   props: [
@@ -72,8 +72,9 @@ export default {
     this.fetchData()
   },
   computed: {
-    ...mapState([]),
+    ...mapState([
 
+    ]),
     ids() {
       return {
         id: this.prefixId(),
@@ -83,21 +84,17 @@ export default {
     }
   },
   watch: {
-    data: {
-      handler: function () {
-        this.fetchData()
-      },
-      deep: true
+    data(){
+      this.fetchData()
     },
   },
   data() {
     return {
-      name: 'UploadFileTypeMultiselect',
+      name: 'SheetMultiselect',
       show: false,
-      trackBy: 'label',
       value: null,
-      allOptions: [],
       options: [],
+      trackBy: 'name',
     }
   },
   methods: {
@@ -107,17 +104,8 @@ export default {
     fetchData() {
       this.show = false
       this.value = this.data.value
-      this.allOptions = _.cloneDeep(this.data.options)
-      this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'label'))
-      this.options = this.allOptions
+      this.options = this.data.options
       this.show = true
-    },
-    asyncFind(query) {
-      if (query === '') {
-        this.options = this.allOptions
-      } else {
-        this.options = this.allOptions.filter(o => _.startsWith(o.label, query))
-      }
     },
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)

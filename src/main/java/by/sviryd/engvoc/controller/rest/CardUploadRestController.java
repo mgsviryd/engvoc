@@ -101,17 +101,16 @@ public class CardUploadRestController {
         });
         if (dictionary.isUnrepeated()) {
             cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-//            int cycles = cards.size() / 100;
-//            for (int i = 0; i < cycles; i++) {
-//                List<Card> between;
-//                if (i != cycles) {
-//                    between = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards.subList(i * 100, (i + 1) * 100), user);
-//                } else {
-//                    between = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards.subList(i * 100, cards.size()), user);
-//                }
-//                notSaved.addAll(between);
-//            }
-            notSaved = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards, user);
+            int cycles = cards.size() / 100;
+            for (int i = 0; i < cycles; i++) {
+                List<Card> between;
+                if (i != cycles - 1) {
+                    between = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards.subList(i * 100, (i + 1) * 100), user);
+                } else {
+                    between = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards.subList(i * 100, cards.size()), user);
+                }
+                notSaved.addAll(between);
+            }
             saved = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards, notSaved);
         } else {
             saved = cards;

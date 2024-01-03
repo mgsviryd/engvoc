@@ -58,7 +58,12 @@
 
       <div class="ml-auto">
         <b-button-group class="mx-2" size="sm">
-          <lang-multiselect></lang-multiselect>
+          <lang-multiselect
+              :id="ids.langMultiselect"
+              :ref="ids.langMultiselect"
+              :data="{value: lang.lang, options: lang.langs}"
+              @onSelect="onSelectLang"
+          ></lang-multiselect>
         </b-button-group>
 
         <b-button-group class="mx-1" size="sm">
@@ -127,14 +132,27 @@ export default {
     ]),
     isNoAuthenticationGetter() {
       return this.isNoAuthentication
-    }
+    },
+    ids(){
+      return{
+        id: this.prefixId(),
+        langMultiselect: this.prefixId() + 'lang-multiselect-id',
+      }
+    },
   },
   data() {
     return {
+      name: 'GreetingNav',
       show: true,
     }
   },
   methods: {
+    prefixId(){
+      return this.name + '-'
+    },
+    onSelectLang(lang){
+      this.$store.dispatch('changeLangAction', lang)
+    },
     getLang(key) {
       return this.$t(key)
     },
