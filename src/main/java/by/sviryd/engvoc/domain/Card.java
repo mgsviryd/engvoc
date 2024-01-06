@@ -79,7 +79,7 @@ public class Card implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
-    @JsonView(Views.User.class)
+    @JsonView(Views.Client.class)
     private User client;
 
     @ManyToOne(fetch = FetchType.LAZY)

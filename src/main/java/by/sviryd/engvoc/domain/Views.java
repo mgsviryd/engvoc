@@ -109,6 +109,7 @@ public final class Views {
 
     public interface Card extends
             Id,
+            Client,
             Unrepeated,
             Vocabulary,
             Word,
@@ -129,6 +130,9 @@ public final class Views {
     }
 
     public interface VocabularyDictionaryCardAndLocaleMessageException extends Vocabulary, Dictionary, Card, LocaleExceptionMessage {
+
+    }
+    public interface VocabularyDictionaryCardClientAndLocaleMessageException extends Vocabulary, Dictionary, Card, Client, LocaleExceptionMessage {
     }
 
     public interface LastModifiedLDT {
@@ -153,6 +157,7 @@ public final class Views {
 
     public interface User extends Id, Email, LastModifiedLDT, Vocabulary, Social, Sub, Token, Username {
     }
+    public interface Client extends Id, Username, Picture{}
     public interface UserAndLangLocale extends User, LangLocale{}
 
     public interface Source extends LangLocale {

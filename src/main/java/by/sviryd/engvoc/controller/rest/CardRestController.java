@@ -26,7 +26,6 @@ import java.beans.FeatureDescriptor;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestController
@@ -237,20 +236,52 @@ public class CardRestController {
             @RequestBody List<Card> cards,
             @RequestParam("id") Dictionary dictionary
     ) {
-        cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
-        List<Card> checkCards = cards.stream().filter(c -> isNeedCheckUnrepeated(c, dictionary)).collect(Collectors.toList());
-        List<Card> alreadyIn = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(checkCards, user);
-        List<Card> repeated = cardUnrepeatedService.getRepeatedByWordAndTranslation(cards, alreadyIn);
-        List<Card> forUpdate = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards, repeated);
-        List<UUID> forUpdateIds = forUpdate.stream().map(Card::getId).collect(Collectors.toList());
-        try {
-            cardService.updateDictionaryAndUnrepeatedByIdIn(forUpdateIds, dictionary, dictionary.isUnrepeated());
-            forUpdate.forEach(c -> {
+        if (cards.isEmpty()) {
+            return convertToMap(Collections.emptyList(), Collections.emptyList());
+        }
+        boolean unrepeated = dictionary.isUnrepeated();
+        boolean identical = cards.get(0).getClient().isIdentical(user);
+        List<Card> notSaved = new ArrayList<>();
+        if (!unrepeated) {
+            cards.forEach(c -> {
+                if (!identical) {
+                    c.setId(null);
+                    c.setClient(user);
+                }
                 c.setDictionary(dictionary);
-                c.setUnrepeated(dictionary.isUnrepeated());
+                c.setUnrepeated(unrepeated);
             });
-            return convertToMap(forUpdate, repeated);
-        } catch (UpdateAllOrNothingException e) {
+        } else {
+            notSaved = cardUnrepeatedService.getRepeatedByWordAndTranslation(cards);
+            cards.removeAll(notSaved);
+            List<Card> alreadyIn = new ArrayList<>();
+            int cycles = cards.size() / 100;
+            for (int i = 0; i < cycles; i++) {
+                List<Card> between;
+                if (i != cycles - 1) {
+                    between = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards.subList(i * 100, (i + 1) * 100), user);
+                } else {
+                    between = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards.subList(i * 100, cards.size()), user);
+                }
+                alreadyIn.addAll(between);
+            }
+            List<Card> repeated = cardUnrepeatedService.getRepeatedByWordAndTranslation(cards, alreadyIn);
+            notSaved.addAll(repeated);
+            cards.removeAll(repeated);
+            cards.forEach(c -> {
+                if (!identical) {
+                    c.setId(null);
+                    c.setClient(user);
+                }
+                c.setDictionary(dictionary);
+                c.setUnrepeated(unrepeated);
+            });
+        }
+        try {
+            cardService.saveAll(cards);
+            return convertToMap(cards, notSaved);
+        } catch (Exception e) {
+            cards.addAll(notSaved);
             return convertToMap(Collections.emptyList(), cards);
         }
     }

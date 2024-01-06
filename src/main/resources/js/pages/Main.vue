@@ -84,7 +84,7 @@ export default {
     },
     authentication: {
       handler: function () {
-        this.$forceNextTick(() => {
+        this.$nextTick(() => {
           this.watchAuthentication()
         })
       },

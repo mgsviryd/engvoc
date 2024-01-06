@@ -98,13 +98,14 @@ public class VocabularyRestController {
     }
 
     @PostMapping(value = "/findData")
-    @JsonView({Views.VocabularyDictionaryCardAndLocaleMessageException.class})
+    @JsonView({Views.VocabularyDictionaryCardClientAndLocaleMessageException.class})
     public HashMap<Object, Object> findData(
             @AuthenticationPrincipal User user,
             @RequestBody Vocabulary vocabulary
     ) {
         List<Dictionary> dictionaries = dictionaryService.findAllByAuthorAndVocabulary(user, vocabulary);
         List<Card> cards = cardService.findAllByClientAndVocabulary(user, vocabulary);
+        cards.forEach(card -> card.setClient(user));
         HashMap<Object, Object> data = new HashMap<>();
         data.put("dictionaries", dictionaries);
         data.put("cards", cards);

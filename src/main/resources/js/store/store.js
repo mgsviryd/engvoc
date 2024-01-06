@@ -359,13 +359,14 @@ export default new Vuex.Store(
             deleteCardMutation(state, payload) {
                 const card = payload.card
                 const inx = this.getters.getDictionaryInx(card.dictionary.id)
-                const i = state.cards[inx].indexOf(card)
+                const i = state.cards[inx].findIndex(c=>c.id===card.id)
                 if (i >= 0) {
                     state.cards[inx] = [
                         ...state.cards[inx].slice(0, i),
                         ...state.cards[inx].slice(i + 1)
                     ]
                 }
+                state.action.id = _.now()
             },
             setCardsMutation(state, payload) {
                 state.cards = []
@@ -825,7 +826,6 @@ export default new Vuex.Store(
                 const data = await result.data
                 if (result.ok) {
                     commit('deleteCardMutation', payload)
-                    commit('setActionMutation', {id: _.now(), errors: []})
                 }
             },
             async deleteCardsInDictionaryAction({commit}, payload) {

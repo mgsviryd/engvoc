@@ -113,15 +113,14 @@
                 :side="instanceMark"
             ></upload-dropdown>
           </b-button-group>
-
           <b-button-group size="sm">
             <b-button
                 v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
                 :title="getCapitalizeLang('settings')"
-                class="px-1 py-0 shadow-none border border-secondary"
-                variant="light"
+                class="shadow-none border border-secondary px-1 py-0"
                 size="sm"
-                @click="$refs[ids.tableSettingsModal].showModal()"
+                variant="light"
+                @click.prevent.stop="$refs[ids.tableSettingsModal].showModal()"
             >
               <i class="fa fa-gear text-secondary"></i>
             </b-button>
@@ -134,20 +133,21 @@
         :id="ids.field"
         :ref="ids.field"
         :style="styleField"
-         class="st-field container px-0 parent-for-height-flex"
+        class="st-field container px-0 parent-for-height-flex"
+        @scroll="handleVS"
     >
-      <table class="table bg-white table-hover table-bordered table-sm mb-0 border-0"
+      <table class="table bg-white table-hover table-bordered table-sm border-0 flex-shrink-0 mb-0"
              style="z-index: 1;"
       >
         <thead class="thead-dark"
-               style="position: sticky; top:0; z-index: 1;"
+               style="position: sticky; top:0; z-index: 1; height: 26px;"
         >
         <tr class="border-0">
-          <th class="st-squeeze border-0 border-left-0 py-0">
+          <th class="st-sm border-0 border-left-0 py-0">
             <b-button-group size="sm">
               <b-button
-                  size="sm"
                   class="px-1 py-0 shadow-none border-0"
+                  size="sm"
                   variant="transparent"
                   @click.prevent.stop="scrollToActiveCard"
               >
@@ -156,137 +156,133 @@
               </b-button>
             </b-button-group>
           </th>
-          <template v-for="(property,i) in sortByColumnInx(propertySettings)">
+          <template v-for="(property,i) in sortedPropertySettings">
             <th v-if="property.showColumn"
-                :class="property.propertyType === 'boolean'? 'st-squeeze': 'st-text-shift'"
+                :class="''"
+                :style="[{width: `${property.width}px`}]"
                 class="border-0 py-0"
             >
-              <div class="d-flex align-items-center">
-                <div :data-delay="property.tooltip.delay"
-                     :data-placement="property.tooltip.placement"
-                     :title="getCapitalizeLang(property.tooltip.title)"
-                     class="d-flex align-items-center pl-0"
-                     data-toggle="tooltip"
+              <span class="d-flex align-items-center">
+                <span :data-delay="property.tooltip.delay"
+                      :data-placement="property.tooltip.placement"
+                      :title="getCapitalizeLang(property.tooltip.title)"
+                      class="st-ellipsis d-flex align-items-center pl-0"
+                      data-toggle="tooltip"
                 >
-                  <div v-if="property.showIcon" class="pl-0" v-html="property.icon"></div>
-                  <div v-if="property.showLabel" :class="property.showIcon?'pl-2':''">
+                  <span v-if="property.showIcon" class="pl-0" v-html="property.icon"></span>
+                  <span v-if="property.showLabel" :class="property.showIcon?'pl-2':''" class="">
                     {{ getCapitalizeLang(property.label) }}
-                  </div>
-                </div>
-                <div v-if="property.sortable" class="d-flex flex-column pl-2">
+                  </span>
+                </span>
+                <span v-if="property.sortable"
+                      :class="[property.showIcon?'pl-2':'pl-1']"
+                      class="d-flex flex-column">
                   <i :class="[property.order === 'asc'? 'text-warning': 'text-white']"
                      class="fa fa-sort-up fa-sm st-cursor-pointer"
                      @click="orderCards(property.property, 'asc')"></i>
                   <i :class="[property.order === 'desc'? 'text-warning': 'text-white']"
                      class="fa fa-sort-down fa-sm st-cursor-pointer mt-1"
                      @click="orderCards(property.property, 'desc')"></i>
-                </div>
-                <div v-if="property.sortable" :class="property.priorityOrder !== 0? 'text-warning':'text-dark'"
-                     class="d-flex align-items-center pl-1">
+                </span>
+                <span v-if="property.sortable" :class="property.priorityOrder !== 0? 'text-warning':'text-dark'"
+                      class="st-ellipsis d-flex align-items-center pl-1">
                   {{ property.priorityOrder }}
-                </div>
-              </div>
+                </span>
+              </span>
             </th>
           </template>
-          <th class="st-squeeze border-0 border-right-0 py-0">
-            <button :id="getCardDetailsButtonElemId(null)"
-                    class="btn bg-white btn-sm border-1 border-secondary py-0"
-                    role="button"
-                    style="margin-bottom: 2px;"
-                    @click.prevent.stop="toggleCardDetails()"
-            >
-              <i v-if="showCardDetails" class="fa fa-angle-up fa-xs text-dark"></i>
-              <i v-else class="fa fa-angle-down fa-xs text-dark"></i>
-            </button>
-          </th>
-          <th class="st-squeeze border-0 border-right-0 py-0">
-            <button :id="getCardEditButtonElemId(null)"
-                    class="btn bg-white btn-sm border-1 border-secondary py-0"
-                    role="button"
-                    style="margin-bottom: 2px;"
-                    @click.prevent.stop="editCards()"
+          <th class="st-sm border-0 border-right-0 py-0">
+            <b-button
+                :id="getCardEditButtonElemId(null)"
+                :ref="getCardEditButtonElemId(null)"
+                class="border border-secondary py-0"
+                size="sm"
+                style="margin-bottom: 2px;"
+                variant="light"
+                @click.prevent.stop="editCards()"
             >
               <i class="fa fa-pen-to-square fa-xs text-dark"></i>
-            </button>
+            </b-button>
           </th>
-          <th class="st-squeeze border-0 border-right-0 py-0">
-            <button :id="getCardDeleteButtonElemId(null)"
-                    class="btn bg-white btn-sm border-1 border-secondary py-0"
-                    role="button"
-                    style="margin-bottom: 2px;"
-                    @click.prevent.stop="deleteCards()"
+          <th class="st-sm border-0 border-right-0 py-0">
+            <b-button
+                :id="getCardDeleteButtonElemId(null)"
+                :ref="getCardDeleteButtonElemId(null)"
+                class="border border-secondary py-0"
+                size="sm"
+                style="margin-bottom: 2px;"
+                variant="light"
+                @click.prevent.stop="deleteCards()"
             >
               <i class="fa fa-trash fa-xs text-dark"></i>
-            </button>
+            </b-button>
           </th>
         </tr>
         </thead>
 
-        <tbody>
-        <template v-for="(card,i) in dictionaryCards"
-                  v-model="dictionaryCards">
+        <tbody
+            :id="ids.tbody"
+            :ref="ids.tbody"
+            :style="{height: `${vtHeight}px`}"
+        >
+        <tr :style="{height: `${vt.firstRowHeight}px`}" class="firstRow border-0 p-0">
+          <td class="border-0 p-0" colspan="100%"></td>
+        </tr>
+        <template v-for="(card,i) in renderCards">
           <tr
               :id="getCardElemId(card.id)"
-              :ref="getCardElemId(card.id)"
               :key="card.id"
+              :ref="getCardElemId(card.id)"
               :class="[{'card-selected':card.selected}, {'card-active':activeCard === card} ]"
+              class="calcRow"
               draggable="true"
+              @click="setActiveCard(card)"
               @mousedown.prevent="mousedown(card, i)"
               @mouseup.prevent="mouseup(card, i)"
-              @click="setActiveCard(card)"
           >
-            <td class="st-squeeze border-1 border-secondary border-left-0">{{ i + 1 }}</td>
-            <template v-for="(property, ii) in sortByColumnInx(propertySettings)"
+            <td class="st-sm border-1 border-secondary border-left-0">{{ (findIndex(card.id) + 1) }}</td>
+            <template v-for="(property, ii) in sortedPropertySettings"
             >
               <td v-if="property.showColumn"
-                  :class="property.propertyType === 'boolean'? 'st-squeeze':'st-text-shift'"
+                  :class="''"
+                  :style="[{width: `${property.width}px`}]"
                   class="border-1 border-secondary"
               >
-                <input v-if="property.property === 'selected'" v-model="dictionaryCards[i][property.property]"
+                <input v-if="property.property === 'selected'" v-model="cards[i][property.property]"
                        type="checkbox" @click="selectCard(card)"
                 >
-                <input v-else-if="property.propertyType === 'boolean'" v-model="dictionaryCards[i][property.property]"
+                <input v-else-if="property.propertyType === 'boolean'" v-model="cards[i][property.property]"
                        type="checkbox"
                 >
-                <div v-else>{{ getProperty(card, property.property) }}</div>
+                <span v-else>{{ getProperty(card, property.property) }}</span>
               </td>
             </template>
-            <td class="st-squeeze border-1 border-secondary">
-              <button :id="getCardDetailsButtonElemId(card.id)" :aria-controls="getCardDetailsElemId(card.id)"
-                      aria-expanded="false"
-                      class="btn bg-white btn-sm border-1 border-secondary py-0"
-                      data-toggle="collapse"
-                      role="button"
-                      @click.prevent.stop="toggleCardDetail(card, i)"
-              >
-                <i v-if="card.uiShowDetail" class="fa fa-angle-up fa-xs text-dark"></i>
-                <i v-else class="fa fa-angle-down fa-xs text-dark"></i>
-              </button>
-            </td>
-            <td class="st-squeeze border-1 border-secondary">
-              <button :id="getCardEditButtonElemId(card.id)"
-                      class="btn bg-white btn-sm border-1 border-secondary py-0"
-                      role="button"
-                      @click.prevent.stop="editCard(card, i)"
+            <td class="st-sm border-1 border-secondary">
+              <b-button
+                  :id="getCardEditButtonElemId(card.id)"
+                  :ref="getCardEditButtonElemId(card.id)"
+                  class="border border-secondary py-0"
+                  size="sm"
+                  variant="light"
+                  @click.prevent.stop="editCard(card, i)"
               >
                 <i class="fa fa-pen-to-square fa-xs text-dark"></i>
-              </button>
+              </b-button>
             </td>
-            <td class="st-squeeze border-1 border-secondary">
-              <button :id="getCardDeleteButtonElemId(card.id)"
-                      class="btn bg-white btn-sm border-1 border-secondary py-0"
-                      @click.prevent.stop="deleteCard(card, i)"
+            <td class="st-sm border-1 border-secondary">
+              <b-button
+                  :id="getCardDeleteButtonElemId(card.id)"
+                  class="btn bg-white btn-sm border-1 border-secondary py-0"
+                  @click.prevent.stop="deleteCard(card, i)"
               >
                 <i class="fa fa-trash fa-xs text-dark"></i>
-              </button>
-            </td>
-          </tr>
-          <tr :id="getCardDetailsElemId(card.id)" class="collapse">
-            <td class="st-squeeze border-1 border-secondary border-right-0" colspan="100%">
-              {{ getUpperCaseLang('details') }}
+              </b-button>
             </td>
           </tr>
         </template>
+        <tr :style="{height: `${vt.lastRowHeight}px`}" class="lastRow border-0 p-0">
+          <td class="border-0 p-0" colspan="100%"></td>
+        </tr>
         </tbody>
       </table>
       <b-row
@@ -337,6 +333,8 @@ export default {
     DownloadDropdown,
     UploadDropdown,
   },
+  mounted() {
+  },
   created() {
     this.addListeners()
     this.$root.$on('dragdrop-init', (payload) => {
@@ -350,13 +348,13 @@ export default {
     })
     this.fetchData()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.TableSettingsModal.destroy()
     this.AddCardModal.destroy()
     this.PictureStatic.destroy()
     this.DownloadDropdown.destroy()
     this.UploadDropdown.destroy()
-    clearInterval(this.dictionaryCards)
+    clearInterval(this.cards)
   },
   destroyed() {
     this.removeListeners()
@@ -368,10 +366,10 @@ export default {
     dictionary() {
       this.fetchData()
     },
+
   },
   computed: {
     ...mapState([
-      'cards',
       'lang',
       'vocabulary',
       'height',
@@ -384,6 +382,12 @@ export default {
     ]),
     colHeight() {
       return window.innerHeight - this.height.header - this.height.footer - 6
+    },
+    renderCards() {
+      return this.cards.slice(this.vt.startIndex, this.vt.startIndex + this.vt.step)
+    },
+    vtHeight() {
+      return this.vt.elementHeight * this.cards.length
     },
     propertySettings() {
       return [
@@ -409,6 +413,7 @@ export default {
           columnInx: 0,
           detailInx: null,
           detailPosition: "vertical",
+          width: 45,
         },
         {
           property: "word",
@@ -432,6 +437,7 @@ export default {
           columnInx: 1,
           detailInx: null,
           detailPosition: "vertical",
+          width: 120,
         },
         {
           property: "translation",
@@ -455,6 +461,7 @@ export default {
           columnInx: 2,
           detailInx: null,
           detailPosition: "vertical",
+          width: 120,
         },
         {
           property: "example",
@@ -478,6 +485,7 @@ export default {
           columnInx: 3,
           detailInx: 1,
           detailPosition: "vertical",
+          width: 160,
         },
         {
           property: "exampleTranslation",
@@ -501,13 +509,14 @@ export default {
           columnInx: 4,
           detailInx: 1,
           detailPosition: "vertical",
+          width: 160,
         },
         {
           property: ['dictionary', 'name'],
           propertyType: "string",
           label: "dictionary",
           icon: '<i class="fa fa-folder text-white"></i>',
-          showLabel: true,
+          showLabel: false,
           showIcon: true,
           tooltip: {
             placement: top,
@@ -524,14 +533,15 @@ export default {
           columnInx: 5,
           detailInx: null,
           detailPosition: "vertical",
+          width: 100,
         },
         {
           property: "learned",
           propertyType: "boolean",
-          label: "learned",
+          label: "abbrLearned",
           icon: '<i class="fas fa-circle-check text-white"></i>',
           showLabel: true,
-          showIcon: true,
+          showIcon: false,
           tooltip: {
             placement: top,
             title: "learned",
@@ -547,12 +557,17 @@ export default {
           columnInx: 6,
           detailInx: null,
           detailPosition: "vertical",
+          width: 45,
         },
       ]
+    },
+    sortedPropertySettings() {
+      return _.orderBy(this.propertySettings, ["columnInx"], ["asc"])
     },
     ids() {
       return {
         id: this.prefixId(),
+        tbody: this.prefixId() + 'tbody',
         tools: this.prefixId() + 'tools-id',
         field: this.prefixId() + 'field-id',
         filler: this.prefixId() + 'filler-id',
@@ -578,12 +593,22 @@ export default {
         example: null,
         exampleTranslation: null,
       },
-      show: true,
+      show: false,
       activeParent: false,
-      showCardDetails: false,
-      dictionaryCards: [],
+      cards: [],
       countSelected: 0,
       activeCard: null,
+
+      activeCardMap: new Map(),
+      startIndexMap: new Map(),
+
+      vt:{
+        startIndex: 0,
+        step: 1,
+        elementHeight: 56,
+        firstRowHeight: 0,
+        lastRowHeight: 0,
+      },
 
       groups: ["cardsChangeDictionary"],
       sourceMark: "cards",
@@ -607,11 +632,14 @@ export default {
           this.$nextTick(() => {
             this.style.height.table = this.calcHeightTable()
           })
-          this.show = true
           let cards = _.cloneDeep(this.getCardsByDictionaryId(this.dictionary.id))
-          cards = this.updateSelected(cards, this.dictionaryCards)
-          this.dictionaryCards = cards
+          cards = this.updateSelected(cards, this.cards)
+          this.cards = cards
           this.groupCards()
+          this.show = true
+          this.buildActiveCardFromMap()
+          this.buildVirtualScrollFromMap()
+          this.initVT()
         }
       }
       this.activeCard = null
@@ -669,9 +697,6 @@ export default {
         orders: sortedSettings.map(s => s.order),
       }
     },
-    sortByColumnInx(propertySettings) {
-      return _.orderBy(propertySettings, ["columnInx"], ["asc"])
-    },
     getCardDetailsElemId(id) {
       return this.prefixId() + "card-detail" + id
     },
@@ -684,11 +709,6 @@ export default {
     getCardDeleteButtonElemId(id) {
       return this.prefixId() + "card-delete" + id
     },
-    toggleCardDetail(card, i) {
-      card.uiShowDetail = typeof card.uiShowDetail === 'undefined' ? true : !card.uiShowDetail
-      this.dictionaryCards.splice(i, 1, card)
-      $("#" + this.getCardDetailsElemId(card.id)).collapse('toggle')
-    },
     editCard(card, i) {
 
     },
@@ -696,21 +716,6 @@ export default {
       this.$store.dispatch('deleteCardAction', {card: card})
     },
 
-    toggleCardDetails() {
-      if (this.showCardDetails) {
-        this.dictionaryCards.forEach(c => {
-          $("#" + this.getCardDetailsElemId(c.id)).removeClass('show')
-          c.uiShowDetail = false
-        })
-        this.showCardDetails = false
-      } else {
-        this.dictionaryCards.forEach(c => {
-          $("#" + this.getCardDetailsElemId(c.id)).addClass('show')
-          c.uiShowDetail = true
-        })
-        this.showCardDetails = true
-      }
-    },
     editCards() {
 
     },
@@ -750,14 +755,14 @@ export default {
       }
     },
     groupCards() {
-      if (this.dictionaryCards && this.dictionaryCards.length !== 0) {
+      if (this.cards && this.cards.length !== 0) {
         const sortable = this.getSortable(this.propertySettings)
-        this.dictionaryCards = _.orderBy(this.dictionaryCards, sortable.properties, sortable.orders)
+        this.cards = _.orderBy(this.cards, sortable.properties, sortable.orders)
       }
     },
     updateSelected(newCards, oldCards) {
       let count = 0
-      newCards.forEach(c=>c.selected = false)
+      newCards.forEach(c => c.selected = false)
       oldCards.filter(c => c.selected).forEach(c => {
         let inx = newCards.findIndex(x => x.id === c.id)
         if (inx >= 0) {
@@ -781,11 +786,11 @@ export default {
     },
 
     selectAll() {
-      this.dictionaryCards.forEach(c => c.selected = true)
-      this.countSelected = this.dictionaryCards.length
+      this.cards.forEach(c => c.selected = true)
+      this.countSelected = this.cards.length
     },
     deselectAll() {
-      this.dictionaryCards.forEach(c => c.selected = false)
+      this.cards.forEach(c => c.selected = false)
       this.countSelected = 0
     },
     isSourceExists() {
@@ -824,7 +829,7 @@ export default {
           if (this.countSelected === 0) {
             return
           }
-          const items = this.dictionaryCards.filter(c => c.selected)
+          const items = this.cards.filter(c => c.selected)
           this.dragCards = items
           this.activateDragstartStyle(items)
           this.$root.$emit("dragdrop-init", {groups: this.groups})
@@ -868,11 +873,11 @@ export default {
     },
     dragdropInit(payload) {
       this.setFilteredGroupsInProcess(payload.groups)
-      this.activateDragoverStyle(this.dictionaryCards)
+      this.activateDragoverStyle(this.cards)
     },
     dragdropDestroy() {
       this.deactivateDragstartStyle(this.dragCards)
-      this.deactivateDragoverStyle(this.dictionaryCards)
+      this.deactivateDragoverStyle(this.cards)
       this.isMouseInClick = false
       this.groupsInProcess = []
       this.dragCards = []
@@ -901,17 +906,6 @@ export default {
     async deactivateDragoverStyle(cards) {
       cards.forEach(card => $("#" + this.getCardElemId(card.id)).removeClass("dragover"))
       $("#" + this.ids.filler).removeClass("dragover")
-    },
-    downloadExcelFile() {
-      $('download-excel-file').removeClass("active")
-      this.$store.dispatch("downloadExcelFileAction",
-          {vocabulary: this.vocabulary.vocabulary, dictionary: this.dictionary})
-    },
-    downloadXmlFile() {
-      $('download-xml-file').removeClass("active")
-      this.$store.dispatch("downloadXmlFileAction",
-          {vocabulary: this.vocabulary.vocabulary, dictionary: this.dictionary}
-      )
     },
     keydownListener() {
       return ({repeat, altKey, which}) => {
@@ -945,36 +939,79 @@ export default {
     navigateToUnique() {
       this.$emit('onNavigateToUnique', this.instanceMark)
     },
-    scrollToActiveCard(){
+    scrollToActiveCard() {
       if (this.activeCard) {
-        const elem = "#" + this.getCardElemId(this.activeCard.id)
-        this.scrollToElemInField(elem)
+        const inx = this.cards.findIndex(c => c.id === this.activeCard.id)
+        const y = this.vt.elementHeight * inx - 60
+        const elem = document.getElementById(this.ids.field)
+        elem.scrollTo({top: y, left: elem.scrollX, behavior: 'auto'})
       }
     },
-    setActiveCard(card){
+    setActiveCard(card) {
       this.activeCard = card
+      this.activeCardMap.set(this.dictionary.id, card.id)
     },
-    scrollToElemInField(elem) {
-      const options = {
-        container: '#' + this.ids.field,
-        easing: 'ease-in',
-        lazy: false,
-        offset: -60,
-        force: true,
-        cancelable: true,
-        onStart(element) {
-          // scrolling started
-        },
-        onDone(element) {
-          // scrolling is done
-        },
-        onCancel() {
-          // scrolling has been interrupted
-        },
-        x: false,
-        y: true
+    initVT() {
+      this.$nextTick(() => {
+        const tableTop = this.$refs[this.ids.tbody].getBoundingClientRect().top
+        const viewPortY = document.documentElement.clientHeight
+        if (tableTop > 0) {
+          this.vt.step = Math.floor((viewPortY - tableTop) / this.vt.elementHeight)
+        } else {
+          this.vt.step = Math.floor(viewPortY / this.vt.elementHeight)
+          this.vt.startIndex = Math.floor(-tableTop / this.vt.elementHeight)
+        }
+        this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight
+        this.vt.lastRowHeight =
+            this.cards.length * this.vt.elementHeight - this.vt.step * this.vt.elementHeight
+      })
+    },
+    handleVS: _.debounce(function () {
+      if (this.show) {
+        const top = this.$refs[this.ids.tbody].getBoundingClientRect().top
+        const viewportY = document.documentElement.clientHeight
+        let step = Math.floor(viewportY / this.vt.elementHeight)
+        let startIndex = Math.floor(-top / this.vt.elementHeight)
+        if ((startIndex + step) >= this.cards.length) {
+          startIndex = this.cards.length - step
+        }
+        if (startIndex === this.vt.startIndex) {
+          return
+        }
+        if (top < 0) {
+          this.vt.step = step
+          this.vt.startIndex = startIndex
+        } else {
+          this.vt.startIndex = 0
+          this.vt.step = Math.floor((viewportY - top) / this.vt.elementHeight)
+        }
+        this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight
+        this.vt.lastRowHeight =
+            this.cards.length * this.vt.elementHeight -
+            this.vt.step * this.vt.elementHeight -
+            this.vt.firstRowHeight
+        this.startIndexMap.set(this.dictionary.id, {startIndex: this.vt.startIndex,step: this.vt.step, elementHeight: this.vt.elementHeight, firstRowHeight: this.vt.firstRowHeight, lastRowHeight: this.vt.lastRowHeight   })
       }
-      this.$scrollTo(elem, 500, options)
+    }, 15),
+    findIndex(cardId) {
+      return this.cards.findIndex(c => c.id === cardId)
+    },
+    buildActiveCardFromMap(){
+      const id = this.activeCardMap.get(this.dictionary.id)
+      const card = this.cards.find(c=>c.id === id)
+      if (!this.isBlank(card)){
+        this.activeCard = card
+      }
+    },
+    buildVirtualScrollFromMap(){
+      const virtualScroll = this.startIndexMap.get(this.dictionary.id)
+      if (!this.isBlank(virtualScroll)){
+        this.vt.startIndex = virtualScroll.startIndex
+        this.vt.step = virtualScroll.step
+        this.vt.elementHeight = virtualScroll.elementHeight
+        this.vt.firstRowHeight= virtualScroll.firstRowHeight
+        this.vt.lastRowHeight=virtualScroll.lastRowHeight
+      }
     },
   },
 }
@@ -992,32 +1029,44 @@ export default {
 table {
   font-size: 15px;
   font-family: Calibri;
+  table-layout: fixed;
+  width: 100%;
 }
 
-th, td:not(.st-squeeze, .st-text-shift) {
-  width: 8%;
+.calcRow {
+  width: 100%;
+  height: 56px;
+}
+
+.st-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.st-squeeze {
-  width: 1%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.st-sm {
+  width: 45px;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
-.st-text-shift {
-  width: 10%;
-  overflow-wrap: anywhere;
+.st-norm {
+  width: 100px;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
+.st-lg {
+  width: 150px;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
 
 .card-selected {
   background-color: #BBDEFB;
 }
-.card-active{
+
+.card-active {
   background-color: #aedcae;
 }
 

@@ -6,6 +6,7 @@ const messages ={
   github: 'github',
   abbrNumber: 'n',
   abbrSelected: 's',
+  abbrLearned: 'l',
   xml: 'xml',
   excel: 'excel',
   typoNote: '***',

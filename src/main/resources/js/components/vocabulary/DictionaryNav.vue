@@ -224,10 +224,8 @@
             size="sm"
             split
             split-class="text-left shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
-
             tabindex="1"
             toggle-class="shadow-none rounded-0 border-1 border-secondary bg-white text-dark"
-
             @click="routerVocabulary(d.id)"
             @hide="hideDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
             @show="showDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"

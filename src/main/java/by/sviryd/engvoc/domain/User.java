@@ -90,6 +90,11 @@ public class User implements UserDetails, Serializable {
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Vocabulary> vocabularies = new ArrayList<>();
 
+    @Column(length = 50)
+    @Length(max = 50)
+    @JsonView(Views.Picture.class)
+    private String picture;
+
     @ManyToMany
     @JoinTable(
             name = "user_subscribtions",
@@ -136,4 +141,5 @@ public class User implements UserDetails, Serializable {
     public boolean addVocabulary(Vocabulary vocabulary) {
         return vocabularies.add(vocabulary);
     }
+    public boolean isIdentical(User user){return id.equals(user.id);}
 }
