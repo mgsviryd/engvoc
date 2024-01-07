@@ -233,7 +233,7 @@
               :id="getCardElemId(card.id)"
               :key="card.id"
               :ref="getCardElemId(card.id)"
-              :class="[{'card-selected':card.selected}, {'card-active':activeCard === card} ]"
+              :class="[{'card-selected':card.selected}, {'card-active':!isBlank(activeCard) && activeCard.id === card.id} ]"
               class="calcRow"
               draggable="true"
               @click="setActiveCard(card)"
@@ -248,10 +248,10 @@
                   :style="[{width: `${property.width}px`}]"
                   class="border-1 border-secondary"
               >
-                <input v-if="property.property === 'selected'" v-model="cards[i][property.property]"
+                <input v-if="property.property === 'selected'" v-model="getCardById(card.id)[property.property]"
                        type="checkbox" @click="selectCard(card)"
                 >
-                <input v-else-if="property.propertyType === 'boolean'" v-model="cards[i][property.property]"
+                <input v-else-if="property.propertyType === 'boolean'" v-model="getCardById(card.id)[property.property]"
                        type="checkbox"
                 >
                 <span v-else>{{ getProperty(card, property.property) }}</span>
@@ -323,8 +323,7 @@ import UploadDropdown from "./UploadDropdown.vue"
 
 export default {
   props: [
-    'dictionary',
-    'instanceMark',
+    'data',
   ],
   components: {
     TableSettingsModal,
@@ -343,10 +342,9 @@ export default {
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
     })
-    this.$store.watch(this.$store.getters.getActionId, actionId => {
-      this.fetchData()
-    })
     this.fetchData()
+    this.initVT()
+    this.handleVS()
   },
   beforeDestroy() {
     this.TableSettingsModal.destroy()
@@ -360,13 +358,20 @@ export default {
     this.removeListeners()
   },
   watch: {
-    $route: [
-      'fetchData',
-    ],
-    dictionary() {
-      this.fetchData()
+    '$route': {
+      handler: function (to, from) {
+        this.fetchData()
+        this.initVT()
+        this.handleVS()
+      },
+      immediate: true
     },
-
+    data: {
+      handler: function () {
+        this.fetchData()
+      },
+      deep: true,
+    }
   },
   computed: {
     ...mapState([
@@ -513,14 +518,14 @@ export default {
         },
         {
           property: ['dictionary', 'name'],
-          propertyType: "string",
-          label: "dictionary",
+          propertyType: 'string',
+          label: 'dictionary',
           icon: '<i class="fa fa-folder text-white"></i>',
           showLabel: false,
           showIcon: true,
           tooltip: {
             placement: top,
-            title: "dictionary",
+            title: 'dictionary',
             delay: {show: 500, hide: 100}
           },
           order: null,
@@ -532,7 +537,7 @@ export default {
           showDetailLabel: false,
           columnInx: 5,
           detailInx: null,
-          detailPosition: "vertical",
+          detailPosition: 'vertical',
           width: 100,
         },
         {
@@ -593,16 +598,20 @@ export default {
         example: null,
         exampleTranslation: null,
       },
+
+      dictionary: null,
+      cards: [],
+      instanceMark: null,
+
       show: false,
       activeParent: false,
-      cards: [],
       countSelected: 0,
       activeCard: null,
 
       activeCardMap: new Map(),
       startIndexMap: new Map(),
 
-      vt:{
+      vt: {
         startIndex: 0,
         step: 1,
         elementHeight: 56,
@@ -626,23 +635,19 @@ export default {
   },
   methods: {
     fetchData() {
-      if (this.dictionary) {
-        this.show = false
-        if (this.isSourceExists()) {
-          this.$nextTick(() => {
-            this.style.height.table = this.calcHeightTable()
-          })
-          let cards = _.cloneDeep(this.getCardsByDictionaryId(this.dictionary.id))
-          cards = this.updateSelected(cards, this.cards)
-          this.cards = cards
-          this.groupCards()
-          this.show = true
-          this.buildActiveCardFromMap()
-          this.buildVirtualScrollFromMap()
-          this.initVT()
-        }
-      }
-      this.activeCard = null
+      this.show = false
+      let cards = _.cloneDeep(this.data.cards)
+      this.updateSelected(cards, this.cards)
+      this.cards = cards
+      this.dictionary = this.data.dictionary
+      this.instanceMark = this.data.instanceMark
+      this.$nextTick(() => {
+        this.style.height.table = this.calcHeightTable()
+      })
+      this.groupCards()
+      this.show = true
+      this.buildActiveCardFromMap()
+      // this.buildVTFromMap()
     },
     calcHeightTable() {
       return this.colHeight - document.getElementById(this.ids.tools).offsetHeight
@@ -771,7 +776,6 @@ export default {
         }
       })
       this.countSelected = count
-      return newCards
     },
     getCardElemId(id) {
       return this.prefixId() + 'card' + id
@@ -949,10 +953,14 @@ export default {
     },
     setActiveCard(card) {
       this.activeCard = card
-      this.activeCardMap.set(this.dictionary.id, card.id)
+      this.activeCardMap.set(this.dictionary.id, card)
     },
     initVT() {
       this.$nextTick(() => {
+        if(this.cards.length ===0){
+          this.setDefaultVT()
+          return
+        }
         const tableTop = this.$refs[this.ids.tbody].getBoundingClientRect().top
         const viewPortY = document.documentElement.clientHeight
         if (tableTop > 0) {
@@ -990,28 +998,44 @@ export default {
             this.cards.length * this.vt.elementHeight -
             this.vt.step * this.vt.elementHeight -
             this.vt.firstRowHeight
-        this.startIndexMap.set(this.dictionary.id, {startIndex: this.vt.startIndex,step: this.vt.step, elementHeight: this.vt.elementHeight, firstRowHeight: this.vt.firstRowHeight, lastRowHeight: this.vt.lastRowHeight   })
+        this.startIndexMap.set(this.dictionary.id, {
+          startIndex: this.vt.startIndex,
+          step: this.vt.step,
+          elementHeight: this.vt.elementHeight,
+          firstRowHeight: this.vt.firstRowHeight,
+          lastRowHeight: this.vt.lastRowHeight
+        })
       }
     }, 15),
     findIndex(cardId) {
       return this.cards.findIndex(c => c.id === cardId)
     },
-    buildActiveCardFromMap(){
-      const id = this.activeCardMap.get(this.dictionary.id)
-      const card = this.cards.find(c=>c.id === id)
-      if (!this.isBlank(card)){
-        this.activeCard = card
-      }
+    buildActiveCardFromMap() {
+      this.activeCard = this.activeCardMap.get(this.dictionary.id)
     },
-    buildVirtualScrollFromMap(){
+    buildVTFromMap() {
       const virtualScroll = this.startIndexMap.get(this.dictionary.id)
-      if (!this.isBlank(virtualScroll)){
+      if (!this.isBlank(virtualScroll)) {
         this.vt.startIndex = virtualScroll.startIndex
         this.vt.step = virtualScroll.step
         this.vt.elementHeight = virtualScroll.elementHeight
-        this.vt.firstRowHeight= virtualScroll.firstRowHeight
-        this.vt.lastRowHeight=virtualScroll.lastRowHeight
+        this.vt.firstRowHeight = virtualScroll.firstRowHeight
+        this.vt.lastRowHeight = virtualScroll.lastRowHeight
+      }else{
+        this.setDefaultVT()
       }
+    },
+    setDefaultVT(){
+      this.vt = {
+        startIndex: 0,
+        step: 1,
+        elementHeight: 56,
+        firstRowHeight: 0,
+        lastRowHeight: 0,
+      }
+    },
+    getCardById(id){
+      return this.cards.find(c=>c.id === id)
     },
   },
 }

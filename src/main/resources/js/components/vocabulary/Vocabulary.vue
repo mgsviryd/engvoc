@@ -20,8 +20,9 @@
           <dictionary-nav
               :id="ids.left.dictionaryNav"
               :ref="ids.left.dictionaryNav"
-              :instance="left"
               :dictionary="left.dictionary"
+              :instance="left"
+              @onClickDictionary="onClickDictionary"
           ></dictionary-nav>
         </div>
         <div
@@ -61,10 +62,9 @@
           <card-table
               :id="ids.left.cardTable"
               :ref="ids.left.cardTable"
-              :dictionary="left.dictionary"
-              :instanceMark="left.instanceMark"
-              @onNavigateToDictionary="navigateToDictionary"
-              @onNavigateToUnique="navigateToUnique"
+              :data="{instanceMark: left.instanceMark, dictionary: left.dictionary, cards: left.cards}"
+              @onNavigateToDictionary="onNavigateToDictionary"
+              @onNavigateToUnique="onNavigateToUnique"
           ></card-table>
         </div>
         <div v-else
@@ -96,10 +96,9 @@
           <card-table
               :id="ids.right.cardTable"
               :ref="ids.right.cardTable"
-              :dictionary="right.dictionary"
-              :instanceMark="right.instanceMark"
-              @onNavigateToDictionary="navigateToDictionary"
-              @onNavigateToUnique="navigateToUnique"
+              :data="{instanceMark: right.instanceMark, dictionary: right.dictionary, cards: right.cards}"
+              @onNavigateToDictionary="onNavigateToDictionary"
+              @onNavigateToUnique="onNavigateToUnique"
           ></card-table>
         </div>
         <div v-else
@@ -148,8 +147,9 @@
           <dictionary-nav
               :id="ids.right.dictionaryNav"
               :ref="ids.right.dictionaryNav"
-              :instance="right"
               :dictionary="right.dictionary"
+              :instance="right"
+              @onClickDictionary="onClickDictionary"
           ></dictionary-nav>
         </div>
       </div>
@@ -174,6 +174,9 @@ export default {
   created() {
     this.addListeners()
     this.fetchData()
+    this.$store.watch(this.$store.getters.getActionId, actionId => {
+      this.fetchData()
+    })
   },
   destroyed() {
     this.removeListeners()
@@ -184,7 +187,6 @@ export default {
         this.$forceNextTick(() => {
           const left = this.$route.query.left
           const right = this.$route.query.right
-          this.activateDictionaries(left, right)
         })
       },
       immediate: true
@@ -194,10 +196,11 @@ export default {
     ...mapState([
       'cards',
       'lang',
-        'height',
+      'height',
     ]),
     ...mapGetters([
       'getDictionaryById',
+      'getCardsByDictionaryId',
     ]),
     ids() {
       return {
@@ -246,6 +249,7 @@ export default {
         displayTable: true,
         instanceMark: "left",
         dictionary: null,
+        cards: [],
         navSizes: [0, 2, 6],
         navSizeInx: 1,
         navSize: 2,
@@ -259,6 +263,7 @@ export default {
         displayTable: true,
         instanceMark: "right",
         dictionary: null,
+        cards: [],
         navSizes: [0, 2, 6],
         navSizeInx: 1,
         navSize: 2,
@@ -270,23 +275,28 @@ export default {
   methods: {
     fetchData() {
       this.show = false
+      if (!this.isBlank(this.left.dictionary)){
+        this.loadDictionary(this.left.dictionary.id, "left")
+      }
+      if (!this.isBlank(this.right.dictionary)){
+        this.loadDictionary(this.right.dictionary.id, "right")
+      }
       this.show = true
     },
     prefixId() {
       return this.name + '-'
     },
-    activateDictionaries(left, right) {
-      this.show = false
-      this.loadDictionary(left, "left")
-      this.loadDictionary(right, "right")
-      this.show = true
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
     loadDictionary(id, instanceMark) {
       if (instanceMark === this.left.instanceMark) {
         this.left.dictionary = this.getDictionaryById(id)
+        this.left.cards = this.getCardsByDictionaryId(id)
       }
       if (instanceMark === this.right.instanceMark) {
         this.right.dictionary = this.getDictionaryById(id)
+        this.right.cards = this.getCardsByDictionaryId(id)
       }
       return []
     },
@@ -372,7 +382,7 @@ export default {
     stepDownNav(mark) {
 
     },
-    activeSideListener(){
+    activeSideListener() {
       return event => {
         const elementsLeft = [this.ids.left.col.dictionaryNav, this.ids.left.col.verticalTools, this.ids.left.col.cardTable]
         const elementsRight = [this.ids.right.col.dictionaryNav, this.ids.right.col.verticalTools, this.ids.right.col.cardTable]
@@ -395,7 +405,7 @@ export default {
           if (!_.isNil(this.$refs[this.ids.left.dictionaryNav])) {
             this.$refs[this.ids.left.dictionaryNav].activeParent = true
           }
-          if (!_.isNil(this.$refs[this.ids.left.cardTable])){
+          if (!_.isNil(this.$refs[this.ids.left.cardTable])) {
             this.$refs[this.ids.left.cardTable].activeParent = true
           }
           if (!_.isNil(this.$refs[this.ids.right.dictionaryNav])) {
@@ -430,21 +440,24 @@ export default {
       this.activateListeners()
     },
     removeListeners() {
-      this.listeners.forEach(pair=>{
+      this.listeners.forEach(pair => {
         document.removeEventListener(pair.type, pair.listener)
       })
       this.listeners = []
     },
-    activateListeners(){
-      this.listeners.forEach(pair=>{
+    activateListeners() {
+      this.listeners.forEach(pair => {
         document.addEventListener(pair.type, pair.listener)
       })
     },
-    navigateToDictionary(side){
+    onNavigateToDictionary(side) {
       this.$refs[this.ids[side].dictionaryNav].navigateToActiveDictionary()
     },
-    navigateToUnique(side){
+    onNavigateToUnique(side) {
       this.$refs[this.ids[side].dictionaryNav].navigateToActiveUnique()
+    },
+    onClickDictionary({id, instanceMark}){
+      this.loadDictionary(id, instanceMark)
     },
   },
 
@@ -456,10 +469,12 @@ export default {
   height: 524px;
   overflow-y: auto;
 }
-.border-2{
+
+.border-2 {
   border-width: 2px !important;
 }
-.border-3{
+
+.border-3 {
   border-width: 3px !important;
 }
 
