@@ -1,20 +1,21 @@
 <template>
-  <div
+  <b-row
       v-if="show"
-      class="row m-0 p-0 justify-content-between"
+      class="justify-content-between m-0 p-0"
       style="width: 100%"
   >
-    <div v-if="left.show"
-         v-show="left.displayNav || left.displayTool"
-         :class="[left.displayNav?'col-'+left.navSize:'', activeLeft?'border-primary':'border-secondary']"
-         class="m-0 p-0 border border-3 container-fluid"
+    <b-col v-if="left.show"
+           v-show="left.displayNav || left.displayTool"
+           :class="[activeLeft?'border-primary':'border-secondary']"
+           :cols="left.displayNav?left.navSize:0"
+           class="border border-3 m-0 p-0"
     >
-      <div class="row d-flex justify-content-between no-gutters">
-        <div
+      <b-row class="d-flex justify-content-between" no-gutters>
+        <b-col
             v-show="left.displayNav"
             :id="ids.left.col.dictionaryNav"
             :ref="ids.left.col.dictionaryNav"
-            class="col align-items-stretch p-0 m-0"
+            class="align-items-stretch p-0 m-0"
             style="width: 100%;"
         >
           <dictionary-nav
@@ -24,12 +25,12 @@
               :instance="left"
               @onClickDictionary="onClickDictionary"
           ></dictionary-nav>
-        </div>
-        <div
+        </b-col>
+        <b-col
             v-show="left.displayTool"
             :id="ids.left.col.verticalTools"
             :ref="ids.left.col.verticalTools"
-            class="col d-flex m-0 p-0 justify-content-between"
+            class="d-flex justify-content-between m-0 p-0"
             style="max-width: 24px;"
         >
           <vertical-tools
@@ -43,22 +44,23 @@
               @stepUpNav="stepUpNav"
           >
           </vertical-tools>
-        </div>
-      </div>
-    </div>
-    <div
+        </b-col>
+      </b-row>
+    </b-col>
+    <b-col
         v-if="left.show"
         v-show="left.displayTable"
         :id="ids.left.col.cardTable"
         :ref="ids.left.col.cardTable"
-        :class="['col-' + left.tableSize, activeLeft?'border-primary':'border-secondary']"
-        class="m-0 p-0 border border-left-0 border-3"
+        :class="[activeLeft?'border-primary':'border-secondary']"
+        :cols="left.tableSize"
+        class="border border-left-0 border-3 m-0 p-0"
         style="width: 100%;"
     >
-      <div class="row justify-content-between no-gutters">
-        <div v-if="left.dictionary"
-             :class="isTwoSourcePresent()?'st-two-source':'st-one-source'"
-             class="col m-0 p-0">
+      <b-row class="justify-content-between" no-gutters>
+        <b-col v-if="left.dictionary"
+               :class="''"
+               class="m-0 p-0">
           <card-table
               :id="ids.left.cardTable"
               :ref="ids.left.cardTable"
@@ -66,9 +68,9 @@
               @onNavigateToDictionary="onNavigateToDictionary"
               @onNavigateToUnique="onNavigateToUnique"
           ></card-table>
-        </div>
-        <div v-else
-             class="col m-0 p-0"
+        </b-col>
+        <b-col v-else
+               class="m-0 p-0"
         >
           <div
               class="empty-table- container d-flex justify-content-center align-items-center p-0 m-0">
@@ -76,23 +78,24 @@
               <h6>{{ getCapitalizeLang('chooseDictionary') }}</h6>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </b-col>
+      </b-row>
+    </b-col>
 
-    <div
+    <b-col
         v-if="right.show"
         v-show="right.displayTable"
         :id="ids.right.col.cardTable"
         :ref="ids.right.col.cardTable"
-        :class="['col-' + right.tableSize, activeRight?'border-primary':'border-secondary']"
-        class="m-0 p-0 border border-right-0 border-3"
+        :class="[activeRight?'border-primary':'border-secondary']"
+        :cols="right.tableSize"
+        class="border border-right-0 border-3 m-0 p-0"
         style="width: 100%;"
     >
-      <div class="row justify-content-between no-gutters">
-        <div v-if="right.dictionary"
-             :class="isTwoSourcePresent()?'st-two-source':'st-one-source'"
-             class="col m-0 p-0">
+      <b-row class="justify-content-between" no-gutters>
+        <b-col v-if="right.dictionary"
+               :class="''"
+               class="m-0 p-0">
           <card-table
               :id="ids.right.cardTable"
               :ref="ids.right.cardTable"
@@ -100,9 +103,9 @@
               @onNavigateToDictionary="onNavigateToDictionary"
               @onNavigateToUnique="onNavigateToUnique"
           ></card-table>
-        </div>
-        <div v-else
-             class="col m-0 p-0"
+        </b-col>
+        <b-col v-else
+               class="m-0 p-0"
         >
           <div
               class="empty-table- container d-flex justify-content-center align-items-center p-0 m-0">
@@ -110,20 +113,21 @@
               <h6>{{ getCapitalizeLang('chooseDictionary') }}</h6>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="right.show"
-         v-show="right.displayNav || right.displayTool"
-         :class="[right.displayNav?'col-' + right.navSize:'', activeRight?'border-primary':'border-secondary']"
-         class="m-0 p-0 border border-3"
+        </b-col>
+      </b-row>
+    </b-col>
+    <b-col v-if="right.show"
+           v-show="right.displayNav || right.displayTool"
+           :class="[activeRight?'border-primary':'border-secondary']"
+           :cols="right.displayNav?right.navSize:0"
+           class="m-0 p-0 border border-3"
     >
-      <div class="row d-flex justify-content-between no-gutters">
-        <div v-show="right.displayTool"
-             :id="ids.right.col.verticalTools"
-             :ref="ids.right.col.verticalTools"
-             class="col d-flex m-0 p-0 justify-content-between"
-             style="max-width: 24px;"
+      <b-row class="d-flex justify-content-between" no-gutters>
+        <b-col v-show="right.displayTool"
+               :id="ids.right.col.verticalTools"
+               :ref="ids.right.col.verticalTools"
+               class="d-flex justify-content-between m-0 p-0"
+               style="max-width: 24px;"
         >
           <vertical-tools
               :id="ids.right.verticalTools"
@@ -136,12 +140,12 @@
               @stepUpNav="stepUpNav"
           >
           </vertical-tools>
-        </div>
-        <div
+        </b-col>
+        <b-col
             v-show="right.displayNav"
             :id="ids.right.col.dictionaryNav"
             :ref="ids.right.col.dictionaryNav"
-            class="col m-0 p-0"
+            class="m-0 p-0"
             style="width: 100%;"
         >
           <dictionary-nav
@@ -151,10 +155,10 @@
               :instance="right"
               @onClickDictionary="onClickDictionary"
           ></dictionary-nav>
-        </div>
-      </div>
-    </div>
-  </div>
+        </b-col>
+      </b-row>
+    </b-col>
+  </b-row>
 </template>
 
 <script>
@@ -174,6 +178,7 @@ export default {
   created() {
     this.addListeners()
     this.fetchData()
+    this.showHideInstance('left')
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       this.fetchData()
     })
@@ -247,7 +252,7 @@ export default {
         displayNav: true,
         displayTool: true,
         displayTable: true,
-        instanceMark: "left",
+        instanceMark: 'left',
         dictionary: null,
         cards: [],
         navSizes: [0, 2, 6],
@@ -261,7 +266,7 @@ export default {
         displayNav: true,
         displayTool: true,
         displayTable: true,
-        instanceMark: "right",
+        instanceMark: 'right',
         dictionary: null,
         cards: [],
         navSizes: [0, 2, 6],
@@ -275,10 +280,10 @@ export default {
   methods: {
     fetchData() {
       this.show = false
-      if (!this.isBlank(this.left.dictionary)){
+      if (!this.isBlank(this.left.dictionary)) {
         this.loadDictionary(this.left.dictionary.id, "left")
       }
-      if (!this.isBlank(this.right.dictionary)){
+      if (!this.isBlank(this.right.dictionary)) {
         this.loadDictionary(this.right.dictionary.id, "right")
       }
       this.show = true
@@ -453,7 +458,7 @@ export default {
     onNavigateToUnique(side) {
       this.$refs[this.ids[side].dictionaryNav].navigateToActiveUnique()
     },
-    onClickDictionary({id, instanceMark}){
+    onClickDictionary({id, instanceMark}) {
       this.loadDictionary(id, instanceMark)
     },
   },

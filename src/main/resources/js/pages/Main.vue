@@ -144,7 +144,7 @@ export default {
 
     handleResize: _.debounce( function () {
       this.setSizeHeaderFooter()
-    },),
+    },10),
 
     resizeListener(){
       return () => {

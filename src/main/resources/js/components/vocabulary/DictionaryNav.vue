@@ -2,7 +2,7 @@
   <div
       v-if="show"
       :id="ids.id"
-      :style="{height: colHeight+'px'}"
+      :style="{height: style.height.col+'px'}"
       class="dictionary-nav- parent-for-height-flex"
   >
 
@@ -715,9 +715,6 @@ export default {
       'sortArrayByStringProperty',
       'isDictionaryUnrepeated',
     ]),
-    colHeight() {
-      return window.innerHeight - this.height.header - this.height.footer - 6
-    },
     ids() {
       return {
         id: this.prefixId(),
@@ -770,6 +767,13 @@ export default {
       },
       deep: true,
     },
+    height: {
+      handler: function () {
+        this.buildHeight()
+      },
+      immediate: true,
+      deep: true,
+    },
   },
   data() {
     return {
@@ -795,6 +799,11 @@ export default {
 
       listeners: [],
       activeDictionary: null,
+      style:{
+        height:{
+          col: 0,
+        },
+      }
     }
   },
   methods: {
@@ -808,6 +817,7 @@ export default {
       this.nonUnrepeatedDictionaries = nonUnrepeatedDictionaries
       this.nonUnrepeatedShortLDTs = this.getNonUnrepeatedShortLDTs()
       this.show = true
+      this.buildHeight()
     },
     prefixId() {
       return this.name + "-" + this.instance.instanceMark + "-"
@@ -1195,6 +1205,11 @@ export default {
         y: true
       }
       this.$scrollTo(elem, 500, options)
+    },
+    buildHeight() {
+      this.$nextTick(() => {
+        this.style.height.col = window.innerHeight - this.height.header - this.height.footer - 6
+      })
     },
   },
 }

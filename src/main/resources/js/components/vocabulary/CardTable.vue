@@ -2,7 +2,7 @@
   <div v-if="show"
        :id="ids.id"
        :ref="ids.id"
-       :style="{height: colHeight+'px'}"
+       :style="{height: style.height.col+'px'}"
        class="container p-0 m-0 parent-for-height-flex"
   >
     <b-row
@@ -363,11 +363,12 @@ export default {
       immediate: true,
       deep: true,
     },
-    colHeight: {
+    height: {
       handler: function () {
         this.buildHeight()
       },
       immediate: true,
+      deep: true,
     },
   },
   computed: {
@@ -382,9 +383,7 @@ export default {
       'getDictionaryInx',
       'getCardsByDictionaryInx',
     ]),
-    colHeight() {
-      return window.innerHeight - this.height.header - this.height.footer - 6
-    },
+
     renderCards() {
       return this.cards.slice(this.vt.startIndex, this.vt.startIndex + this.vt.step)
     },
@@ -625,6 +624,7 @@ export default {
       listeners: [],
       style: {
         height: {
+          col: 0,
           field: 0,
           tools: 0,
           beforeField: 0,
@@ -642,14 +642,10 @@ export default {
       this.instanceMark = this.data.instanceMark
       this.groupCards()
       this.show = true
+      this.buildHeight()
       this.buildActiveCardFromMap()
     },
-    calcHeightTools() {
-      return document.getElementById(this.ids.tools).offsetHeight
-    },
-    calcHeightField() {
-      return this.colHeight - document.getElementById(this.ids.tools).offsetHeight
-    },
+
     prefixId() {
       return this.name + '-' + this.instanceMark + '-'
     },
@@ -756,6 +752,7 @@ export default {
       } else {
         this.groupCards()
       }
+      this.scrollToIndex(0,0)
     },
     groupCards() {
       if (this.cards && this.cards.length !== 0) {
@@ -1001,7 +998,7 @@ export default {
             this.vt.startIndex
         )
       }
-    }, 15),
+    }, 5),
     findIndex(cardId) {
       return this.cards.findIndex(c => c.id === cardId)
     },
@@ -1023,11 +1020,12 @@ export default {
     },
     buildHeight() {
       this.$nextTick(() => {
-        this.style.height.field = this.calcHeightField()
-        this.style.height.tools = this.calcHeightTools()
+        this.style.height.col = window.innerHeight - this.height.header - this.height.footer - 6
+        this.style.height.tools = document.getElementById(this.ids.tools).offsetHeight
+        this.style.height.field = this.style.height.col - this.style.height.tools
         this.style.height.beforeField = this.height.header + this.style.height.tools + 3
       })
-    }
+    },
   },
 }
 </script>

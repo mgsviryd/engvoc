@@ -53,6 +53,7 @@ export default new Vuex.Store(
         ],
         state: {
             height: {
+                id: 0,
                 header: 0,
                 footer: 0,
             },
@@ -222,6 +223,7 @@ export default new Vuex.Store(
             setHeightHeaderFooterMutation(state, payload){
                 state.height.header = payload.header
                 state.height.footer = payload.footer
+                state.height.id = _.now()
             },
             setVocabularyMutation(state, payload) {
                 state.vocabulary.vocabulary = payload.vocabulary
