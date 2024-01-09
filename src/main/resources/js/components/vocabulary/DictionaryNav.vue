@@ -1076,20 +1076,17 @@ export default {
     addListeners() {
       const dropdownClickOutsideListener = this.dropdownClickOutsideListener()
       const keydownListener = this.keydownListener()
-      this.listeners.push({type: 'click', listener: dropdownClickOutsideListener})
-      this.listeners.push({type: 'keydown', listener: keydownListener})
-      this.activateListeners()
+      this.listeners.push({level: document, type: 'click', listener: dropdownClickOutsideListener})
+      this.listeners.push({level: document, type: 'keydown', listener: keydownListener})
+      this.listeners.forEach(pair => {
+        pair.level.addEventListener(pair.type, pair.listener)
+      })
     },
     removeListeners() {
       this.listeners.forEach(pair => {
-        document.removeEventListener(pair.type, pair.listener)
+        pair.level.removeEventListener(pair.type, pair.listener)
       })
       this.listeners = []
-    },
-    activateListeners() {
-      this.listeners.forEach(pair => {
-        document.addEventListener(pair.type, pair.listener)
-      })
     },
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)

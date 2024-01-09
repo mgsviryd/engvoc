@@ -342,17 +342,8 @@ export default {
     this.$root.$on('dragdrop-destroy', () => {
       this.dragdropDestroy()
     })
-    this.fetchData()
-    this.initVT()
-    this.handleVS()
   },
   beforeDestroy() {
-    this.TableSettingsModal.destroy()
-    this.AddCardModal.destroy()
-    this.PictureStatic.destroy()
-    this.DownloadDropdown.destroy()
-    this.UploadDropdown.destroy()
-    clearInterval(this.cards)
   },
   destroyed() {
     this.removeListeners()
@@ -360,18 +351,24 @@ export default {
   watch: {
     '$route': {
       handler: function (to, from) {
-        this.fetchData()
-        this.initVT()
-        this.handleVS()
+
       },
       immediate: true
     },
     data: {
       handler: function () {
         this.fetchData()
+        this.initVT()
       },
+      immediate: true,
       deep: true,
-    }
+    },
+    colHeight: {
+      handler: function () {
+        this.buildHeight()
+      },
+      immediate: true,
+    },
   },
   computed: {
     ...mapState([
@@ -584,7 +581,7 @@ export default {
     },
     styleField() {
       return {
-        height: this.style.height.table + 'px',
+        height: this.style.height.field + 'px',
       }
     },
   },
@@ -628,7 +625,9 @@ export default {
       listeners: [],
       style: {
         height: {
-          table: 0,
+          field: 0,
+          tools: 0,
+          beforeField: 0,
         },
       }
     }
@@ -641,15 +640,14 @@ export default {
       this.cards = cards
       this.dictionary = this.data.dictionary
       this.instanceMark = this.data.instanceMark
-      this.$nextTick(() => {
-        this.style.height.table = this.calcHeightTable()
-      })
       this.groupCards()
       this.show = true
       this.buildActiveCardFromMap()
-      // this.buildVTFromMap()
     },
-    calcHeightTable() {
+    calcHeightTools() {
+      return document.getElementById(this.ids.tools).offsetHeight
+    },
+    calcHeightField() {
       return this.colHeight - document.getElementById(this.ids.tools).offsetHeight
     },
     prefixId() {
@@ -923,19 +921,16 @@ export default {
     },
     addListeners() {
       const keydownListener = this.keydownListener()
-      this.listeners.push({type: 'keydown', listener: keydownListener})
-      this.activateListeners()
+      this.listeners.push({level: document, type: 'keydown', listener: keydownListener})
+      this.listeners.forEach(pair => {
+        pair.level.addEventListener(pair.type, pair.listener)
+      })
     },
     removeListeners() {
       this.listeners.forEach(pair => {
-        document.removeEventListener(pair.type, pair.listener)
+        pair.level.removeEventListener(pair.type, pair.listener)
       })
       this.listeners = []
-    },
-    activateListeners() {
-      this.listeners.forEach(pair => {
-        document.addEventListener(pair.type, pair.listener)
-      })
     },
     navigateToDictionary() {
       this.$emit('onNavigateToDictionary', this.instanceMark)
@@ -946,10 +941,14 @@ export default {
     scrollToActiveCard() {
       if (this.activeCard) {
         const inx = this.cards.findIndex(c => c.id === this.activeCard.id)
-        const y = this.vt.elementHeight * inx - 60
-        const elem = document.getElementById(this.ids.field)
-        elem.scrollTo({top: y, left: elem.scrollX, behavior: 'auto'})
+        this.scrollToIndex(inx, this.vt.elementHeight*2)
       }
+    },
+    scrollToIndex(inx, offset){
+      if (!inx) inx = 0
+      const y = this.vt.elementHeight * inx - offset
+      const elem = document.getElementById(this.ids.field)
+      elem.scrollTo({top: y, left: elem.scrollX, behavior: 'auto'})
     },
     setActiveCard(card) {
       this.activeCard = card
@@ -957,11 +956,11 @@ export default {
     },
     initVT() {
       this.$nextTick(() => {
-        if(this.cards.length ===0){
+        if (this.cards.length === 0) {
           this.setDefaultVT()
           return
         }
-        const tableTop = this.$refs[this.ids.tbody].getBoundingClientRect().top
+        const tableTop = this.$refs[this.ids.tbody].getBoundingClientRect().top -this.vt.elementHeight -this.style.height.beforeField
         const viewPortY = document.documentElement.clientHeight
         if (tableTop > 0) {
           this.vt.step = Math.floor((viewPortY - tableTop) / this.vt.elementHeight)
@@ -970,13 +969,13 @@ export default {
           this.vt.startIndex = Math.floor(-tableTop / this.vt.elementHeight)
         }
         this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight
-        this.vt.lastRowHeight =
-            this.cards.length * this.vt.elementHeight - this.vt.step * this.vt.elementHeight
+        this.vt.lastRowHeight = this.cards.length * this.vt.elementHeight - this.vt.step * this.vt.elementHeight
+        this.scrollToIndex(this.startIndexMap.get(this.dictionary.id), 0)
       })
     },
     handleVS: _.debounce(function () {
       if (this.show) {
-        const top = this.$refs[this.ids.tbody].getBoundingClientRect().top
+        const top = this.$refs[this.ids.tbody].getBoundingClientRect().top -this.vt.elementHeight -this.style.height.beforeField
         const viewportY = document.documentElement.clientHeight
         let step = Math.floor(viewportY / this.vt.elementHeight)
         let startIndex = Math.floor(-top / this.vt.elementHeight)
@@ -998,13 +997,9 @@ export default {
             this.cards.length * this.vt.elementHeight -
             this.vt.step * this.vt.elementHeight -
             this.vt.firstRowHeight
-        this.startIndexMap.set(this.dictionary.id, {
-          startIndex: this.vt.startIndex,
-          step: this.vt.step,
-          elementHeight: this.vt.elementHeight,
-          firstRowHeight: this.vt.firstRowHeight,
-          lastRowHeight: this.vt.lastRowHeight
-        })
+        this.startIndexMap.set(this.dictionary.id,
+            this.vt.startIndex
+        )
       }
     }, 15),
     findIndex(cardId) {
@@ -1013,30 +1008,26 @@ export default {
     buildActiveCardFromMap() {
       this.activeCard = this.activeCardMap.get(this.dictionary.id)
     },
-    buildVTFromMap() {
-      const virtualScroll = this.startIndexMap.get(this.dictionary.id)
-      if (!this.isBlank(virtualScroll)) {
-        this.vt.startIndex = virtualScroll.startIndex
-        this.vt.step = virtualScroll.step
-        this.vt.elementHeight = virtualScroll.elementHeight
-        this.vt.firstRowHeight = virtualScroll.firstRowHeight
-        this.vt.lastRowHeight = virtualScroll.lastRowHeight
-      }else{
-        this.setDefaultVT()
-      }
-    },
-    setDefaultVT(){
+    setDefaultVT() {
       this.vt = {
         startIndex: 0,
         step: 1,
         elementHeight: 56,
         firstRowHeight: 0,
         lastRowHeight: 0,
+        tableTop: 158,
       }
     },
-    getCardById(id){
-      return this.cards.find(c=>c.id === id)
+    getCardById(id) {
+      return this.cards.find(c => c.id === id)
     },
+    buildHeight() {
+      this.$nextTick(() => {
+        this.style.height.field = this.calcHeightField()
+        this.style.height.tools = this.calcHeightTools()
+        this.style.height.beforeField = this.height.header + this.style.height.tools + 3
+      })
+    }
   },
 }
 </script>

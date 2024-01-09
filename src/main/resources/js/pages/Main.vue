@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="show">
     <b-overlay
         :show="overlay.show"
         no-fade
@@ -22,7 +22,7 @@
         :ref="ids.header"
     ></greeting-nav>
 
-    <router-view v-if="!overlay.show" :style="{height: routerHeight +'px'}"></router-view>
+    <router-view v-if="!overlay.show"></router-view>
 
     <footer-nav
         :id="ids.footer"
@@ -46,9 +46,10 @@ export default {
     GreetingNav,
     FooterNav,
   },
-  async mounted(){
+  mounted(){
   },
   async created() {
+    this.addListeners()
     this.overlay.show = true
     await store.restored
     await this.$store.dispatch('resetAction')
@@ -57,6 +58,9 @@ export default {
     this.sync()
     await this.setSizeHeaderFooter()
     this.overlay.show = false
+  },
+  destroyed() {
+    this.removeListeners()
   },
   computed: {
     ...mapState([
@@ -94,7 +98,8 @@ export default {
   data() {
     return {
       name: 'Main',
-      routerHeight: 0,
+      show: true,
+      listeners: [],
       overlay: {
         show: true,
       }
@@ -108,9 +113,8 @@ export default {
 
     },
     async setSizeHeaderFooter() {
-      let heightHeader = document.getElementById(this.ids.header).offsetHeight
-      let heightFooter = document.getElementById(this.ids.footer).offsetHeight
-      this.routerHeight = window.innerHeight - heightHeader - heightFooter
+      const heightHeader = document.getElementById(this.ids.header).offsetHeight
+      const heightFooter = document.getElementById(this.ids.footer).offsetHeight
       this.$store.commit('setHeightHeaderFooterMutation', {header: heightHeader, footer: heightFooter})
     },
     async sync() {
@@ -136,6 +140,31 @@ export default {
 
     watchAuthentication() {
       this.$store.commit('watchAuthenticationMutation')
+    },
+
+    handleResize: _.debounce( function () {
+      this.setSizeHeaderFooter()
+    },),
+
+    resizeListener(){
+      return () => {
+        this.handleResize()
+      }
+    },
+
+    addListeners() {
+      const resizeListener = this.resizeListener()
+      this.listeners.push({level: window, type: 'resize', listener: resizeListener})
+      this.listeners.forEach(pair => {
+        pair.level.addEventListener(pair.type, pair.listener)
+      })
+    },
+
+    removeListeners() {
+      this.listeners.forEach(pair => {
+        pair.level.removeEventListener(pair.type, pair.listener)
+      })
+      this.listeners = []
     },
 
     getCapitalizeLang(key) {

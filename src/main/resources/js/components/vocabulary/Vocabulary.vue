@@ -435,20 +435,17 @@ export default {
     },
     addListeners() {
       const activeSideListener = this.activeSideListener()
-      this.listeners.push({type: 'mousedown', listener: activeSideListener})
-      this.listeners.push({type: 'mouseup', listener: activeSideListener})
-      this.activateListeners()
+      this.listeners.push({level: document, type: 'mousedown', listener: activeSideListener})
+      this.listeners.push({level: document, type: 'mouseup', listener: activeSideListener})
+      this.listeners.forEach(pair => {
+        pair.level.addEventListener(pair.type, pair.listener)
+      })
     },
     removeListeners() {
       this.listeners.forEach(pair => {
-        document.removeEventListener(pair.type, pair.listener)
+        pair.level.removeEventListener(pair.type, pair.listener)
       })
       this.listeners = []
-    },
-    activateListeners() {
-      this.listeners.forEach(pair => {
-        document.addEventListener(pair.type, pair.listener)
-      })
     },
     onNavigateToDictionary(side) {
       this.$refs[this.ids[side].dictionaryNav].navigateToActiveDictionary()
