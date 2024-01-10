@@ -151,6 +151,7 @@
           split-variant="info"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
           variant="info"
+          class="unrepeated-button"
       >
         <template slot="button-content">
           <b-button
@@ -206,9 +207,9 @@
 
       <div
           :id="ids.unrepeatedDictionaries"
-          class="collapse p-0 m-0"
+          class="collapse"
       >
-        <b-container :class="[{'shadow-sm':!isDropdownUnrepeatedDictionariesCollapsed}, 'p-0 m-0']" fluid>
+        <b-container fluid :class="[{'shadow-sm':!isDropdownUnrepeatedDictionariesCollapsed}, 'p-0 m-0']">
           <b-dropdown
               v-for="(d,i) in unrepeatedDictionaries"
               :id="getDictionaryElemId(d.id)"
@@ -230,6 +231,7 @@
               @hide="hideDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
               @show="showDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
               @toggle="toggleDropdownRef({ref:getDictionaryElemId(d.id), level: 0})"
+              class="unrepeated"
           >
             <template slot="button-content">
               <div
@@ -385,6 +387,7 @@
           split-variant="warning"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
           variant="warning"
+          class="non-unrepeated-button"
       >
         <template slot="button-content">
           <b-button
@@ -438,9 +441,9 @@
 
       <div
           :id="ids.nonUnrepeatedDictionaries"
-          class="collapse"
+          class="collapse nonUnrepeated"
       >
-        <b-container :class="[{'shadow-sm':!isDropdownNonUnrepeatedDictionariesCollapsed}, 'p-0 m-0']" fluid>
+        <b-container fluid :class="[{'shadow-sm':!isDropdownNonUnrepeatedDictionariesCollapsed}, 'p-0 m-0']">
           <b-dropdown
               v-for="(d,ii) in nonUnrepeatedDictionaries"
               :id="getDictionaryElemId(d.id)"
@@ -462,6 +465,7 @@
               @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
               @show="showDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
               @toggle="toggleDropdownRef({ref: getDictionaryElemId(d.id), level: 0})"
+              class="non-unrepeated"
           >
             <template slot="button-content">
               <div
@@ -540,6 +544,7 @@
                 variant="light"
                 @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
                 @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
+            >
             >
               <template #button-content>
                 <b-row class="px-3"
@@ -1131,8 +1136,8 @@ export default {
       let elemId = null
       if (oldD) {
         elemId = this.getDictionaryElemId(oldD.id)
-        $("#" + elemId + '__BV_toggle_').removeClass('bg-primary border-dark text-white')
-        $("#" + elemId + '__BV_button_').removeClass('bg-primary border-dark text-white')
+        $("#" + elemId + '__BV_toggle_').removeClass('bg-secondary border-dark text-white')
+        $("#" + elemId + '__BV_button_').removeClass('bg-secondary border-dark text-white')
         $("#" + elemId + '__BV_toggle_').addClass('bg-white border-secondary text-dark')
         $("#" + elemId + '__BV_button_').addClass('bg-white border-secondary text-dark')
       }
@@ -1140,8 +1145,8 @@ export default {
         elemId = this.getDictionaryElemId(newD.id)
         $("#" + elemId + '__BV_toggle_').removeClass('bg-white border-secondary text-dark')
         $("#" + elemId + '__BV_button_').removeClass('bg-white border-secondary text-dark')
-        $("#" + elemId + '__BV_toggle_').addClass('bg-primary border-dark text-white')
-        $("#" + elemId + '__BV_button_').addClass('bg-primary border-dark text-white')
+        $("#" + elemId + '__BV_toggle_').addClass('bg-secondary border-dark text-white')
+        $("#" + elemId + '__BV_button_').addClass('bg-secondary border-dark text-white')
       }
     },
     toggleAllDictionaries() {
@@ -1274,9 +1279,24 @@ i {
   flex: 1;
 }
 
-.dropdown:hover {
+.unrepeated-button.dropdown:hover {
   z-index: 3;
-  box-shadow: 0 0 0 1px white, 0 0 0 5px lightskyblue !important;
+  box-shadow: 0 0 0 1px white, 0 0 0 5px #2eabbf !important;
+}
+
+.unrepeated.dropdown:hover {
+  z-index: 3;
+  box-shadow: 0 0 0 1px white, 0 0 0 5px #5dbecd !important;
+}
+
+.non-unrepeated-button.dropdown:hover {
+  z-index: 3;
+  box-shadow: 0 0 0 1px white, 0 0 0 5px #fbbd47 !important;
+}
+
+.non-unrepeated.dropdown:hover {
+  z-index: 3;
+  box-shadow: 0 0 0 1px white, 0 0 0 5px #fccc70 !important;
 }
 
 .border-2 {

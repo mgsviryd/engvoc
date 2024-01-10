@@ -25,9 +25,9 @@
           </b-breadcrumb-item>
           <b-breadcrumb-item>
             <b-button
-                class="py-0 shadow-none border border-dark"
+                class="py-0 shadow shadow-none border border-dark"
                 size="sm"
-                variant="primary"
+                variant="secondary"
                 @click.prevent.stop="navigateToDictionary"
             >
               {{ dictionary.name }}
@@ -37,7 +37,7 @@
             <b-button
                 class="py-0 shadow-none border-0 text-light"
                 size="sm"
-                variant="transparent"
+                variant="success"
                 @click.prevent.stop="scrollToActiveCard"
             >
               {{ activeCard.word }}
@@ -240,7 +240,11 @@
               @mousedown.prevent="mousedown(card, i)"
               @mouseup.prevent="mouseup(card, i)"
           >
-            <td class="st-sm border-1 border-secondary border-left-0">{{ (findIndex(card.id) + 1) }}</td>
+            <td class="st-sm border-1 border-secondary border-left-0">
+              <div class="td-wrapper">
+              {{ (findIndex(card.id) + 1) }}
+              </div>
+            </td>
             <template v-for="(property, ii) in sortedPropertySettings"
             >
               <td v-if="property.showColumn"
@@ -248,16 +252,24 @@
                   :style="[{width: `${property.width}px`}]"
                   class="border-1 border-secondary"
               >
-                <input v-if="property.property === 'selected'" v-model="getCardById(card.id)[property.property]"
-                       type="checkbox" @click="selectCard(card)"
-                >
-                <input v-else-if="property.propertyType === 'boolean'" v-model="getCardById(card.id)[property.property]"
+                <div class="td-wrapper">
+                <input v-if="property.property === 'selected'"
+                       v-model="getCardById(card.id)[property.property]"
                        type="checkbox"
+                       class="normal-checkbox"
+                       @click="selectCard(card)"
                 >
-                <span v-else>{{ getProperty(card, property.property) }}</span>
+                <input v-else-if="property.propertyType === 'boolean'"
+                       v-model="getCardById(card.id)[property.property]"
+                       type="checkbox"
+                       class="normal-checkbox"
+                >
+                <div v-else>{{ getProperty(card, property.property) }}</div>
+                </div>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
+              <div class="td-wrapper">
               <b-button
                   :id="getCardEditButtonElemId(card.id)"
                   :ref="getCardEditButtonElemId(card.id)"
@@ -268,8 +280,10 @@
               >
                 <i class="fa fa-pen-to-square fa-xs text-dark"></i>
               </b-button>
+              </div>
             </td>
             <td class="st-sm border-1 border-secondary">
+              <div class="td-wrapper">
               <b-button
                   :id="getCardDeleteButtonElemId(card.id)"
                   class="btn bg-white btn-sm border-1 border-secondary py-0"
@@ -277,6 +291,7 @@
               >
                 <i class="fa fa-trash fa-xs text-dark"></i>
               </b-button>
+              </div>
             </td>
           </tr>
         </template>
@@ -356,9 +371,11 @@ export default {
       immediate: true
     },
     data: {
-      handler: function () {
-        this.fetchData()
-        this.initVT()
+      handler: function (newVal, oldVal) {
+        if(!oldVal || (newVal.watchId !== oldVal.watchId)){
+          this.fetchData()
+          this.initVT()
+        }
       },
       immediate: true,
       deep: true,
@@ -438,7 +455,7 @@ export default {
           columnInx: 1,
           detailInx: null,
           detailPosition: "vertical",
-          width: 120,
+          width: 100,
         },
         {
           property: "translation",
@@ -462,7 +479,7 @@ export default {
           columnInx: 2,
           detailInx: null,
           detailPosition: "vertical",
-          width: 120,
+          width: 140,
         },
         {
           property: "example",
@@ -486,7 +503,7 @@ export default {
           columnInx: 3,
           detailInx: 1,
           detailPosition: "vertical",
-          width: 160,
+          width: 200,
         },
         {
           property: "exampleTranslation",
@@ -510,7 +527,7 @@ export default {
           columnInx: 4,
           detailInx: 1,
           detailPosition: "vertical",
-          width: 160,
+          width: 200,
         },
         {
           property: ['dictionary', 'name'],
@@ -534,7 +551,7 @@ export default {
           columnInx: 5,
           detailInx: null,
           detailPosition: 'vertical',
-          width: 100,
+          width: 60,
         },
         {
           property: "learned",
@@ -595,9 +612,9 @@ export default {
         exampleTranslation: null,
       },
 
+      instanceMark: null,
       dictionary: null,
       cards: [],
-      instanceMark: null,
 
       show: false,
       activeParent: false,
@@ -610,7 +627,7 @@ export default {
       vt: {
         startIndex: 0,
         step: 1,
-        elementHeight: 56,
+        elementHeight: 58,
         firstRowHeight: 0,
         lastRowHeight: 0,
       },
@@ -644,6 +661,7 @@ export default {
       this.show = true
       this.buildHeight()
       this.buildActiveCardFromMap()
+      console.info("fetch end")
     },
 
     prefixId() {
@@ -952,6 +970,7 @@ export default {
       this.activeCardMap.set(this.dictionary.id, card)
     },
     initVT() {
+      console.info("initVT: "+ this.instanceMark)
       this.$nextTick(() => {
         if (this.cards.length === 0) {
           this.setDefaultVT()
@@ -1009,7 +1028,7 @@ export default {
       this.vt = {
         startIndex: 0,
         step: 1,
-        elementHeight: 56,
+        elementHeight: 58,
         firstRowHeight: 0,
         lastRowHeight: 0,
         tableTop: 158,
@@ -1040,15 +1059,32 @@ export default {
 }
 
 table {
-  font-size: 15px;
-  font-family: Calibri;
+  font-size: 13px;
+  font-family: Arial;
   table-layout: fixed;
   width: 100%;
 }
 
+.td-wrapper{
+  height: 58px;
+  overflow-wrap: break-word;
+  word-break: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /*text-align: justify;*/
+}
+.table td{
+  padding-top: 2px;
+  padding-bottom: 3px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
 .calcRow {
   width: 100%;
-  height: 56px;
+  height: 58px;
 }
 
 .st-ellipsis {
@@ -1064,13 +1100,13 @@ table {
 }
 
 .st-norm {
-  width: 100px;
+  width: 80px;
   overflow-wrap: break-word;
   word-break: normal;
 }
 
 .st-lg {
-  width: 150px;
+  width: 180px;
   overflow-wrap: break-word;
   word-break: normal;
 }
@@ -1109,6 +1145,11 @@ table {
   min-height: 0;
   width: 100%;
   flex: 1;
+}
+input.normal-checkbox {
+  width: 15px;
+  height: 15px;
+  margin: 3px;
 }
 
 </style>

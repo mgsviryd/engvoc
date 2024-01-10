@@ -64,7 +64,7 @@
           <card-table
               :id="ids.left.cardTable"
               :ref="ids.left.cardTable"
-              :data="{instanceMark: left.instanceMark, dictionary: left.dictionary, cards: left.cards}"
+              :data="{watchId: left.watchId, instanceMark: left.instanceMark, dictionary: left.dictionary, cards: left.cards}"
               @onNavigateToDictionary="onNavigateToDictionary"
               @onNavigateToUnique="onNavigateToUnique"
           ></card-table>
@@ -99,7 +99,7 @@
           <card-table
               :id="ids.right.cardTable"
               :ref="ids.right.cardTable"
-              :data="{instanceMark: right.instanceMark, dictionary: right.dictionary, cards: right.cards}"
+              :data="{watchId: right.watchId, instanceMark: right.instanceMark, dictionary: right.dictionary, cards: right.cards}"
               @onNavigateToDictionary="onNavigateToDictionary"
               @onNavigateToUnique="onNavigateToUnique"
           ></card-table>
@@ -248,6 +248,7 @@ export default {
 
       left: {
         show: true,
+        watchId: _.now(),
         active: false,
         displayNav: true,
         displayTool: true,
@@ -262,6 +263,7 @@ export default {
       },
       right: {
         show: true,
+        watchId: _.now(),
         active: false,
         displayNav: true,
         displayTool: true,
@@ -298,10 +300,12 @@ export default {
       if (instanceMark === this.left.instanceMark) {
         this.left.dictionary = this.getDictionaryById(id)
         this.left.cards = this.getCardsByDictionaryId(id)
+        this.left.watchId = _.now()
       }
       if (instanceMark === this.right.instanceMark) {
         this.right.dictionary = this.getDictionaryById(id)
         this.right.cards = this.getCardsByDictionaryId(id)
+        this.right.watchId = _.now()
       }
       return []
     },
