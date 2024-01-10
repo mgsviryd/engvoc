@@ -242,7 +242,7 @@
           >
             <td class="st-sm border-1 border-secondary border-left-0">
               <div class="td-wrapper">
-              {{ (findIndex(card.id) + 1) }}
+                {{ (findIndex(card.id) + 1) }}
               </div>
             </td>
             <template v-for="(property, ii) in sortedPropertySettings"
@@ -253,44 +253,44 @@
                   class="border-1 border-secondary"
               >
                 <div class="td-wrapper">
-                <input v-if="property.property === 'selected'"
-                       v-model="getCardById(card.id)[property.property]"
-                       type="checkbox"
-                       class="normal-checkbox"
-                       @click="selectCard(card)"
-                >
-                <input v-else-if="property.propertyType === 'boolean'"
-                       v-model="getCardById(card.id)[property.property]"
-                       type="checkbox"
-                       class="normal-checkbox"
-                >
-                <div v-else>{{ getProperty(card, property.property) }}</div>
+                  <input v-if="property.property === 'selected'"
+                         v-model="getCardById(card.id)[property.property]"
+                         class="normal-checkbox"
+                         type="checkbox"
+                         @click="selectCard(card)"
+                  >
+                  <input v-else-if="property.propertyType === 'boolean'"
+                         v-model="getCardById(card.id)[property.property]"
+                         class="normal-checkbox"
+                         type="checkbox"
+                  >
+                  <div v-else>{{ getProperty(card, property.property) }}</div>
                 </div>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
               <div class="td-wrapper">
-              <b-button
-                  :id="getCardEditButtonElemId(card.id)"
-                  :ref="getCardEditButtonElemId(card.id)"
-                  class="border border-secondary py-0"
-                  size="sm"
-                  variant="light"
-                  @click.prevent.stop="editCard(card, i)"
-              >
-                <i class="fa fa-pen-to-square fa-xs text-dark"></i>
-              </b-button>
+                <b-button
+                    :id="getCardEditButtonElemId(card.id)"
+                    :ref="getCardEditButtonElemId(card.id)"
+                    class="border border-secondary py-0"
+                    size="sm"
+                    variant="light"
+                    @click.prevent.stop="editCard(card, i)"
+                >
+                  <i class="fa fa-pen-to-square fa-xs text-dark"></i>
+                </b-button>
               </div>
             </td>
             <td class="st-sm border-1 border-secondary">
               <div class="td-wrapper">
-              <b-button
-                  :id="getCardDeleteButtonElemId(card.id)"
-                  class="btn bg-white btn-sm border-1 border-secondary py-0"
-                  @click.prevent.stop="deleteCard(card, i)"
-              >
-                <i class="fa fa-trash fa-xs text-dark"></i>
-              </b-button>
+                <b-button
+                    :id="getCardDeleteButtonElemId(card.id)"
+                    class="btn bg-white btn-sm border-1 border-secondary py-0"
+                    @click.prevent.stop="deleteCard(card, i)"
+                >
+                  <i class="fa fa-trash fa-xs text-dark"></i>
+                </b-button>
               </div>
             </td>
           </tr>
@@ -372,7 +372,7 @@ export default {
     },
     data: {
       handler: function (newVal, oldVal) {
-        if(!oldVal || (newVal.watchId !== oldVal.watchId)){
+        if (!oldVal || (newVal.watchId !== oldVal.watchId)) {
           this.fetchData()
           this.initVT()
         }
@@ -402,7 +402,13 @@ export default {
     ]),
 
     renderCards() {
-      return this.cards.slice(this.vt.startIndex, this.vt.startIndex + this.vt.step)
+      let startIndex = this.vt.startIndex
+      const length = this.cards.length;
+      if (startIndex + this.vt.step > length) {
+        startIndex = length - this.vt.step + 1
+      }
+      if (startIndex < 0) startIndex = 0
+      return this.cards.slice(startIndex, this.vt.startIndex + this.vt.step)
     },
     vtHeight() {
       return this.vt.elementHeight * this.cards.length
@@ -661,7 +667,6 @@ export default {
       this.show = true
       this.buildHeight()
       this.buildActiveCardFromMap()
-      console.info("fetch end")
     },
 
     prefixId() {
@@ -770,7 +775,7 @@ export default {
       } else {
         this.groupCards()
       }
-      this.scrollToIndex(0,0)
+      this.scrollToIndex(0, 0)
     },
     groupCards() {
       if (this.cards && this.cards.length !== 0) {
@@ -956,11 +961,12 @@ export default {
     scrollToActiveCard() {
       if (this.activeCard) {
         const inx = this.cards.findIndex(c => c.id === this.activeCard.id)
-        this.scrollToIndex(inx, this.vt.elementHeight*2)
+        this.scrollToIndex(inx, this.vt.elementHeight * 2)
       }
     },
-    scrollToIndex(inx, offset){
-      if (!inx) inx = 0
+    scrollToIndex(inx, offset) {
+      const length = this.cards.length;
+      if (inx + this.vt.step + 1 >= length) inx = length // extra scroll near at the end
       const y = this.vt.elementHeight * inx - offset
       const elem = document.getElementById(this.ids.field)
       elem.scrollTo({top: y, left: elem.scrollX, behavior: 'auto'})
@@ -970,54 +976,64 @@ export default {
       this.activeCardMap.set(this.dictionary.id, card)
     },
     initVT() {
-      console.info("initVT: "+ this.instanceMark)
       this.$nextTick(() => {
-        if (this.cards.length === 0) {
+        const length = this.cards.length;
+        if (length === 0) {
           this.setDefaultVT()
           return
         }
-        const tableTop = this.$refs[this.ids.tbody].getBoundingClientRect().top -this.vt.elementHeight -this.style.height.beforeField
-        const viewPortY = document.documentElement.clientHeight
-        if (tableTop > 0) {
-          this.vt.step = Math.floor((viewPortY - tableTop) / this.vt.elementHeight)
-        } else {
-          this.vt.step = Math.floor(viewPortY / this.vt.elementHeight)
-          this.vt.startIndex = Math.floor(-tableTop / this.vt.elementHeight)
-        }
-        this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight
-        this.vt.lastRowHeight = this.cards.length * this.vt.elementHeight - this.vt.step * this.vt.elementHeight
-        this.scrollToIndex(this.startIndexMap.get(this.dictionary.id), 0)
-      })
-    },
-    handleVS: _.debounce(function () {
-      if (this.show) {
-        const top = this.$refs[this.ids.tbody].getBoundingClientRect().top -this.vt.elementHeight -this.style.height.beforeField
-        const viewportY = document.documentElement.clientHeight
-        let step = Math.floor(viewportY / this.vt.elementHeight)
-        let startIndex = Math.floor(-top / this.vt.elementHeight)
-        if ((startIndex + step) >= this.cards.length) {
-          startIndex = this.cards.length - step
-        }
-        if (startIndex === this.vt.startIndex) {
-          return
-        }
-        if (top < 0) {
-          this.vt.step = step
-          this.vt.startIndex = startIndex
+        this.vt.step = this.style.height.field / this.vt.elementHeight
+        let inx = this.startIndexMap.get(this.dictionary.id);
+        if (inx) {
+          if (inx + this.vt.step >= length){
+            inx = length - this.vt.step
+          }
+          if (inx < 0) {
+            inx = 0
+          }
+          this.vt.startIndex = inx
         } else {
           this.vt.startIndex = 0
-          this.vt.step = Math.floor((viewportY - top) / this.vt.elementHeight)
         }
-        this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight
-        this.vt.lastRowHeight =
-            this.cards.length * this.vt.elementHeight -
-            this.vt.step * this.vt.elementHeight -
-            this.vt.firstRowHeight
+        let header = this.vt.startIndex === 0 ? 0 : this.style.height.beforeField
+        this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight + header
+        if (this.vt.startIndex + this.vt.step >= length) {
+          this.vt.lastRowHeight = 0
+        } else {
+          this.vt.lastRowHeight =
+              length * this.vt.elementHeight -
+              this.vt.step * this.vt.elementHeight -
+              this.vt.firstRowHeight
+        }
+        let offset = this.vt.startIndex === 0 || this.vt.lastRowHeight === 0 ? -header : -header - this.vt.elementHeight
+        this.scrollToIndex(this.vt.startIndex, offset)
+      })
+    },
+    handleVS() {
+      if (this.show) {
+        const top = this.$refs[this.ids.tbody].getBoundingClientRect().top
+        this.vt.step = this.style.height.field / this.vt.elementHeight
+        let startIndex = Math.floor(-top / this.vt.elementHeight)
+        if (startIndex + this.vt.step >= this.cards.length) {
+          startIndex = this.cards.length - this.vt.step
+        }
+        if (startIndex < 0) startIndex = 0
+        this.vt.startIndex = startIndex
+        let header = this.vt.startIndex === 0 ? 0 : this.style.height.beforeField
+        this.vt.firstRowHeight = this.vt.startIndex * this.vt.elementHeight + header
+        if (startIndex + this.vt.step >= this.cards.length) {
+          this.vt.lastRowHeight = 0
+        } else {
+          this.vt.lastRowHeight =
+              this.cards.length * this.vt.elementHeight -
+              this.vt.step * this.vt.elementHeight -
+              this.vt.firstRowHeight
+        }
         this.startIndexMap.set(this.dictionary.id,
             this.vt.startIndex
         )
       }
-    }, 5),
+    },
     findIndex(cardId) {
       return this.cards.findIndex(c => c.id === cardId)
     },
@@ -1065,7 +1081,7 @@ table {
   width: 100%;
 }
 
-.td-wrapper{
+.td-wrapper {
   height: 58px;
   overflow-wrap: break-word;
   word-break: normal;
@@ -1075,7 +1091,8 @@ table {
   overflow: hidden;
   /*text-align: justify;*/
 }
-.table td{
+
+.table td {
   padding-top: 2px;
   padding-bottom: 3px;
   padding-left: 5px;
@@ -1146,6 +1163,7 @@ table {
   width: 100%;
   flex: 1;
 }
+
 input.normal-checkbox {
   width: 15px;
   height: 15px;
