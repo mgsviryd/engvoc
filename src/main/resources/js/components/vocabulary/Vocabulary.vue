@@ -31,7 +31,7 @@
             :id="ids.left.col.verticalTools"
             :ref="ids.left.col.verticalTools"
             class="d-flex justify-content-between m-0 p-0"
-            style="max-width: 24px;"
+            style="max-width: 20px;"
         >
           <vertical-tools
               :id="ids.left.verticalTools"
@@ -127,7 +127,7 @@
                :id="ids.right.col.verticalTools"
                :ref="ids.right.col.verticalTools"
                class="d-flex justify-content-between m-0 p-0"
-               style="max-width: 24px;"
+               style="max-width: 20px;"
         >
           <vertical-tools
               :id="ids.right.verticalTools"

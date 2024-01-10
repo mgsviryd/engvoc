@@ -189,6 +189,9 @@ const messages = {
     nothingFound: 'Oops! Nothing found.',
     loaded: 'loaded',
     notLoaded: 'not loaded',
+    creationLDT: 'creation date',
+    datepickerLabelHelp: 'use cursor keys to navigate calendar dates',
+
 
     dictionaryNotUniqueError: 'Dictionary already exists. Change name or parent.',
     cardNotUniqueError: 'Card already exists. Change word or translation.',

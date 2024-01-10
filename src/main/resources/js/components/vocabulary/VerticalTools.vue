@@ -4,64 +4,79 @@
       class="vertical-tools"
   >
     <b-button-group size="sm" vertical>
-      <b-button class="p-1 rounded-0 border-dark shadow-none"
+      <b-button class="p-0 rounded-0 border-dark shadow-none p-0"
                 size="sm"
                 variant="secondary"
+                style="width: 20px;"
                 @click.prevent.stop="showHideInstance()"
       >
         <i class="fa-solid fa-clone fa-xs"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-dark shadow-none"
+      <b-button class="rounded-0 border-dark shadow-none p-0"
                 size="sm"
                 variant="secondary"
+                style="width: 20px;"
       >
-        <i class="fa-solid fa-maximize"></i>
+        <i class="fa-solid fa-right-left fa-xs"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-dark shadow-none"
+      <b-button class="rounded-0 border-dark shadow-none p-0"
                 size="sm"
-                variant="light"
+                variant="secondary"
+                style="width: 20px;"
+      >
+        <i class="fa-solid fa-repeat fa-xs"></i>
+      </b-button>
+      <b-button class="rounded-0 border-dark shadow-none p-0"
+                size="sm"
+                variant="secondary"
+                style="width: 20px;"
                 @click.prevent.stop="showFullNav()"
       >
-        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-right"></i>
-        <i v-else class="fa-solid fa-angles-left"></i>
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-right fa-xs"></i>
+        <i v-else class="fa-solid fa-angles-left fa-xs"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-dark shadow-none"
+      <b-button class="rounded-0 border-dark shadow-none p-0"
                 size="sm"
-                variant="light"
+                variant="secondary"
+                style="width: 20px;"
                 @click.prevent.stop="hideFullNav()"
       >
-        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-left"></i>
-        <i v-else class="fa-solid fa-angles-right"></i>
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angles-left fa-xs"></i>
+        <i v-else class="fa-solid fa-angles-right fa-xs"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-dark shadow-none"
+      <b-button class="rounded-0 border-dark shadow-none p-0"
                 size="sm"
-                variant="light"
+                variant="secondary"
+                style="width: 20px;"
                 @click.prevent.stop="stepUpNav()"
       >
-        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-right"></i>
-        <i v-else class="fa-solid fa-angle-left"></i>
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-right fa-xs"></i>
+        <i v-else class="fa-solid fa-angle-left fa-xs"></i>
       </b-button>
-      <b-button class="p-1 rounded-0 border-dark shadow-none"
+      <b-button class="rounded-0 border-dark shadow-none p-0"
                 size="sm"
-                variant="light"
+                variant="secondary"
                 @click.prevent.stop="stepDownNav()"
+                style="width: 20px;"
       >
-        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-left"></i>
-        <i v-else class="fa-solid fa-angle-right"></i>
+        <i v-if="instance.instanceMark === 'left'" class="fa-solid fa-angle-left fa-xs"></i>
+        <i v-else class="fa-solid fa-angle-right fa-xs"></i>
       </b-button>
     </b-button-group>
   </b-button-toolbar>
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState} from "vuex"
 import * as _ from "lodash"
 
 export default {
   props: [
     'instance'
   ],
-  components: {},
+  components: {
+
+  },
   created() {
     this.fetchData()
   },

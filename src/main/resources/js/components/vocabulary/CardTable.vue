@@ -252,20 +252,37 @@
                   :style="[{width: `${property.width}px`}]"
                   class="border-1 border-secondary"
               >
-                <div class="td-wrapper">
-                  <input v-if="property.property === 'selected'"
-                         v-model="getCardById(card.id)[property.property]"
-                         class="normal-checkbox"
-                         type="checkbox"
-                         @click="selectCard(card)"
+                <div v-if="property.property === 'selected'">
+                  <input
+                      v-model="getCardById(card.id)[property.property]"
+                      class="normal-checkbox"
+                      type="checkbox"
+                      @click="selectCard(card)"
                   >
-                  <input v-else-if="property.propertyType === 'boolean'"
-                         v-model="getCardById(card.id)[property.property]"
-                         class="normal-checkbox"
-                         type="checkbox"
-                  >
-                  <div v-else>{{ getProperty(card, property.property) }}</div>
                 </div>
+                <div v-else-if="property.propertyType === 'boolean'">
+                  <input
+                      v-model="getCardById(card.id)[property.property]"
+                      class="normal-checkbox"
+                      type="checkbox"
+                  >
+                </div>
+                <div v-if="property.propertyType === 'string'" class="td-wrapper">
+                  {{ getProperty(card, property.property) }}
+                </div>
+                <b-form-datepicker v-if="property.propertyType === 'dateISOString'"
+                                   :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"
+                                   :hide-header="true"
+                                   :label-close-button="getCapitalizeLang('close')"
+                                   :label-help="getCapitalizeLang('datepickerLabelHelp')"
+                                   :locale="lang.lang.lang"
+                                   :menu-class="''"
+                                   :style="{width: `${130}px`,}"
+                                   :value="getDateForPicker(card[property.property])"
+                                   close-button
+                                   size="sm"
+                                   @input.prevent.stop="''"
+                ></b-form-datepicker>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
@@ -335,6 +352,7 @@ import AddCardModal from "./AddCardModal.vue"
 import PictureStatic from "../picture/PictureStatic.vue"
 import DownloadDropdown from "./DownloadDropdown.vue"
 import UploadDropdown from "./UploadDropdown.vue"
+import DateJS from "../../util/date"
 
 export default {
   props: [
@@ -583,6 +601,30 @@ export default {
           detailPosition: "vertical",
           width: 45,
         },
+        {
+          property: "creationLDT",
+          propertyType: "dateISOString",
+          label: "creationLDT",
+          icon: '<i class="fa-regular fa-calendar"></i>',
+          showLabel: true,
+          showIcon: true,
+          tooltip: {
+            placement: top,
+            title: "creationLDT",
+            delay: {show: 500, hide: 100}
+          },
+          order: null,
+          priority: 0,
+          priorityOrder: 0,
+          sortable: true,
+          showColumn: true,
+          showDetail: false,
+          showDetailLabel: false,
+          columnInx: 7,
+          detailInx: null,
+          detailPosition: "vertical",
+          width: 140,
+        },
       ]
     },
     sortedPropertySettings() {
@@ -633,7 +675,7 @@ export default {
       vt: {
         startIndex: 0,
         step: 1,
-        elementHeight: 58,
+        elementHeight: 42,
         firstRowHeight: 0,
         lastRowHeight: 0,
       },
@@ -703,7 +745,7 @@ export default {
             return (item) => {
               const value = this.getProperty(item, s.property)
               if (value) {
-                return new Date(value)
+                return value
               } else return null
             }
           }
@@ -711,7 +753,7 @@ export default {
             return (item) => {
               const value = this.getProperty(item, s.property)
               if (value) {
-                return value
+                return new Date(value)
               } else return null
             }
           }
@@ -961,19 +1003,24 @@ export default {
     scrollToActiveCard() {
       if (this.activeCard) {
         const inx = this.cards.findIndex(c => c.id === this.activeCard.id)
-        this.scrollToIndex(inx, this.vt.elementHeight * 2)
+        this.scrollToIndex(inx, 0)
       }
     },
     scrollToIndex(inx, offset) {
       const length = this.cards.length;
-      if (inx + this.vt.step + 1 >= length) inx = length // extra scroll near at the end
+      if (inx !== 0 && inx + this.vt.step + 1 >= length) inx = length // extra scroll near at the end
       const y = this.vt.elementHeight * inx - offset
       const elem = document.getElementById(this.ids.field)
       elem.scrollTo({top: y, left: elem.scrollX, behavior: 'auto'})
     },
     setActiveCard(card) {
-      this.activeCard = card
-      this.activeCardMap.set(this.dictionary.id, card)
+      if (this.activeCard && this.activeCard.id === card.id) {
+        this.activeCard = null
+        this.activeCardMap.set(this.dictionary.id, null)
+      } else {
+        this.activeCard = card
+        this.activeCardMap.set(this.dictionary.id, card)
+      }
     },
     initVT() {
       this.$nextTick(() => {
@@ -985,7 +1032,7 @@ export default {
         this.vt.step = this.style.height.field / this.vt.elementHeight
         let inx = this.startIndexMap.get(this.dictionary.id);
         if (inx) {
-          if (inx + this.vt.step >= length){
+          if (inx + this.vt.step >= length) {
             inx = length - this.vt.step
           }
           if (inx < 0) {
@@ -1044,7 +1091,7 @@ export default {
       this.vt = {
         startIndex: 0,
         step: 1,
-        elementHeight: 58,
+        elementHeight: 42,
         firstRowHeight: 0,
         lastRowHeight: 0,
         tableTop: 158,
@@ -1060,6 +1107,9 @@ export default {
         this.style.height.field = this.style.height.col - this.style.height.tools
         this.style.height.beforeField = this.height.header + this.style.height.tools + 3
       })
+    },
+    getDateForPicker(ldt) {
+      return DateJS.parseISOString(ldt)
     },
   },
 }
@@ -1082,11 +1132,12 @@ table {
 }
 
 .td-wrapper {
-  height: 58px;
+  position: relative;
+  height: 42px;
   overflow-wrap: break-word;
   word-break: normal;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   /*text-align: justify;*/
@@ -1101,7 +1152,7 @@ table {
 
 .calcRow {
   width: 100%;
-  height: 58px;
+  height: 42px;
 }
 
 .st-ellipsis {
@@ -1168,6 +1219,15 @@ input.normal-checkbox {
   width: 15px;
   height: 15px;
   margin: 3px;
+}
+
+.b-calendar {
+  z-index: 9999 !important;
+}
+
+.b-calendar .dropdown-menu {
+  position: fixed;
+  z-index: 9999 !important;
 }
 
 </style>

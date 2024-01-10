@@ -187,6 +187,8 @@ const messages = {
   nothingFound: 'Упс! Ничего не найдено.',
   loaded: 'загружено',
   notLoaded: 'не загружено',
+  creationLDT: 'дата создания',
+  datepickerLabelHelp: 'используйте клавиши курсора для навигации по датам календаря',
 
   dictionaryNotUniqueError:'Словарь уже существует. Измените имя или родителя.',
   cardNotUniqueError:'Карточка уже существует. Измените слово или перевод.',
