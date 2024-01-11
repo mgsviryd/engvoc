@@ -2,6 +2,7 @@ package by.sviryd.engvoc.controller.rest;
 
 import by.sviryd.engvoc.config.FrontendConfig;
 import by.sviryd.engvoc.config.LocaleConfig;
+import by.sviryd.engvoc.config.PictureMediaConfig;
 import by.sviryd.engvoc.domain.User;
 import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.service.MessageI18nService;
@@ -30,12 +31,14 @@ public class FrontendRestController {
     @Autowired
     private LocaleConfig langConfig;
     @Autowired
+    private PictureMediaConfig pictureMediaConfig;
+    @Autowired
     private MessageI18nService messageI18nService;
     @Autowired
     private UserService userService;
 
     @PostMapping()
-    @JsonView({Views.UserAndLangLocale.class})
+    @JsonView({Views.UserAndLangLocaleAndPictureMediaDTO.class})
     public Map<Object, Object> getFrontend(
             Principal principal,
             @AuthenticationPrincipal User user,
@@ -80,6 +83,8 @@ public class FrontendRestController {
         data.put("version", frontendConfig.getVersion());
         data.put("langLangs", langConfig.getLangLocales());
         data.put("langMap", messageI18nService.getMessages(locale));
+        data.put("pictureMedias", pictureMediaConfig.getPictureMedias());
+        data.put("defaultPictureFileName", pictureMediaConfig.getDefaultPictureFileName());
         return data;
     }
 }

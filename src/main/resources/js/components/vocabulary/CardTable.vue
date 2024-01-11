@@ -241,7 +241,7 @@
               @mouseup.prevent="mouseup(card, i)"
           >
             <td class="st-sm border-1 border-secondary border-left-0">
-              <div class="td-wrapper">
+              <div class="text-wrapper">
                 {{ (findIndex(card.id) + 1) }}
               </div>
             </td>
@@ -267,7 +267,7 @@
                       type="checkbox"
                   >
                 </div>
-                <div v-if="property.propertyType === 'string'" class="td-wrapper">
+                <div v-if="property.propertyType === 'string'" class="text-wrapper">
                   {{ getProperty(card, property.property) }}
                 </div>
                 <b-form-datepicker v-if="property.propertyType === 'dateISOString'"
@@ -283,10 +283,16 @@
                                    size="sm"
                                    @input.prevent.stop="''"
                 ></b-form-datepicker>
+                <picture-upload v-if="property.property === 'authorId' && card.authorId"
+                                :pathPic="card.authorId + '.jpg'" :marker="'-icon'" :alt="'...'"
+                                :pictureClass="''" :pictureStyle="style.authorIdPicture"/>
+                <picture-upload v-if="property.property === 'picture'"
+                                :pathPic="card.picture?card.picture:'default.svg'" :marker="'-icon'" :alt="'...'"
+                                :pictureClass="''" :pictureStyle="style.picture"/>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
-              <div class="td-wrapper">
+              <div class="text-wrapper">
                 <b-button
                     :id="getCardEditButtonElemId(card.id)"
                     :ref="getCardEditButtonElemId(card.id)"
@@ -300,7 +306,7 @@
               </div>
             </td>
             <td class="st-sm border-1 border-secondary">
-              <div class="td-wrapper">
+              <div class="text-wrapper">
                 <b-button
                     :id="getCardDeleteButtonElemId(card.id)"
                     class="btn bg-white btn-sm border-1 border-secondary py-0"
@@ -352,6 +358,7 @@ import AddCardModal from "./AddCardModal.vue"
 import PictureStatic from "../picture/PictureStatic.vue"
 import DownloadDropdown from "./DownloadDropdown.vue"
 import UploadDropdown from "./UploadDropdown.vue"
+import PictureUpload from "../picture/PictureUpload.vue"
 import DateJS from "../../util/date"
 
 export default {
@@ -364,6 +371,7 @@ export default {
     PictureStatic,
     DownloadDropdown,
     UploadDropdown,
+    PictureUpload,
   },
   mounted() {
   },
@@ -602,6 +610,54 @@ export default {
           width: 45,
         },
         {
+          property: 'picture',
+          propertyType: "picture",
+          label: "picture",
+          icon: '<i class="fa-solid fa-image"></i>',
+          showLabel: false,
+          showIcon: true,
+          tooltip: {
+            placement: top,
+            title: "picture",
+            delay: {show: 500, hide: 100}
+          },
+          order: null,
+          priority: 0,
+          priorityOrder: 0,
+          sortable: false,
+          showColumn: true,
+          showDetail: false,
+          showDetailLabel: false,
+          columnInx: 7,
+          detailInx: null,
+          detailPosition: "vertical",
+          width: 50,
+        },
+        {
+          property: 'authorId',
+          propertyType: "picture",
+          label: "author",
+          icon: '<i class="fa-solid fa-user-graduate"></i>',
+          showLabel: false,
+          showIcon: true,
+          tooltip: {
+            placement: top,
+            title: "author",
+            delay: {show: 500, hide: 100}
+          },
+          order: null,
+          priority: 0,
+          priorityOrder: 0,
+          sortable: true,
+          showColumn: true,
+          showDetail: false,
+          showDetailLabel: false,
+          columnInx: 8,
+          detailInx: null,
+          detailPosition: "vertical",
+          width: 50,
+        },
+        {
           property: "creationLDT",
           propertyType: "dateISOString",
           label: "creationLDT",
@@ -620,7 +676,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 7,
+          columnInx: 9,
           detailInx: null,
           detailPosition: "vertical",
           width: 140,
@@ -693,6 +749,15 @@ export default {
           field: 0,
           tools: 0,
           beforeField: 0,
+        },
+        authorIdPicture:{
+          width: 34 + 'px',
+          height: 34 + 'px',
+          'clip-path': 'circle(' + 40 +'%)',
+        },
+        picture:{
+          width: 34 + 'px',
+          height: 34 + 'px',
         },
       }
     }
@@ -1131,7 +1196,7 @@ table {
   width: 100%;
 }
 
-.td-wrapper {
+.text-wrapper {
   position: relative;
   height: 42px;
   overflow-wrap: break-word;

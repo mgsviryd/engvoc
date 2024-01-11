@@ -171,7 +171,7 @@ picture:
     compressMainQuality: 100
     createMediaPictures: false
     createMarkerPictures: false
-    defaultPictureFileName: default.png
+    defaultPictureFileName: default.svg
 
     markerNames:
       - -icon
@@ -218,7 +218,8 @@ lang:
 
 frontend:
   config:
-    uploadResource: https://storage.cloud.google.com/attrade-bucket
+#    uploadResource: https://storage.cloud.google.com/attrade-bucket
+    uploadResource: http://localhost:8080
     staticResource: ''
   version:
     PictureMedia: 1.0

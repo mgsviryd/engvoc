@@ -76,7 +76,11 @@ export default new Vuex.Store(
 
             config: {},
             version: {},
-            pictureMedia: {},
+            pictureMedia: {
+                pictureMedias: [],
+                defaultPictureFileName: '',
+
+            },
             lang: {
                 id: 0,
                 lang: {lang: "en", country: "US", locale: "en_US", "id": "1033"},
@@ -533,11 +537,13 @@ export default new Vuex.Store(
                 state.version = payload.version
                 state.lang.langs = payload.langLangs
                 state.lang.map = payload.langMap
+                state.pictureMedia.pictureMedias = payload.pictureMedias
+                state.pictureMedia.defaultPictureFileName = payload.defaultPictureFileName
             },
             setPageAttributesMutation(state, payload) {
                 state.pageAttributes = documentJS.getPageAttributes(payload.id, payload.attr)
             },
-            getPictureMediaMutation(state, data) {
+            setPictureMediaMutation(state, data) {
                 state.pictureMedia = data
             },
 
@@ -634,7 +640,7 @@ export default new Vuex.Store(
                 const result = await pictureMediaApi.get()
                 const data = await result.data
                 if (result.ok) {
-                    commit('getPictureMediaMutation', data)
+                    commit('setPictureMediaMutation', data)
                 }
             },
 

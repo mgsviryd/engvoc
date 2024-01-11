@@ -59,7 +59,7 @@ import java.util.UUID;
 )
 @JsonIgnoreProperties(value = {"cards"}, ignoreUnknown = true)
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"client_id", "word", "translation", "unrepeated", "creationLDT", "dictionary_id"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"client_id", "word", "translation", "unrepeated", "creationldt", "dictionary_id"}))
 public class Card implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -74,13 +74,21 @@ public class Card implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
-    @JsonView(Views.User.class)
+    @JsonView(Views.Author.class)
     private User author;
 
+    @JsonView(Views.AuthorId.class)
+    @Column(name = "author_id", updatable = false, insertable = false)
+    private Long authorId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_id", referencedColumnName = "id")
     @JsonView(Views.Client.class)
     private User client;
+
+    @JsonView(Views.ClientId.class)
+    @Column(name = "client_id", updatable = false, insertable = false)
+    private Long clientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vocabulary_id")
@@ -182,22 +190,25 @@ public class Card implements Serializable {
     private boolean learned;
 
     @OneToOne
+    @JoinColumn(name = "dictionary_id", referencedColumnName = "id")
     @JsonView(Views.Dictionary.class)
     private Dictionary dictionary;
 
-    public void makeLearned(){
+    public void makeLearned() {
         setLearned(true);
         setLearnedLDT(LocalDateTime.now());
         setCountShown(null);
     }
-    public void makeUnlearned(){
+
+    public void makeUnlearned() {
         setLearned(false);
         setCountShown(null);
         setCountAnswered(null);
         setLearnedLDT(null);
     }
-    public void makeForgot(){
-        setCountForgot(getCountForgot()+1);
+
+    public void makeForgot() {
+        setCountForgot(getCountForgot() + 1);
         setForgotLDT(LocalDateTime.now());
         makeUnlearned();
     }

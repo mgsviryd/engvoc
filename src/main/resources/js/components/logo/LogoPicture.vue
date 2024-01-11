@@ -14,7 +14,7 @@ export default {
   computed: {
     ...mapState([
       'lang',
-      'frontend',
+      'config',
     ]),
   },
   data() {

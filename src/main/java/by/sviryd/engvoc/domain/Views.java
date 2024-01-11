@@ -1,5 +1,7 @@
 package by.sviryd.engvoc.domain;
 
+import by.sviryd.engvoc.domain.dto.PictureMediaDTO;
+
 public final class Views {
 
     public interface UserAndLocaleExceptionMessage extends User, LocaleExceptionMessage {
@@ -109,6 +111,7 @@ public final class Views {
 
     public interface Card extends
             Id,
+            AuthorId,
             Client,
             Unrepeated,
             Vocabulary,
@@ -158,7 +161,12 @@ public final class Views {
     public interface User extends Id, Email, LastModifiedLDT, Vocabulary, Social, Sub, Token, Username {
     }
     public interface Client extends Id, Username, Picture{}
+    public interface Author extends Id, Username, Picture{}
+    public interface AuthorId{}
+    public interface ClientId{}
     public interface UserAndLangLocale extends User, LangLocale{}
+    public interface UserAndLangLocaleAndPictureMediaDTO extends User, LangLocale, PictureMediaDTO {}
+    public interface PictureMediaDTO{}
 
     public interface Source extends LangLocale {
     }

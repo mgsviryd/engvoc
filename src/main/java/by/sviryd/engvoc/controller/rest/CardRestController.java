@@ -240,11 +240,10 @@ public class CardRestController {
             return convertToMap(Collections.emptyList(), Collections.emptyList());
         }
         boolean unrepeated = dictionary.isUnrepeated();
-        boolean identical = cards.get(0).getClient().isIdentical(user);
         List<Card> notSaved = new ArrayList<>();
         if (!unrepeated) {
             cards.forEach(c -> {
-                if (!identical) {
+                if (!user.isIdentical(c.getAuthorId())) {
                     c.setId(null);
                     c.setClient(user);
                 }
@@ -269,7 +268,7 @@ public class CardRestController {
             notSaved.addAll(repeated);
             cards.removeAll(repeated);
             cards.forEach(c -> {
-                if (!identical) {
+                if (!user.isIdentical(c.getAuthorId())) {
                     c.setId(null);
                     c.setClient(user);
                 }

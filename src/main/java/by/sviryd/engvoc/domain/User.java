@@ -142,4 +142,5 @@ public class User implements UserDetails, Serializable {
         return vocabularies.add(vocabulary);
     }
     public boolean isIdentical(User user){return id.equals(user.id);}
+    public boolean isIdentical(Long id){return id.equals(this.id);}
 }

@@ -1,55 +1,70 @@
 <template>
-    <picture v-if="isDataPresent">
-        <source v-for="(item, index) in pictureMedia.pictureMedias" :srcset="srcsetItem(item.path)" :media="item.media">
+  <picture v-if="isDataPresent">
+    <source v-for="(item, index) in pictureMedia.pictureMedias"
+            :media="item.media"
+            :srcset="srcsetItem(item.path)"
+    >
 
-        <source :srcset="srcset">
-        <img :srcset="srcset" :alt="alt" :class="pictureClass" :style="pictureStyle"/>
-    </picture>
+    <source :srcset="srcset">
+    <img
+        :alt="alt"
+        :class="pictureClass"
+        :srcset="srcset"
+        :style="pictureStyle"
+    />
+  </picture>
 </template>
 
 <script>
-    import { mapState } from 'vuex'
-    export default{
-        props: ['pathPic', 'marker', 'alt', 'pictureClass', 'pictureStyle'],
-        data(){
-            return {
-                slash: "/",
-            }
-        },
-        computed: {
-            ...mapState([
-                'pictureMedia',
-                'frontend',
-            ]),
+import {mapState} from 'vuex'
 
-            root(){
-                if(this.isDefaultPictureFileName(this.pathPic)){
-                    return  "/static/picture"
-                }else {
-                    return  this.frontend.config['uploadResource'] + this.frontend.config['uploadPicture']
-                }
-            },
+export default {
+  props: [
+    'pathPic',
+    'marker',
+    'alt',
+    'pictureClass',
+    'pictureStyle',
+  ],
+  computed: {
+    ...mapState([
+      'pictureMedia',
+      'config',
+    ]),
 
-            isDataPresent(){
-               return this.pathPic != null && this.marker != null
-            },
-            srcset(){
-                return this.root + this.slash + this.markerPath
-            },
-            markerPath(){
-                let split = this.pathPic.split(".")
-                return split[0] + this.marker + "." + split[1]
-            },
-        },
-        methods:{
-            srcsetItem(path){
-                return this.root + path + this.slash + this.markerPath
-            },
-            isDefaultPictureFileName(name){
-                return this.pictureMedia.defaultPictureFileName === name
-            },
-        },
+    root() {
+      if (this.isDefaultPictureFileName()) {
+        return '/static/picture'
+      } else {
+        return this.config['uploadResource'] + this.config['uploadPicture']
+      }
+    },
+
+    isDataPresent() {
+      return this.pathPic != null && this.marker != null
+    },
+    srcset() {
+      return this.root + this.slash + this.markerPath
+    },
+    markerPath() {
+      let split = this.pathPic.split('.')
+      return split[0] + this.marker + '.' + split[1]
+    },
+  },
+  data() {
+    return {
+      slash: "/",
     }
+  },
+  methods: {
+    srcsetItem(path) {
+      return this.root + path + this.slash + this.markerPath
+    },
+    isDefaultPictureFileName() {
+      return this.pictureMedia.defaultPictureFileName === this.pathPic
+    },
+  },
+}
 </script>
 
 <style>
