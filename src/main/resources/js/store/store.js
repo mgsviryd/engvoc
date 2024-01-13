@@ -74,7 +74,11 @@ export default new Vuex.Store(
                 isNew: false,
             },
 
-            config: {},
+            config: {
+                uploadResource: '',
+                uploadPicture: '',
+
+            },
             version: {},
             pictureMedia: {
                 pictureMedias: [],

@@ -284,11 +284,34 @@
                                    @input.prevent.stop="''"
                 ></b-form-datepicker>
                 <picture-upload v-if="property.property === 'authorId' && card.authorId"
-                                :pathPic="card.authorId + '.jpg'" :marker="'-icon'" :alt="'...'"
-                                :pictureClass="''" :pictureStyle="style.authorIdPicture"/>
+                                :alt="'...'"
+                                :marker="'-icon'"
+                                :pathPic="card.authorId + '.jpg'"
+                                :pictureClass="['st-picture-author']"
+                                :pictureStyle="style.pictureAuthor"/>
                 <picture-upload v-if="property.property === 'picture'"
-                                :pathPic="card.picture?card.picture:'default.svg'" :marker="'-icon'" :alt="'...'"
-                                :pictureClass="''" :pictureStyle="style.picture"/>
+                                :id="getCardElemId(card.id)+'-'+property.property"
+                                :ref="getCardElemId(card.id)+'-'+property.property"
+                                :alt="'...'"
+                                :marker="'-icon'"
+                                :pathPic="card.picture?card.picture:'default.svg'"
+                                :pictureClass="['st-picture-card']"
+                                :pictureStyle="style.pictureCard"
+                />
+                <b-popover
+                    :boundary="ids.field"
+                    :container="ids.field"
+                    :placement="'top'"
+                    :target="getCardElemId(card.id)+'-'+property.property"
+                    :triggers="['click']"
+                >
+                  <picture-upload
+                      :alt="'...'"
+                      :marker="''"
+                      :pathPic="card.picture?card.picture:'default.svg'"
+                      :pictureClass="['img-fluid']"
+                      :pictureStyle="{'max-width': `${200}px`}"/>
+                </b-popover>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
@@ -374,6 +397,7 @@ export default {
     PictureUpload,
   },
   mounted() {
+
   },
   created() {
     this.addListeners()
@@ -419,6 +443,7 @@ export default {
       'lang',
       'vocabulary',
       'height',
+      'config',
     ]),
     ...mapGetters([
       'isDictionaryExists',
@@ -750,12 +775,11 @@ export default {
           tools: 0,
           beforeField: 0,
         },
-        authorIdPicture:{
+        pictureAuthor: {
           width: 34 + 'px',
           height: 34 + 'px',
-          'clip-path': 'circle(' + 40 +'%)',
         },
-        picture:{
+        pictureCard: {
           width: 34 + 'px',
           height: 34 + 'px',
         },
@@ -1293,6 +1317,21 @@ input.normal-checkbox {
 .b-calendar .dropdown-menu {
   position: fixed;
   z-index: 9999 !important;
+}
+
+>>> .st-picture-card:hover {
+  transform: scale(1.2, 1.2);
+}
+>>> .st-picture-card {
+
+}
+
+>>> .st-picture-author:hover {
+  transform: scale(1.2, 1.2);
+}
+
+>>> .st-picture-author {
+  clip-path: circle(40%);
 }
 
 </style>
