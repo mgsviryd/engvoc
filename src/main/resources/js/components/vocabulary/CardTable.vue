@@ -195,7 +195,7 @@
             <b-button
                 :id="getCardEditButtonElemId(null)"
                 :ref="getCardEditButtonElemId(null)"
-                class="border border-secondary py-0"
+                class="shadow-none border border-secondary py-0"
                 size="sm"
                 style="margin-bottom: 2px;"
                 variant="light"
@@ -208,7 +208,7 @@
             <b-button
                 :id="getCardDeleteButtonElemId(null)"
                 :ref="getCardDeleteButtonElemId(null)"
-                class="border border-secondary py-0"
+                class="shadow-none border border-secondary py-0"
                 size="sm"
                 style="margin-bottom: 2px;"
                 variant="light"
@@ -260,7 +260,9 @@
                       @click="selectCard(card)"
                   >
                 </div>
-                <div v-else-if="property.propertyType === 'boolean'">
+                <div v-else-if="property.propertyType === 'boolean'"
+                  class="d-flex justify-content-center"
+                >
                   <input
                       v-model="getCardById(card.id)[property.property]"
                       class="normal-checkbox"
@@ -283,39 +285,74 @@
                                    size="sm"
                                    @input.prevent.stop="''"
                 ></b-form-datepicker>
-                <picture-upload v-if="property.property === 'authorId' && card.authorId"
-                                :alt="'...'"
-                                :marker="'-icon'"
-                                :pathPic="card.authorId + '.jpg'"
-                                :pictureClass="['st-picture-author']"
-                                :pictureStyle="style.pictureAuthor"/>
-                <picture-upload v-if="property.property === 'picture'"
-                                :id="getCardElemId(card.id)+'-'+property.property"
-                                :ref="getCardElemId(card.id)+'-'+property.property"
-                                :alt="'...'"
-                                :marker="'-icon'"
-                                :pathPic="card.picture?card.picture:'default.svg'"
-                                :pictureClass="['st-picture-card']"
-                                :pictureStyle="style.pictureCard"
-                />
-                <b-popover
-                    :boundary="ids.field"
-                    :container="ids.field"
-                    :placement="'top'"
-                    :target="getCardElemId(card.id)+'-'+property.property"
-                    :triggers="['click']"
+                <div v-if="property.property === 'authorId' && card.authorId"
+                     class="d-flex justify-content-center"
                 >
                   <picture-upload
+                      :id="getCardPropertyElemId(card.id, property.property)"
+                      :ref="getCardPropertyElemId(card.id, property.property)"
                       :alt="'...'"
-                      :marker="''"
+                      :marker="'-icon'"
+                      :pathPic="card.authorId + '.jpg'"
+                      :pictureClass="['st-picture-author']"
+                      :pictureStyle="style.pictureAuthor"
+                      @onClick="setActivePicture(card.id, card.authorId)"
+                  />
+                  <b-popover
+                      v-if="isActivePicture(card.id, card.authorId)"
+                      :boundary="ids.field"
+                      :container="ids.field"
+                      :placement="'top'"
+                      :target="getCardElemId(card.id)+'-'+property.property"
+                      custom-class="no-popover-body"
+                      show
+                  >
+
+                    <picture-upload
+                        :alt="'...'"
+                        :marker="''"
+                        :pathPic="card.authorId + '.jpg'"
+                        :pictureClass="['st-active-picture-card']"
+                        :pictureStyle="''"
+                        @onClick="setActivePicture(card.id, card.authorId)"
+                    />
+                  </b-popover>
+                </div>
+                <div v-if="property.property === 'picture'"
+                     class="d-flex justify-content-center"
+                >
+                  <picture-upload
+                      :id="getCardElemId(card.id)+'-'+property.property"
+                      :ref="getCardElemId(card.id)+'-'+property.property"
+                      :alt="'...'"
+                      :marker="'-icon'"
                       :pathPic="card.picture?card.picture:'default.svg'"
-                      :pictureClass="['img-fluid']"
-                      :pictureStyle="{'max-width': `${200}px`}"/>
-                </b-popover>
+                      :pictureClass="['st-picture-card']"
+                      :pictureStyle="style.pictureCard"
+                      @onClick="setActivePicture(card.id, card.picture)"
+                  />
+                  <b-popover v-if="isActivePicture(card.id, card.picture)"
+                             :boundary="ids.field"
+                             :container="ids.field"
+                             :placement="'top'"
+                             :target="getCardElemId(card.id)+'-'+property.property"
+                             custom-class="no-popover-body"
+                             show
+                  >
+                    <picture-upload
+                        :alt="'...'"
+                        :marker="''"
+                        :pathPic="card.picture?card.picture:'default.svg'"
+                        :pictureClass="['st-active-picture-card']"
+                        :pictureStyle="''"
+                        @onClick="setActivePicture(card.id, card.picture)"
+                    />
+                  </b-popover>
+                </div>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
-              <div class="text-wrapper">
+              <div class="d-flex justify-content-center">
                 <b-button
                     :id="getCardEditButtonElemId(card.id)"
                     :ref="getCardEditButtonElemId(card.id)"
@@ -329,13 +366,15 @@
               </div>
             </td>
             <td class="st-sm border-1 border-secondary">
-              <div class="text-wrapper">
+              <div class="d-flex justify-content-center">
                 <b-button
                     :id="getCardDeleteButtonElemId(card.id)"
-                    class="btn bg-white btn-sm border-1 border-secondary py-0"
+                    class="shadow-none py-0"
+                    size="sm"
+                    variant="outline-danger"
                     @click.prevent.stop="deleteCard(card, i)"
                 >
-                  <i class="fa fa-trash fa-xs text-dark"></i>
+                  <i class="fa fa-trash fa-xs"></i>
                 </b-button>
               </div>
             </td>
@@ -749,6 +788,7 @@ export default {
       activeParent: false,
       countSelected: 0,
       activeCard: null,
+      activePicture: null,
 
       activeCardMap: new Map(),
       startIndexMap: new Map(),
@@ -846,6 +886,14 @@ export default {
               } else return null
             }
           }
+          if (s.propertyType === "picture") {
+            return (item) => {
+              const value = this.getProperty(item, s.property)
+              if (value) {
+                return value
+              } else return null
+            }
+          }
         }),
         orders: sortedSettings.map(s => s.order),
       }
@@ -928,6 +976,9 @@ export default {
     },
     getCardElemId(id) {
       return this.prefixId() + 'card' + id
+    },
+    getCardPropertyElemId(id, property) {
+      return this.getCardElemId(id) + '-' + property
     },
 
     selectCard(card) {
@@ -1110,6 +1161,19 @@ export default {
         this.activeCard = card
         this.activeCardMap.set(this.dictionary.id, card)
       }
+    },
+    getActivePictureElemId(id, picture) {
+      return this.getCardElemId(id) + '-' + picture
+    },
+    setActivePicture(id, picture) {
+      if (this.isActivePicture(id, picture)) {
+        this.activePicture = null
+      } else {
+        this.activePicture = this.getActivePictureElemId(id, picture)
+      }
+    },
+    isActivePicture(id, picture) {
+      return this.activePicture === this.getActivePictureElemId(id, picture)
     },
     initVT() {
       this.$nextTick(() => {
@@ -1310,20 +1374,18 @@ input.normal-checkbox {
   margin: 3px;
 }
 
-.b-calendar {
-  z-index: 9999 !important;
-}
-
-.b-calendar .dropdown-menu {
-  position: fixed;
-  z-index: 9999 !important;
-}
-
 >>> .st-picture-card:hover {
   transform: scale(1.2, 1.2);
 }
->>> .st-picture-card {
 
+>>> .st-active-picture-card {
+  cursor: pointer;
+  max-width: 200px;
+  max-height: 200px;
+}
+
+>>> .st-picture-card {
+  cursor: pointer;
 }
 
 >>> .st-picture-author:hover {
@@ -1331,7 +1393,22 @@ input.normal-checkbox {
 }
 
 >>> .st-picture-author {
+  cursor: pointer;
   clip-path: circle(40%);
+}
+
+>>> .st-active-picture-author {
+  cursor: pointer;
+  max-width: 200px;
+  max-height: 200px;
+}
+
+.no-popover-body >>> .popover-body {
+  padding: 0;
+}
+
+>>> .popover {
+  z-index: 3 !important;
 }
 
 </style>

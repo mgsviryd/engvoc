@@ -11,6 +11,7 @@
         :class="pictureClass"
         :srcset="srcset"
         :style="pictureStyle"
+        @click="onClick"
     />
   </picture>
 </template>
@@ -62,6 +63,9 @@ export default {
     },
     isDefaultPictureFileName() {
       return this.pictureMedia.defaultPictureFileName === this.pathPic
+    },
+    onClick(){
+      this.$emit('onClick')
     },
   },
 }
