@@ -5,15 +5,12 @@ import by.sviryd.engvoc.type.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -37,7 +34,7 @@ public class User implements UserDetails, Serializable {
     @JsonView(Views.Id.class)
     private Long id;
 
-    @Length (max = 100)
+    @Length(max = 100)
     @NotBlank
     @NonNull
     @Column(length = 100)
@@ -141,6 +138,12 @@ public class User implements UserDetails, Serializable {
     public boolean addVocabulary(Vocabulary vocabulary) {
         return vocabularies.add(vocabulary);
     }
-    public boolean isIdentical(User user){return id.equals(user.id);}
-    public boolean isIdentical(Long id){return id.equals(this.id);}
+
+    public boolean isIdentical(User user) {
+        return user != null && user.id != null && this.id != null && this.id.equals(user.id);
+    }
+
+    public boolean isIdentical(Long id) {
+        return id != null && this.id != null && this.id.equals(id);
+    }
 }

@@ -64,6 +64,7 @@ const messages = {
     hiddenColumns: 'hidden columns',
     activeColumns: 'active columns',
     enterName: 'enter name',
+    enterDictionary: 'enter dictionary',
     enterWord: 'enter word',
     enterTranslation: 'enter translation',
     enterExample: 'enter example',
@@ -150,6 +151,7 @@ const messages = {
     group: 'group',
     enterVocabularyName: 'enter vocabulary name',
     confirmDeleteDictionary: 'delete the dictionary without recovery?',
+    confirmDeleteCards: 'delete cards without recovery?',
     accessAllowed: 'access allowed',
     accessDenied: 'access denied',
     conditions: 'conditions',
@@ -191,6 +193,8 @@ const messages = {
     notLoaded: 'not loaded',
     creationLDT: 'creation date',
     datepickerLabelHelp: 'use cursor keys to navigate calendar dates',
+    showPassword: 'show password',
+    hidePassword: 'hide password',
 
 
     dictionaryNotUniqueError: 'Dictionary already exists. Change name or parent.',

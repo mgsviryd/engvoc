@@ -20,7 +20,7 @@ import * as _ from "lodash"
 import GreetingNav from "../components/greeting/GreetingNav.vue"
 import FooterNav from "../components/footer/FooterNav.vue"
 import Editor from "../components/vocabulary/Vocabulary.vue"
-import VocabularyModal from "../components/vocabulary/VocabularyModal.vue"
+import VocabularyModal from "../components/vocabulary/AddVocabularyModal.vue"
 
 export default {
   components: {

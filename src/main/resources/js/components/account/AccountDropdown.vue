@@ -69,27 +69,28 @@
     <b-dropdown-divider></b-dropdown-divider>
     <b-dropdown-text>
       {{ getCapitalizeLang('otherAccount') }}?
-      <b-button variant="outline-secondary" @click.prevent.stop="$refs.sign.openSignIn()">
+      <b-button variant="outline-secondary" @click.prevent.stop="$refs[ids.signModal].openSignIn()">
         {{ getCapitalizeLang('signIn') }}
       </b-button>
     </b-dropdown-text>
-    <sign
-        ref="sign"
+    <sign-modal
+        :id="ids.signModal"
+        :ref="ids.signModal"
         :closable="true"
-        :show="false"
-    ></sign>
+        :show-immediate="false"
+    ></sign-modal>
   </b-dropdown>
 </template>
 
 <script>
 import {mapState, mapGetters} from "vuex"
 import * as _ from "lodash"
-import Sign from "../sign/SignModal.vue"
+import SignModal from "../sign/SignModal.vue"
 import PictureStatic from "../picture/PictureStatic.vue"
 
 export default {
   components: {
-    Sign,
+    SignModal,
     PictureStatic,
   },
   created() {
@@ -107,7 +108,7 @@ export default {
     ids(){
       return {
         id: this.prefixId(),
-
+        signModal: this.prefixId() + 'sign-modal-id',
       }
     }
   },
@@ -181,7 +182,7 @@ export default {
     },
     signIn(email) {
       this.$refs[this.ids.id].hide()
-      this.$refs.sign.openSignInWithEmail(email)
+      this.$refs[this.ids.signModal].openSignInWithEmail(email)
     },
     isCurrent(user) {
       if (this.authentication.user && user) {

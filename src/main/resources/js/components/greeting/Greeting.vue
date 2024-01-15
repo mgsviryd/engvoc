@@ -10,15 +10,13 @@
 
 <script>
 import {mapState} from "vuex"
-import documentJS from "../../util/document"
-import GreetingNav from "./GreetingNav.vue"
 
 export default {
   mounted() {
 
   },
   components: {
-    GreetingNav,
+
   },
   created() {
     this.fetchData()
@@ -41,14 +39,12 @@ export default {
   data() {
     return {
       show: false,
-      // pageAttributes: null,
     }
   },
   methods:{
     fetchData(){
       this.show=false
-      // this.pageAttributes = documentJS.getPageAttributes("main", "data")
-      console.info(this.pageAttributes)
+
       this.show = true
     }
   }

@@ -8,11 +8,15 @@
       :clear-on-select="true"
       :close-on-select="true"
       :deselect-label="getCapitalizeLang('cannotDeselect')"
+      :group-label="'group'"
+      :group-select="false"
+      :group-values="'options'"
       :hide-selected="false"
       :internal-search="false"
-      :limit="20"
+      :label="''"
+      :limit="10"
       :multiple="false"
-      :option-height="100"
+      :option-height="50"
       :options="options"
       :options-limit="1000"
       :placeholder="getCapitalizeLang('enterName')"
@@ -27,83 +31,55 @@
       @select="onSelect"
       @search-change="asyncFind"
   >
-    <span slot="noResult">{{ getCapitalizeLang('nothingFound') }}</span>
+    <span slot="noResult">{{ getLang('nothingFound') }}</span>
     <template slot="singleLabel"
               slot-scope="props">
-      <div
-          :id="ids.singleLabel"
+      <b-breadcrumb :id="ids.singleLabel"
+                    class="p-0 m-0 bg-transparent" size="sm"
       >
-        <small>
-          <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
-          <span>{{ getUpperCase(props.option.source.lang) }}</span>
-          <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
-          <span>{{ getUpperCase(props.option.target.lang) }}</span>
-          <span class="text-secondary pl-1">{{ '|' }}</span>
-          <span>{{ props.option.name }}</span>
-        </small>
-      </div>
-
-      <b-popover
-          :delay="{ show: 1500, hide: 40 }"
-          :placement="'bottom'+side"
-          :target="ids.singleLabel"
-          no-fade
-          triggers="hover focus"
-      >
-        <template #title>
-          <span>{{ props.option.name }}</span>
-        </template>
-        <b-row no-gutters>
-          <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
-          <span class="px-1">
-            {{ getUpperCase(props.option.source.lang) + ': ' + getLanguageByLangAndCountry(props.option.source) }}
-          </span>
-        </b-row>
-        <b-row no-gutters>
-          <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
-          <span class="px-1">
-            {{ getUpperCase(props.option.target.lang) + ': ' + getLanguageByLangAndCountry(props.option.target) }}
-          </span>
-        </b-row>
-      </b-popover>
+        <b-breadcrumb-item>
+          <b-button
+              :id="ids.option+'-'+props.option.$groupLabel"
+              :variant="props.option.unrepeated?'info':'warning'"
+              class="m-0 p-0"
+              size="sm"
+          >
+            <span v-if="props.option.unrepeated">{{ getLang('unique') }}</span>
+            <span v-else>{{ getLang('notUnique') }}</span>
+          </b-button>
+        </b-breadcrumb-item>
+        <b-breadcrumb-item>
+          <b-button
+              class="m-0 p-0"
+              size="sm"
+              variant="light"
+          >
+            <span>{{ props.option.name }}</span>
+          </b-button>
+        </b-breadcrumb-item>
+      </b-breadcrumb>
     </template>
 
     <template slot="option"
-              slot-scope="props">
-      <div :id="ids.option+'-'+props.option.source.lang+'-'+props.option.target.lang+'-'+props.option.name"
+              slot-scope="props"
+    >
+      <b-button v-if="props.option.$isLabel"
+                :id="ids.option+'-'+props.option.$groupLabel"
+                :variant="props.option.$groupLabel === 'unique'?'info':'warning'"
+                class="m-0 p-0"
+                size="sm"
       >
-        <small>
-          <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
-          <span>{{ getUpperCase(props.option.source.lang) }}</span>
-          <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
-          <span>{{ getUpperCase(props.option.target.lang) }}</span>
-          <span class="text-secondary pl-1">{{ '|' }}</span>
-          <span>{{ props.option.name }}</span>
-        </small>
-      </div>
-      <b-popover
-          :delay="{ show: 1500, hide: 40 }"
-          :placement="'top'+side"
-          :target="ids.option+'-'+props.option.source.lang+'-'+props.option.target.lang+'-'+props.option.name"
-          no-fade
-          triggers="hover focus"
+        <span>{{ getLang(props.option.$groupLabel) }}</span>
+      </b-button>
+      <small v-else
+             :id="ids.option+'-'+props.option.id"
+             class="d-flex"
       >
-        <template #title>
-          <span>{{ props.option.name }}</span>
-        </template>
-        <b-row no-gutters>
-          <span :class="'fi fi-'+ getLowerCase(props.option.source.country)"></span>
-          <span class="px-1">
-            {{ getUpperCase(props.option.source.lang) + ': ' + getLanguageByLangAndCountry(props.option.source) }}
+        <span>{{ props.option.name }}</span>
+        <span v-if="value && props.option.id === value.id" class="ml-auto font-weight-bold text-success">
+            {{ getUpperCaseLang('selected') }}
           </span>
-        </b-row>
-        <b-row no-gutters>
-          <span :class="'fi fi-'+ getLowerCase(props.option.target.country)"></span>
-          <span class="px-1">
-            {{ getUpperCase(props.option.target.lang) + ': ' + getLanguageByLangAndCountry(props.option.target) }}
-          </span>
-        </b-row>
-      </b-popover>
+      </small>
     </template>
   </multiselect>
 </template>
@@ -112,13 +88,13 @@
 import {mapState} from "vuex"
 import * as _ from "lodash"
 import LocaleJS from "../../util/locale"
-import CompareJS from "../../util/compare";
+import CompareJS from "../../util/compare"
 
 export default {
   props: [
     'id',
-    'side',
     'data',
+    'watchId',
   ],
   components: {},
   mounted() {
@@ -153,9 +129,10 @@ export default {
     return {
       name: 'VocabularyMultiselect',
       show: false,
-      trackBy: 'source',
+      trackBy: 'name',
       value: null,
       allOptions: [],
+      groupOptions: [],
       options: [],
     }
   },
@@ -173,17 +150,34 @@ export default {
       if (!this.isBlank(this.data.options)) {
         this.allOptions = this.data.options
         this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'name'))
+        this.groupOptions = [
+          {group: 'unique', options: this.allOptions.filter(o => o.unrepeated)},
+          {group: 'notUnique', options: this.allOptions.filter(o => !o.unrepeated)},
+        ]
       } else {
         this.allOptions = []
+        this.groupOptions = [
+          {group: 'unique', options: []},
+          {group: 'notUnique', options: []},
+        ]
       }
-      this.options = this.allOptions
+      this.options = this.groupOptions
       this.show = true
     },
     asyncFind(query) {
       if (query === '') {
-        this.options = this.allOptions
+        this.options = this.groupOptions
       } else {
-        this.options = this.allOptions.filter(o => _.startsWith(o.name, query))
+        this.options = [
+          {
+            group: this.groupOptions[0].group,
+            options: this.groupOptions[0].options.filter(o => _.startsWith(o.name, query))
+          },
+          {
+            group: this.groupOptions[1].group,
+            options: this.groupOptions[1].options.filter(o => _.startsWith(o.name, query))
+          },
+        ]
       }
     },
     isBlank(value) {

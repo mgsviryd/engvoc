@@ -180,9 +180,9 @@ public class CardRestController {
         JsonArray idsString = obj.get("ids").getAsJsonArray();
         Type arrayOfLongType = new TypeToken<ArrayList<UUID>>() {
         }.getType();
-        List<UUID> indexes = gson.fromJson(idsString, arrayOfLongType);
-        if (indexes == null || indexes.isEmpty()) return;
-        cardService.deleteByIdIn(indexes);
+        List<UUID> ids = gson.fromJson(idsString, arrayOfLongType);
+        if (ids == null || ids.isEmpty()) return;
+        cardService.deleteByIdIn(ids);
     }
 
     @DeleteMapping("/deleteByDictionary")
@@ -243,7 +243,7 @@ public class CardRestController {
         List<Card> notSaved = new ArrayList<>();
         if (!unrepeated) {
             cards.forEach(c -> {
-                if (!user.isIdentical(c.getAuthorId())) {
+                if (!user.isIdentical(c.getClientId())) {
                     c.setId(null);
                     c.setClient(user);
                 }
@@ -268,7 +268,7 @@ public class CardRestController {
             notSaved.addAll(repeated);
             cards.removeAll(repeated);
             cards.forEach(c -> {
-                if (!user.isIdentical(c.getAuthorId())) {
+                if (!user.isIdentical(c.getClientId())) {
                     c.setId(null);
                     c.setClient(user);
                 }
@@ -277,7 +277,7 @@ public class CardRestController {
             });
         }
         try {
-            cardService.saveAll(cards);
+            cards = cardService.saveAll(cards);
             return convertToMap(cards, notSaved);
         } catch (Exception e) {
             cards.addAll(notSaved);

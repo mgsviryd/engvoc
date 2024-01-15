@@ -1,6 +1,7 @@
 <template>
-  <b-modal id="sign"
-           ref="sign"
+  <b-modal v-if="show"
+           :id="ids.id"
+           :ref="ids.id"
            :body-class="'py-0'"
            :header-class="'p-3'"
            :no-close-on-backdrop="!closable"
@@ -85,7 +86,7 @@
               <b-button
                   size="sm"
                   variant="outline-secondary"
-                  @click="$refs.signup.hideSignUpOverlayAndErrorAndFlush()"
+                  @click="$refs[this.ids.signUp].hideSignUpOverlayAndErrorAndFlush()"
               >
                 <small>{{ getCapitalizeLang('close') }}</small>
               </b-button>
@@ -97,22 +98,16 @@
 
     <template #modal-header="{ close }">
       <b-container class="px-1" fluid>
-        <close-row v-if="closable"
-                   :title="''"
-                   @close="closeModal()"
-        ></close-row>
+        <logo-close-row v-if="closable"
+                        @close="closeModal()"
+        ></logo-close-row>
         <b-row no-gutters>
-          <b-col class="mr-auto" cols="auto">
-            <button class="btn btn-transparent shadow-none py-1 px-3 mx-1"
-                    @click.prevent.stop="routerMainPage()">
-              <logo-picture></logo-picture>
-            </button>
-          </b-col>
           <b-col class="ml-auto" cols="auto">
             <lang-multiselect
                 :id="ids.langMultiselect"
                 :ref="ids.langMultiselect"
-                :data="{value: lang.lang, options: lang.langs}"
+                :is-short="true"
+                :data="{watchId: watchIds.langMultiselect, value: lang.lang, options: lang.langs}"
                 @onSelect="onSelectLang"
             ></lang-multiselect>
           </b-col>
@@ -160,7 +155,8 @@
     </b-row>
 
     <sign-in
-        ref="signin"
+        :id="ids.signIn"
+        :ref="ids.signIn"
         :signinId="'collapse-signin'"
         :signinVmodel="showSignIn"
         @showOverlayMethod="showOverlayMethod"
@@ -170,7 +166,8 @@
     ></sign-in>
 
     <sign-up
-        ref="signup"
+        :id="ids.signUp"
+        :ref="ids.signUp"
         :signupId="'collapse-signup'"
         :signupVmodel="showSignUp"
         @showOverlayMethod="showOverlayMethod"
@@ -180,75 +177,71 @@
     ></sign-up>
 
     <template #modal-footer>
-          <span>
-          <small>
-            © {{ getLang('logoStartDate') }}–{{ new Date().getFullYear() }}
-          </small>
-          <small>
-            {{ getUpperCaseLang('logo') }}
-          </small>
-            </span>
+      <b-button
+          class="text-secondary shadow-none border-0 p-0"
+          disabled
+          size="sm"
+          variant="transparent"
+      >
+        <span><small>©</small></span>
+        <span><small>{{ getLang('logoStartDate') }}–{{ new Date().getFullYear() }}</small></span>
+        <span><small>{{ getUpperCaseLang('logo') }}</small></span>
+      </b-button>
     </template>
   </b-modal>
 </template>
 
 <script>
+import {mapState} from "vuex"
+import * as _ from "lodash"
 import SignIn from "./SignIn.vue"
 import SignUp from "./SignUp.vue"
-import {mapState} from "vuex";
-import LangMultiselect from "../lang/LangMultiselect.vue";
+import LangMultiselect from "../lang/LangMultiselect.vue"
 import GoogleCircle from "../spinner/GoogleCircle.vue"
-import LogoPicture from "../logo/LogoPicture.vue"
-import CloseRow from "../close/CloseRow.vue"
-import * as _ from "lodash"
+import LogoCloseRow from "../close/LogoCloseRow.vue"
 
 export default {
   props: [
+    'id',
     'closable',
-    'show',
+    'showImmediate',
   ],
   components: {
     SignIn,
     SignUp,
     LangMultiselect,
     GoogleCircle,
-    LogoPicture,
-    CloseRow,
+    LogoCloseRow,
   },
   mounted() {
-    this.switchModal(this.show)
+    this.switchModal(this.showImmediate)
   },
   created() {
-
+    this.fetchData()
   },
   computed: {
     ...mapState([
       'lang',
       'authentication',
     ]),
-    ids(){
-      return{
+    ids() {
+      return {
         id: this.prefixId(),
+        signIn: this.prefixId() + 'sign-in-id',
+        signUp: this.prefixId() + 'sign-up-id',
         langMultiselect: this.prefixId() + 'lang-multiselect-id',
       }
     },
-  },
-  watch: {
-    '$route.params.mark': {
-      handler: function (mark) {
-        this.$forceNextTick(() => {
-          this.showSign(mark)
-        })
-      },
-      immediate: true
-    },
-    show(newVal) {
-      this.switchModal(newVal)
+    watchIds(){
+      return {
+        langMultiselect: 0,
+      }
     }
   },
   data() {
     return {
       name: 'SignModal',
+      show: false,
       shown: false,
       overlay: {
         showOverlay: false,
@@ -264,14 +257,19 @@ export default {
     }
   },
   methods: {
-    prefixId(){
-      return this.name + '-'
+    fetchData() {
+      this.show = false
+
+      this.show = true
+    },
+    prefixId() {
+      return this.name + '-' + this.id + '-'
     },
     showModal() {
-      this.$refs.sign.show()
+      this.$refs[this.ids.id].show()
     },
     hideModal() {
-      this.$refs.sign.hide()
+      this.$refs[this.ids.id].hide()
     },
     switchModal(show) {
       if (show) {
@@ -318,25 +316,17 @@ export default {
       this.overlay.showSignUpFailure = bool
     },
     closeModal() {
-      this.$refs.sign.hide()
-      this.$refs.signin.closeSignIn()
-      this.$refs.signup.closeSignUp()
-    },
-    showSign(mark) {
-      if (mark === "in") {
-        this.switchSignIn()
-      }
-      if (mark === "up") {
-        this.switchSignUp()
-      }
+      this.$refs[this.ids.id].hide()
+      this.$refs[this.ids.signIn].closeSignIn()
+      this.$refs[this.ids.signUp].closeSignUp()
     },
     switchSignIn() {
       this.openSignIn()
-      this.$refs.signin.openSignIn()
+      this.$refs[this.ids.signIn].openSignIn()
     },
     switchSignUp() {
       this.openSignUp()
-      this.$refs.signup.openSignUp()
+      this.$refs[this.ids.signUp].openSignUp()
     },
     openSignIn() {
       this.showSignUp = false
@@ -353,15 +343,8 @@ export default {
       this.showSignIn = true
       this.showModal()
       this.$forceNextTick(() => {
-        this.$refs.signin.changeEmail(email)
-        this.$refs.signin.focusPassword()
-      })
-    },
-    routerMainPage() {
-      this.$router.push({
-        path: "/"
-      }).then(() => {
-      }).catch(err => {
+        this.$refs[this.ids.signIn].changeEmail(email)
+        this.$refs[this.ids.signIn].focusPassword()
       })
     },
     routeSignIn() {
@@ -390,8 +373,15 @@ export default {
     getLang(key) {
       return this.$t(key)
     },
-    onSelectLang(lang){
+    onSelectLang(lang) {
       this.$store.dispatch('changeLangAction', lang)
+    },
+    isAllComponentsRender() {
+      Object.keys(this.ids).forEach(id => {
+        const ref = this.$refs[this.ids[id]]
+        if (!ref) return false
+      })
+      return true
     },
   },
 

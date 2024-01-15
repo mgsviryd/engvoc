@@ -15,101 +15,117 @@
           @onClick="showSpinOverlay()"
       ></services>
 
-      <b-row class="mb-1">
-        <b-col class="" sm="12">
-          <b-input-group
-              :label-for="properties.email.inputId"
-              content-cols-lg="7"
-              content-cols-sm="7"
-              label-class="py-0"
-              label-cols-lg="3"
-              label-cols-sm="3"
-          >
-            <b-form-input
-                :id="properties.email.inputId"
-                :ref="properties.email.inputId"
-                v-model="email"
-                :class="{'border-success':showBorderProperty('email')}"
-                :placeholder="getCapitalizeLang('email')"
-                :state="stateEmail()"
-                class="shadow-none rounded-sm"
-                size="sm"
-                trim
-                @input="inputProperty($event, 'email')"
-                @keyup.enter="signIn()"
-                @focusin.prevent.stop="onFocusinProperty($event, properties.email.inputId, 'email')"
-                @focusout.prevent.stop="onFocusoutProperty($event, properties.email.inputId, 'email')"
+      <b-form @submit.prevent="signIn">
+        <b-row class="mb-1">
+          <b-col class="" sm="12">
+            <b-input-group
+                :label-for="properties.email.inputId"
+                content-cols-lg="7"
+                content-cols-sm="7"
+                label-class="py-0"
+                label-cols-lg="3"
+                label-cols-sm="3"
             >
-            </b-form-input>
-            <div v-if="properties.email.wasOutFocus && emailError()" class="invalid-feedback my-0">
-              <small>{{ emailError() }}</small>
+              <b-form-input
+                  :id="properties.email.inputId"
+                  :ref="properties.email.inputId"
+                  v-model="email"
+                  :class="{'border-success':showBorderProperty('email')}"
+                  :placeholder="getCapitalizeLang('email')"
+                  :state="stateEmail()"
+                  class="shadow-none rounded-sm"
+                  required
+                  size="sm"
+                  trim
+                  @input="inputProperty($event, 'email')"
+                  @focusin.prevent.stop="onFocusinProperty($event, properties.email.inputId, 'email')"
+                  @focusout.prevent.stop="onFocusoutProperty($event, properties.email.inputId, 'email')"
+              >
+              </b-form-input>
+              <div v-if="properties.email.wasOutFocus && emailError()" class="invalid-feedback my-0">
+                <small>{{ emailError() }}</small>
+              </div>
+            </b-input-group>
+            <div v-if="properties.email.showError" class="my-0 text-danger">
+              <small v-for="(e,i) in getErrors('email')">{{ getCapitalize(e.message) }}</small>
             </div>
-          </b-input-group>
-          <div v-if="properties.email.showError" class="my-0 text-danger">
-            <small v-for="(e,i) in getErrors('email')">{{ getCapitalize(e.message) }}</small>
-          </div>
-        </b-col>
-      </b-row>
+          </b-col>
+        </b-row>
 
-      <b-row class="mb-1">
-        <b-col class="" sm="12">
-          <b-input-group
-              :label-for="properties.password.inputId"
-              content-cols-lg="7"
-              content-cols-sm="7"
-              label-class="py-0"
-              label-cols-lg="3"
-              label-cols-sm="3"
-          >
-            <b-form-input
-                :id="properties.password.inputId"
-                :ref="properties.password.inputId"
-                v-model="password"
-                :class="{'border-success':showBorderProperty('password')}"
-                :placeholder="getCapitalizeLang('password')"
-                :state="statePassword()"
-                class="shadow-none rounded-sm"
-                size="sm"
-                trim
-                type="password"
-                @input="inputProperty($event,'password')"
-                @keyup.enter="signIn()"
-                @focusin.prevent.stop="onFocusinProperty($event, properties.password.inputId, 'password')"
-                @focusout.prevent.stop="onFocusoutProperty($event, properties.password.inputId, 'password')"
+        <b-row class="mb-1">
+          <b-col class="" sm="12">
+            <b-input-group
+                :label-for="properties.password.inputId"
+                content-cols-lg="7"
+                content-cols-sm="7"
+                label-class="py-0"
+                label-cols-lg="3"
+                label-cols-sm="3"
             >
-            </b-form-input>
+              <b-form-input
+                  :id="properties.password.inputId"
+                  :ref="properties.password.inputId"
+                  v-model="password"
+                  :class="{'border-success':showBorderProperty('password')}"
+                  :formatter="formatPassword"
+                  :placeholder="getCapitalizeLang('password')"
+                  :state="statePassword()"
+                  :type="showPassword?'text':'password'"
+                  autocomplete="off"
+                  class="shadow-none rounded-sm"
+                  required
+                  size="sm"
+                  trim
+                  @input="inputProperty($event,'password')"
+                  @focusin.prevent.stop="onFocusinProperty($event, properties.password.inputId, 'password')"
+                  @focusout.prevent.stop="onFocusoutProperty($event, properties.password.inputId, 'password')"
+              >
+              </b-form-input>
+              <div class="d-flex justify-content-center align-self-center" style="width: 30px">
+                <i v-if="showPassword"
+                   v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                   :title="getCapitalizeLang('hidePassword')"
+                   class="fa-solid fa-eye-slash text-secondary"
+                   @click.prevent.stop="showPassword=!showPassword"></i>
+                <i v-else
+                   v-b-tooltip="{trigger: 'hover', delay: { 'show': 1200, 'hide': 100 }, placement: 'bottomright'}"
+                   :title="getCapitalizeLang('showPassword')"
+                   class="fa-solid fa-eye text-secondary"
+                   @click.prevent.stop="showPassword=!showPassword"></i>
+              </div>
 
-            <div v-if="properties.password.wasOutFocus" class="invalid-feedback my-0">
-              <small>{{ passwordError() }}</small>
+              <div v-if="properties.password.wasOutFocus" class="invalid-feedback my-0">
+                <small>{{ passwordError() }}</small>
+              </div>
+            </b-input-group>
+            <div v-if="properties.password.showError && passwordError()" class="my-0 text-danger">
+              <small v-for="(e,i) in getErrors('password')">{{ getCapitalize(e.message) }}</small>
             </div>
-          </b-input-group>
-          <div v-if="properties.password.showError && passwordError()" class="my-0 text-danger">
-            <small v-for="(e,i) in getErrors('password')">{{ getCapitalize(e.message) }}</small>
-          </div>
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col>
-          <b-link class="float-right mt-0 mb-1"
-                  tabindex="-1"
-                  @click="routerForgotPassword()"
-                  @mousedown="$event.preventDefault()"
-          >
-            <small>{{ getCapitalizeLang('forgotPassword') }}?</small>
-          </b-link>
-        </b-col>
-      </b-row>
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-col>
+            <b-link class="float-right mt-0 mb-1"
+                    tabindex="-1"
+                    @click="routerForgotPassword()"
+                    @mousedown="$event.preventDefault()"
+            >
+              <small>{{ getCapitalizeLang('forgotPassword') }}?</small>
+            </b-link>
+          </b-col>
+        </b-row>
 
-      <b-button
-          :class="!stateTrue()?'cursor-not-allowed':null"
-          :disabled="!stateTrue()"
-          block
-          size="sm"
-          variant="success"
-          @click.prevent.stop="signIn()"
-      >
-        {{ getUpperCaseLang('signIn') }}
-      </b-button>
+        <b-button
+            :class="!stateTrue()?'no-cursor':null"
+            :disabled="!stateTrue()"
+            block
+            size="sm"
+            type="submit"
+            variant="success"
+        >
+          {{ getUpperCaseLang('signIn') }}
+        </b-button>
+      </b-form>
     </b-card>
 
     <b-alert
@@ -128,7 +144,7 @@
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from "vuex"
 import * as _ from "lodash"
 import RegexJS from "../../util/regex"
 import RequestJS from "../../util/request"
@@ -140,6 +156,7 @@ export default {
   },
   created() {
     Object.assign(this.properties, this.defaultProperties)
+    this.fetchData()
   },
   components: {
     Services,
@@ -181,7 +198,8 @@ export default {
   data() {
     return {
       name: "SignIn",
-      show: true,
+      show: false,
+      showPassword: false,
       errors: [],
       updated: false,
       alert: {
@@ -193,6 +211,11 @@ export default {
     }
   },
   methods: {
+    fetchData() {
+      this.show = false
+
+      this.show = true
+    },
     prefixId() {
       return this.name
     },
@@ -258,6 +281,7 @@ export default {
         this.$emit('showSignInSpinMethod', false)
         if (errors.length === 0) {
           this.$emit('showSignInSuccessMethod', true)
+          this.redirect()
         } else {
           this.errors = errors
           this.showErrors()
@@ -268,6 +292,16 @@ export default {
           }, 1000)
         }
       })
+    },
+    redirect(){
+      const redirect = this.$route.query.redirect
+      if(!this.isBlank(redirect)){
+        this.$router.replace({
+          path: redirect
+        }).then(() => {
+        }).catch(err => {
+        })
+      }
     },
     showSpinOverlay() {
       this.$emit('showOverlayMethod', true)
@@ -401,12 +435,16 @@ export default {
     changeEmail(email) {
       this.email = email
     },
+    formatPassword(input) {
+      return String(input).substring(0, 21)
+    },
   },
 }
 </script>
 
 <style scoped>
-.cursor-not-allowed {
+.no-cursor {
   cursor: not-allowed;
 }
+
 </style>

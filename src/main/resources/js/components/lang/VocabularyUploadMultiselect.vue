@@ -56,6 +56,7 @@
             :limit="15"
             @select="onSelectTarget"
         >
+          <span slot="noResult">{{ getCapitalizeLang('nothingFound') }}</span>
           <template slot="singleLabel"
                     slot-scope="props">
             <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>

@@ -8,14 +8,18 @@
       :clear-on-select="true"
       :close-on-select="true"
       :deselect-label="getCapitalizeLang('cannotDeselect')"
+      :group-label="'group'"
+      :group-select="false"
+      :group-values="'options'"
       :hide-selected="false"
       :internal-search="false"
-      :limit="20"
+      :label="''"
+      :limit="10"
       :multiple="false"
-      :option-height="100"
+      :option-height="50"
       :options="options"
       :options-limit="1000"
-      :placeholder="getCapitalizeLang('enterName')"
+      :placeholder="getCapitalizeLang('enterDictionary')"
       :preselect-first="true"
       :preselectFirst="false"
       :preserveSearch="false"
@@ -27,38 +31,32 @@
       @select="onSelect"
       @search-change="asyncFind"
   >
-    <span slot="noResult">{{ getCapitalizeLang('nothingFound') }}</span>
-    <template slot="singleLabel"
-              slot-scope="props">
-      <small class="d-flex">
-          <span>
-            <i class="fa-solid fa-table text-success"></i>
-            {{ getCapitalizeLang(props.option.label) }}
-          </span>
-        <span v-if="props.option.progress === 0" class="ml-auto font-weight-bold text-danger">
-            {{ getUpperCaseLang('notLoaded') }}
-            <i class="fa-solid fa-circle-info"></i>
-          </span>
-        <span v-if="props.option.progress === 100" class="ml-auto font-weight-bold text-success">
-            {{ getUpperCaseLang('loaded') }}
-          </span>
-      </small>
+    <span slot="noResult">{{ getLang('nothingFound') }}</span>
+    <template slot="placeholder" slot-scope="props">
+      <i class="fa-solid fa-magnifying-glass fa text-secondary"></i>
+      {{getCapitalizeLang('enterDictionary')}}
+    </template>
+    <template slot="singleLabel" slot-scope="props">
+      <i class="fa-solid fa-magnifying-glass fa-sm text-secondary"></i>
+      <small>{{getCapitalizeLang('enterDictionary')}}</small>
     </template>
 
     <template slot="option"
-              slot-scope="props">
-      <small class="d-flex">
-          <span>
-            <i class="fa-solid fa-table text-success"></i>
-            {{ getCapitalizeLang(props.option.label) }}
-          </span>
-        <span v-if="props.option.progress === 0" class="ml-auto font-weight-bold text-danger">
-            {{ getUpperCaseLang('notLoaded') }}
-            <i class="fa-solid fa-circle-info"></i>
-          </span>
-        <span v-if="props.option.progress === 100" class="ml-auto font-weight-bold text-success">
-            {{ getUpperCaseLang('loaded') }}
-          </span>
+              slot-scope="props"
+    >
+      <b-button v-if="props.option.$isLabel"
+                :id="ids.option+'-'+props.option.$groupLabel"
+                :variant="props.option.$groupLabel === 'unique'?'info':'warning'"
+                class="m-0 p-0"
+                size="sm"
+      >
+        <span>{{ getLang(props.option.$groupLabel) }}</span>
+      </b-button>
+      <small v-else
+             :id="ids.option+'-'+props.option.id"
+             class="d-flex"
+      >
+        <span>{{ props.option.name }}</span>
       </small>
     </template>
   </multiselect>
@@ -67,12 +65,12 @@
 <script>
 import {mapState} from "vuex"
 import * as _ from "lodash"
+import LocaleJS from "../../util/locale"
 import CompareJS from "../../util/compare"
 
 export default {
   props: [
     'id',
-    'watchId',
     'data',
   ],
   components: {},
@@ -83,9 +81,8 @@ export default {
     this.fetchData()
   },
   computed: {
-    ...mapState([
-      'lang',
-    ]),
+    ...mapState([]),
+
     ids() {
       return {
         id: this.prefixId(),
@@ -107,11 +104,12 @@ export default {
   },
   data() {
     return {
-      name: 'SheetMultiselect',
+      name: 'VocabularyMultiselect',
       show: false,
       trackBy: 'name',
       value: null,
       allOptions: [],
+      groupOptions: [],
       options: [],
     }
   },
@@ -128,17 +126,35 @@ export default {
       }
       if (!this.isBlank(this.data.options)) {
         this.allOptions = this.data.options
+        this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'name'))
+        this.groupOptions = [
+          {group: 'unique', options: this.allOptions.filter(o => o.unrepeated)},
+          {group: 'notUnique', options: this.allOptions.filter(o => !o.unrepeated)},
+        ]
       } else {
         this.allOptions = []
+        this.groupOptions = [
+          {group: 'unique', options: []},
+          {group: 'notUnique', options: []},
+        ]
       }
-      this.options = this.allOptions
+      this.options = this.groupOptions
       this.show = true
     },
     asyncFind(query) {
       if (query === '') {
-        this.options = this.allOptions
+        this.options = this.groupOptions
       } else {
-        this.options = this.allOptions.filter(o => _.startsWith(o.label, query))
+        this.options = [
+          {
+            group: this.groupOptions[0].group,
+            options: this.groupOptions[0].options.filter(o => _.startsWith(o.name, query))
+          },
+          {
+            group: this.groupOptions[1].group,
+            options: this.groupOptions[1].options.filter(o => _.startsWith(o.name, query))
+          },
+        ]
       }
     },
     isBlank(value) {
@@ -146,6 +162,9 @@ export default {
     },
     onSelect() {
       this.$emit('onSelect', this.value)
+    },
+    getLanguageByLangAndCountry(lang) {
+      return LocaleJS.getLanguageByLangAndCountry(lang)
     },
     getCapitalize(text) {
       return _.capitalize(text)
@@ -186,6 +205,12 @@ export default {
 
 .multiselect--active .multiselect__tags {
   border-bottom: none;
+  height: 50px;
+}
+.st-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 </style>

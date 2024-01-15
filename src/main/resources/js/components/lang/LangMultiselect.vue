@@ -35,14 +35,15 @@
       <small :id="ids.singleLabel">
         <span :class="'fi fi-'+ getLowerCase(props.option.country)"></span>
         <span>{{ getUpperCase(props.option.lang) }}</span>
+        <span v-if="!isShort">{{ ': ' + getLanguageByLangAndCountry(props.option) }}</span>
       </small>
 
-      <b-popover
-          :delay="{ show: 800, hide: 40 }"
-          :placement="'bottom'"
-          :target="ids.singleLabel"
-          no-fade
-          triggers="hover focus"
+      <b-popover v-if="isShort"
+                 :delay="{ show: 800, hide: 40 }"
+                 :placement="'bottom'"
+                 :target="ids.singleLabel"
+                 no-fade
+                 triggers="hover focus"
       >
         <b-row no-gutters>
           <small>
@@ -73,6 +74,7 @@ import CompareJS from "../../util/compare";
 export default {
   props: [
     'id',
+    'isShort',
     'data',
   ],
   components: {},
@@ -98,10 +100,13 @@ export default {
       'fetchData',
     ],
     data: {
-      handler: function () {
-        this.fetchData()
+      handler: function (newVal, oldVal) {
+        if (!oldVal || newVal.watchId !== oldVal.watchId) {
+          this.fetchData()
+        }
       },
-      deep: true
+      immediate: true,
+      deep: true,
     },
   },
   data() {
@@ -117,9 +122,17 @@ export default {
   methods: {
     fetchData() {
       this.show = false
-      this.value = this.data.value
-      this.allOptions = _.cloneDeep(this.data.options)
-      this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'locale'))
+      if (!this.isBlank(this.data.value)) {
+        this.value = _.cloneDeep(this.data.value)
+      } else {
+        this.value = null
+      }
+      if (!this.isBlank(this.data.options)) {
+        this.allOptions = _.cloneDeep(this.data.options)
+        this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'locale'))
+      } else {
+        this.allOptions = []
+      }
       this.options = this.allOptions
       this.show = true
     },
@@ -156,6 +169,9 @@ export default {
     },
     getLang(key) {
       return this.$t(key)
+    },
+    isBlank(value) {
+      return _.isNil(value) || _.isEmpty(value)
     },
   },
 }

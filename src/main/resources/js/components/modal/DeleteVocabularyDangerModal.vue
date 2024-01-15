@@ -24,17 +24,17 @@
       <b-col class="" sm="10">
         <b-form-group
             :label="getCapitalizeLang('vocabulary') + ':'"
-            :label-for="properties.vocabulary.id"
+            :label-for="ids.vocabulary.name"
             content-cols-lg="7"
             content-cols-sm="7"
             label-class="py-0"
             label-cols-lg="3"
             label-cols-sm="3"
         >
-          <div :id="properties.vocabulary.id" class="text-truncate">
-            <span :class="'fi fi-'+ getLowerCase(vocabulary.vocabulary.source.country)"></span>
-            <span :class="'fi fi-'+ getLowerCase(vocabulary.vocabulary.target.country)"></span>
-            <span>{{ vocabulary.vocabulary.name }}</span>
+          <div :id="ids.vocabulary.name" class="text-truncate">
+            <span :class="'fi fi-'+ getLowerCase(vocabulary.source.country)"></span>
+            <span :class="'fi fi-'+ getLowerCase(vocabulary.target.country)"></span>
+            <span>{{ vocabulary.name }}</span>
           </div>
         </b-form-group>
       </b-col>
@@ -44,7 +44,7 @@
       <b-col class="" sm="10">
         <b-form-group
             :label="''"
-            :label-for="properties.actual.id"
+            :label-for="ids.actual"
             content-cols-lg="7"
             content-cols-sm="7"
             label-class="py-0"
@@ -52,8 +52,8 @@
             label-cols-sm="3"
         >
           <b-form-input
-              :id="properties.actual.id"
-              :ref="properties.actual.id"
+              :id="ids.actual"
+              :ref="ids.actual"
               v-model="input.actual"
               :class="{'border-success':showBorderProperty('actual')}"
               :placeholder="getCapitalizeLang('enterVocabularyName')"
@@ -63,8 +63,8 @@
               trim
               @input="inputProperty($event, 'actual')"
               @keyup.enter="confirm()"
-              @focusin.prevent.stop="onFocusinProperty($event, properties.actual.id, 'actual')"
-              @focusout.prevent.stop="onFocusoutProperty($event, properties.actual.id, 'actual')"
+              @focusin.prevent.stop="onFocusinProperty($event, ids.actual, 'actual')"
+              @focusout.prevent.stop="onFocusoutProperty($event, ids.actual, 'actual')"
           >
           </b-form-input>
           <div v-if="properties.actual.wasOutFocus && actualError()" class="invalid-feedback my-0">
@@ -81,22 +81,22 @@
                     size="sm"
                     tabindex="-1"
                     variant="outline-secondary"
-                    @click.prevent.stop="cancel(properties.actual.id, 'actual')"
+                    @click.prevent.stop="cancel(ids.actual, 'actual')"
           >
             <i class="fa fa-close"></i>
           </b-button>
-          <b-button :id="'copy-'+properties.actual.id"
+          <b-button :id="'copy-'+ids.actual"
                     class="shadow-none"
                     size="sm"
                     tabindex="-1"
                     variant="outline-secondary"
-                    @click.prevent.stop="copy(input.actual, properties.actual.id, 'actual')"
+                    @click.prevent.stop="copy(input.actual, ids.actual, 'actual')"
           >
             <i class="fa fa-copy"></i>
           </b-button>
-          <b-tooltip :id="'tooltip-'+'copy-'+properties.actual.id"
-                     :ref="'tooltip-'+'copy-'+properties.actual.id"
-                     :target="'copy-'+properties.actual.id"
+          <b-tooltip :id="'tooltip-'+'copy-'+ids.actual"
+                     :ref="'tooltip-'+'copy-'+ids.actual"
+                     :target="'copy-'+ids.actual"
                      :title="getCapitalizeLang('copied')"
                      triggers
                      variant="secondary"
@@ -131,6 +131,7 @@ export default {
   props: [
     'id',
     'closable',
+    'vocabulary',
   ],
   created() {
     Object.assign(this.properties, this.defaultProperties)
@@ -142,25 +143,24 @@ export default {
   computed: {
     ...mapState({
       lang: 'lang',
-      vocabularyStore: 'vocabulary',
     }),
     defaultProperties() {
       return {
         actual: {
-          id: this.prefixId() + "actual-id",
           hasFocus: false,
           wasOutFocus: false,
           showError: false,
           timeoutCopyTooltip: 300,
         },
-        vocabulary: {
-          id: this.prefixId() + "vocabulary-id",
-        }
       }
     },
     ids() {
       return {
         id: this.prefixId(),
+        vocabulary: {
+          name: this.prefixId() + 'vocabulary' + 'name-id',
+        },
+        actual: this.prefixId() + 'actual-id',
       }
     }
   },
@@ -168,19 +168,17 @@ export default {
     $route: [
       'fetchData',
     ],
-    vocabularyStore: {
-      handler: function () {
-        this.show = false
-        this.$forceNextTick(() => {
-          this.fetchData()
-        })
+    vocabulary: {
+      handler: function (newVal, oldVal) {
+        this.fetchData()
       },
-      deep: true
+      immediate: true,
+      deep: true,
     },
     props: {
       handler: function () {
         this.show = false
-        this.$forceNextTick(() => {
+        this.$nextTick(() => {
           this.fetchData()
         })
       },
@@ -197,7 +195,6 @@ export default {
       },
       properties: {},
       errors: [],
-      vocabulary: null,
     }
   },
   methods: {
@@ -206,9 +203,8 @@ export default {
     },
     fetchData() {
       this.show = false
-      if (!this.isBlank(this.vocabularyStore.vocabulary)) {
-        this.vocabulary = this.vocabularyStore
-        this.expected = this.vocabulary.vocabulary.name
+      if (!this.isBlank(this.vocabulary)) {
+        this.input.expected = this.vocabulary.name
         this.show = true
       }
     },
@@ -217,7 +213,7 @@ export default {
     onSelectTarget() {
     },
     focusInput() {
-      this.$refs[this.properties.actual.id].focus()
+      this.$refs[this.ids.actual].focus()
     },
     showModal() {
       if (this.show) {
@@ -233,7 +229,7 @@ export default {
       if (this.stateTrue()) {
         this.$store.dispatch(
             'deleteVocabularyAction',
-            {vocabulary: this.vocabulary.vocabulary, actual: this.input.actual, expected: this.input.expected}
+            {vocabulary: this.vocabulary, actual: this.input.actual, expected: this.input.expected}
         ).then((errors) => {
           if (errors.length === 0) {
             this.closeModal()
@@ -257,6 +253,7 @@ export default {
       this.errors = []
       this.input = {
         actual: '',
+        expected: '',
       }
     },
     cancel(ref, property) {

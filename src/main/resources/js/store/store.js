@@ -30,6 +30,7 @@ const persist = new VuexPersistence(
 
         reducer: (state) => (
             {
+                ids: state.ids,
                 height: state.height,
                 authentication: state.authentication,
                 config: state.config,
@@ -52,6 +53,9 @@ export default new Vuex.Store(
             persist.plugin, // can be timing problem with loading page
         ],
         state: {
+            ids:{
+                dictionaries: 0,
+            },
             height: {
                 id: 0,
                 header: 0,
@@ -118,10 +122,14 @@ export default new Vuex.Store(
             },
         },
         getters: {
+            getDictionariesId: state =>()=> state.ids.dictionaries,
             getActionId: state => () => state.action.id,
             getAuthenticationId: state => () => state.authentication.id,
             getLangId: state => () => state.lang.id,
             getVocabularyId: state => () => state.vocabulary.id,
+            getVocabularyInx: state => (id) => {
+                return state.vocabulary.vocabularies.findIndex(v => v.id === id)
+            },
 
             isDictionaryUnrepeated: (state, getters) => (id) => {
                 return getters.getDictionaryById(id).unrepeated
@@ -228,7 +236,7 @@ export default new Vuex.Store(
             },
         },
         mutations: {
-            setHeightHeaderFooterMutation(state, payload){
+            setHeightHeaderFooterMutation(state, payload) {
                 state.height.header = payload.header
                 state.height.footer = payload.footer
                 state.height.id = _.now()
@@ -249,11 +257,17 @@ export default new Vuex.Store(
                 }
                 state.vocabulary.id = _.now()
             },
-            deleteVocabularyMutation(state) {
+            deleteVocabularyMutation(state, payload) {
                 state.cards = []
                 state.dictionaries = []
                 state.vocabulary.vocabulary = {}
+                const inx = this.getters.getVocabularyInx(payload.vocabulary.id)
+                state.vocabulary.vocabularies = [
+                    ...state.vocabulary.vocabularies.slice(0, inx),
+                    ...state.vocabulary.vocabularies.slice(inx + 1),
+                ]
                 state.vocabulary.id = _.now()
+                state.action.id = _.now()
             },
             addAndSetUserMutation(state, payload) {
                 if (payload.user && !this.getters.isUserInUsers(payload.user)) {
@@ -329,7 +343,7 @@ export default new Vuex.Store(
             },
 
             // cards
-            addCardsToDictionaryMutation(state, payload){
+            addCardsToDictionaryMutation(state, payload) {
                 const inx = this.getters.getDictionaryInx(payload.dictionary.id)
                 state.cards[inx] = [
                     ...state.cards[inx],
@@ -369,7 +383,7 @@ export default new Vuex.Store(
             deleteCardMutation(state, payload) {
                 const card = payload.card
                 const inx = this.getters.getDictionaryInx(card.dictionary.id)
-                const i = state.cards[inx].findIndex(c=>c.id===card.id)
+                const i = state.cards[inx].findIndex(c => c.id === card.id)
                 if (i >= 0) {
                     state.cards[inx] = [
                         ...state.cards[inx].slice(0, i),
@@ -390,6 +404,13 @@ export default new Vuex.Store(
                 state.cards = []
             },
 
+            deleteCardsByIdInMutation(state, payload) {
+                for (let i = 0; i < state.cards.length; i++) {
+                    state.cards[i] = state.cards[i].filter((c) => {
+                        return payload.ids.indexOf(c.id) < 0;
+                    })
+                }
+            },
             deleteCardsInDictionaryMutation(state, payload) {
                 const inx = this.getters.getDictionaryInx(payload.dictionaryId)
                 const ids = payload.cards.map((c) => c.id)
@@ -491,6 +512,7 @@ export default new Vuex.Store(
                     ...state.cards,
                     [],
                 ]
+                state.ids.dictionaries = _.now()
             },
 
             updateDictionaryMutation(state, payload) {
@@ -605,14 +627,17 @@ export default new Vuex.Store(
                 state.authentication.user = payload.user
                 state.authentication.id = _.now()
             },
-            updateVocabularyMutation(state, payload) {
+            addVocabularyMutation(state, payload) {
                 state.vocabulary.vocabulary = payload.vocabulary
-                state.vocabulary.vocabularies = payload.vocabularies
+                state.vocabulary.vocabularies = [
+                    ...state.vocabulary.vocabularies,
+                    payload.vocabulary,
+                ]
                 state.vocabulary.id = _.now()
             },
         },
         actions: {
-            async resetAction({commit}){
+            async resetAction({commit}) {
                 commit('resetVocabularyMutation')
                 commit('resetVocabularyDataMutation')
             },
@@ -676,14 +701,14 @@ export default new Vuex.Store(
             },
 
             // cards
-            async uploadCardsToDictionaryAction({commit, dispatch}, payload){
-                    if(payload.formData.has('file')){
-                        return await dispatch('uploadCardsToDictionaryByFileAction', payload)
-                    }else if(payload.formData.has('files')){
-                        return await dispatch('uploadCardsToDictionaryByFilesAction', payload)
-                    }
+            async uploadCardsToDictionaryAction({commit, dispatch}, payload) {
+                if (payload.formData.has('file')) {
+                    return await dispatch('uploadCardsToDictionaryByFileAction', payload)
+                } else if (payload.formData.has('files')) {
+                    return await dispatch('uploadCardsToDictionaryByFilesAction', payload)
+                }
             },
-            async uploadCardsToDictionaryByFilesAction({commit}, payload){
+            async uploadCardsToDictionaryByFilesAction({commit}, payload) {
                 const formData = payload.formData
                 formData.append('dictionaryId',
                     new Blob([payload.dictionary.id], {type: "application/json"}))
@@ -700,10 +725,11 @@ export default new Vuex.Store(
                         console.log(err)
                     })
                     return {errors: data.errors, countSaved: data.saved.length, countNotSaved: data.notSaved.length}
-                } else{return {errors: [], countSaved: 0, countNotSaved: 0}
+                } else {
+                    return {errors: [], countSaved: 0, countNotSaved: 0}
                 }
             },
-            async uploadCardsToDictionaryByFileAction({commit}, payload){
+            async uploadCardsToDictionaryByFileAction({commit}, payload) {
                 const formData = payload.formData
                 formData.append('dictionaryId',
                     new Blob([payload.dictionary.id], {type: "application/json"}))
@@ -720,8 +746,9 @@ export default new Vuex.Store(
                         console.log(err)
                     })
                     return {errors: data.errors, countSaved: data.saved.length, countNotSaved: data.notSaved.length}
-                } else{return {errors: [], countSaved: 0, countNotSaved: 0}
-            }
+                } else {
+                    return {errors: [], countSaved: 0, countNotSaved: 0}
+                }
             },
 
             async uploadCardsByExcelFilesAction({commit}, payload) {
@@ -838,6 +865,15 @@ export default new Vuex.Store(
                 const data = await result.data
                 if (result.ok) {
                     commit('deleteCardMutation', payload)
+                }
+            },
+            async deleteCardsByIdInAction({commit}, payload){
+                const result = await cardApi.deleteByIdIn({ids: payload.ids})
+                if (result.ok) {
+                    commit('deleteCardsByIdInMutation', {
+                        ids: payload.ids,
+                    })
+                    commit('setActionMutation', {id: _.now(), errors: []})
                 }
             },
             async deleteCardsInDictionaryAction({commit}, payload) {
@@ -1074,19 +1110,13 @@ export default new Vuex.Store(
                 commit('changePropsUploadLangMutation', payload)
             },
 
-            async saveVocabularyAction({commit, dispatch}, payload) {
+            async addVocabularyAction({commit, dispatch}, payload) {
                 let result = await vocabularyApi.save(payload)
                 const data = await result.data
                 if (result.ok) {
-                    if (data.user) {
-                        commit('updateUserMutation', {user: data.user})
-                    }
-                    if (data.vocabulary) {
-                        commit('updateVocabularyMutation', {
-                            vocabulary: data.vocabulary,
-                            vocabularies: data.user.vocabularies
-                        })
-                    }
+                    commit('addVocabularyMutation', {
+                        vocabulary: data.vocabulary,
+                    })
                     return data.errors
                 }
             },
@@ -1100,7 +1130,7 @@ export default new Vuex.Store(
                 const data = await result.data
                 if (result.ok) {
                     if (_.isEmpty(data.errors)) {
-                        commit('deleteVocabularyMutation')
+                        commit('deleteVocabularyMutation', {vocabulary: payload.vocabulary})
                         commit('updateUserMutation', {user: data.user})
                     }
                     return data.errors

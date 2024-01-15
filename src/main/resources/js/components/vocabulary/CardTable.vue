@@ -192,17 +192,7 @@
             </th>
           </template>
           <th class="st-sm border-0 border-right-0 py-0">
-            <b-button
-                :id="getCardEditButtonElemId(null)"
-                :ref="getCardEditButtonElemId(null)"
-                class="shadow-none border border-secondary py-0"
-                size="sm"
-                style="margin-bottom: 2px;"
-                variant="light"
-                @click.prevent.stop="editCards()"
-            >
-              <i class="fa fa-pen-to-square fa-xs text-dark"></i>
-            </b-button>
+
           </th>
           <th class="st-sm border-0 border-right-0 py-0">
             <b-button
@@ -212,7 +202,7 @@
                 size="sm"
                 style="margin-bottom: 2px;"
                 variant="light"
-                @click.prevent.stop="deleteCards()"
+                @click.prevent.stop="confirmDeleteCards()"
             >
               <i class="fa fa-trash fa-xs text-dark"></i>
             </b-button>
@@ -400,14 +390,20 @@
       >
       </table-settings-modal>
       <GlobalEvents @mouseup="mouseupOutside()"/>
-
       <add-card-modal
           :id="ids.addCardModal"
           :ref="ids.addCardModal"
           :closable="true"
           :dictionary="dictionary"
-          :unrepeated="dictionary.unrepeated"
       ></add-card-modal>
+      <confirm-action-with-timer-modal
+          :id="ids.confirmDeleteDictionaryModal"
+          :ref="ids.confirmDeleteDictionaryModal"
+          :closable="true"
+          :is-for-no="true"
+          @onConfirm="onConfirmAction"
+          @onReject="onRejectAction"
+      ></confirm-action-with-timer-modal>
     </div>
   </div>
 </template>
@@ -422,12 +418,14 @@ import DownloadDropdown from "./DownloadDropdown.vue"
 import UploadDropdown from "./UploadDropdown.vue"
 import PictureUpload from "../picture/PictureUpload.vue"
 import DateJS from "../../util/date"
+import ConfirmActionWithTimerModal from "../modal/ConfirmActionWithTimerModal.vue"
 
 export default {
   props: [
     'data',
   ],
   components: {
+    ConfirmActionWithTimerModal,
     TableSettingsModal,
     AddCardModal,
     PictureStatic,
@@ -440,6 +438,7 @@ export default {
   },
   created() {
     this.addListeners()
+    this.setConfirmActionToDefault()
     this.$root.$on('dragdrop-init', (payload) => {
       this.dragdropInit(payload)
     })
@@ -485,10 +484,7 @@ export default {
       'config',
     ]),
     ...mapGetters([
-      'isDictionaryExists',
-      'getCardsByDictionaryId',
-      'getDictionaryInx',
-      'getCardsByDictionaryInx',
+
     ]),
 
     renderCards() {
@@ -761,11 +757,18 @@ export default {
         tableSettingsModal: this.prefixId() + "table-settings-modal-id",
         downloadDropdown: this.prefixId() + 'download-dropdown-id',
         uploadDropdown: this.prefixId() + 'upload-dropdown-id',
+        confirmDeleteDictionaryModal: this.prefixId() + 'confirm-delete-dictionary-modal-id',
       }
     },
     styleField() {
       return {
         height: this.style.height.field + 'px',
+      }
+    },
+    defaultConfirmAction() {
+      return {
+        isConfirm: false,
+        isReject: false,
       }
     },
   },
@@ -823,7 +826,8 @@ export default {
           width: 34 + 'px',
           height: 34 + 'px',
         },
-      }
+      },
+      confirmAction: {},
     }
   },
   methods: {
@@ -917,11 +921,11 @@ export default {
       this.$store.dispatch('deleteCardAction', {card: card})
     },
 
-    editCards() {
-
-    },
     deleteCards() {
-      this.$store.dispatch('deleteCardsByDictionaryAction', {dictionaryId: this.dictionary.id})
+      this.$store.dispatch('deleteCardsByIdInAction', {ids: this.getCardIds()})
+    },
+    getCardIds(){
+      return this.cards.map(c=>c.id)
     },
     orderCards(property, order) {
       for (let i = 0; i < this.propertySettings.length; i++) {
@@ -996,9 +1000,6 @@ export default {
     deselectAll() {
       this.cards.forEach(c => c.selected = false)
       this.countSelected = 0
-    },
-    isSourceExists() {
-      return this.isDictionaryExists(this.dictionary.id)
     },
 
     mousedown(card, i) {
@@ -1263,6 +1264,40 @@ export default {
     },
     getDateForPicker(ldt) {
       return DateJS.parseISOString(ldt)
+    },
+    confirmDeleteCards() {
+      const sec = 10
+      this.$refs[this.ids.confirmDeleteDictionaryModal].showModal(this.getCapitalizeLang('confirmDeleteCards'), sec)
+      let f = setInterval(
+          () => {
+            if (this.confirmAction.isConfirm) {
+              this.deleteCards()
+              clearInterval(f)
+              this.setConfirmActionToDefault()
+            }
+            if (this.confirmAction.isReject) {
+              clearInterval(f)
+              this.setConfirmActionToDefault()
+            }
+          },
+          100,
+      )
+      setTimeout(
+          () => {
+            clearInterval(f)
+            this.setConfirmActionToDefault()
+          },
+          sec * 1000
+      )
+    },
+    setConfirmActionToDefault() {
+      Object.assign(this.confirmAction, this.defaultConfirmAction)
+    },
+    onConfirmAction(flag){
+      this.confirmAction.isConfirm = flag
+    },
+    onRejectAction(flag){
+      this.confirmAction.isReject = flag
     },
   },
 }

@@ -182,6 +182,10 @@ export default {
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       this.fetchData()
     })
+    this.$store.watch(this.$store.getters.getVocabularyId, id => {
+      this.resetData('left')
+      this.resetData('right')
+    })
   },
   destroyed() {
     this.removeListeners()
@@ -295,6 +299,10 @@ export default {
     },
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)
+    },
+    resetData(instance){
+      this[instance].dictionary = null
+      this[instance].cards = []
     },
     loadDictionary(id, instanceMark) {
       if (instanceMark === this.left.instanceMark) {

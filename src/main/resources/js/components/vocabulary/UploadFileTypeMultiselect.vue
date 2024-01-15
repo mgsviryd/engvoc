@@ -62,6 +62,7 @@ import CompareJS from "../../util/compare"
 export default {
   props: [
     'id',
+    'watchId',
     'data',
   ],
   components: {},
@@ -84,10 +85,13 @@ export default {
   },
   watch: {
     data: {
-      handler: function () {
-        this.fetchData()
+      handler: function (newVal, oldVal) {
+        if (!oldVal || newVal.watchId !== oldVal.watchId) {
+          this.fetchData()
+        }
       },
-      deep: true
+      immediate: true,
+      deep: true,
     },
   },
   data() {
@@ -106,9 +110,17 @@ export default {
     },
     fetchData() {
       this.show = false
-      this.value = this.data.value
-      this.allOptions = _.cloneDeep(this.data.options)
-      this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'label'))
+      if (!this.isBlank(this.data.value)) {
+        this.value = this.data.value
+      } else {
+        this.value = null
+      }
+      if (!this.isBlank(this.data.options)) {
+        this.allOptions = this.data.options
+        this.allOptions.sort((x, y) => CompareJS.compareStringNaturalByProperty(x, y, 'label'))
+      } else {
+        this.allOptions = []
+      }
       this.options = this.allOptions
       this.show = true
     },

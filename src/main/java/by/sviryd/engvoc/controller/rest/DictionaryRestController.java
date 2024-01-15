@@ -90,19 +90,22 @@ public class DictionaryRestController {
         String vocabularyId = json.get("vocabularyId");
         Dictionary dictionary = new ObjectMapper().readValue(dictionaryJson, Dictionary.class);
         Optional<Vocabulary> vocabularyOpt = vocabularyService.findById(UUID.fromString(vocabularyId));
-        Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByNameAndUnrepeated(dictionary.getName(), dictionary.isUnrepeated());
         Dictionary saved = null;
         HashMap<Object, Object> data = new HashMap<>();
         List<LocaleExceptionMessage> errors = new ArrayList<>();
-        if (!dictionaryDbOpt.isPresent() && vocabularyOpt.isPresent()) {
-            dictionary.setVocabulary(vocabularyOpt.get());
-            dictionary.setAuthor(user);
-            saved = dictionaryService.save(dictionary);
-        } else {
-            String code = "dictionaryNotUniqueError";
-            String message = messageI18nService.getMessage(code, null, locale);
-            LocaleExceptionMessage error = new LocaleExceptionMessage(code, "name", message);
-            errors.add(error);
+        if (vocabularyOpt.isPresent()) {
+            Vocabulary vocabulary = vocabularyOpt.get();
+            Optional<Dictionary> dictionaryDbOpt = dictionaryService.findByVocabularyAndName(vocabulary, dictionary.getName());
+            if(!dictionaryDbOpt.isPresent() ){
+                dictionary.setVocabulary(vocabulary);
+                dictionary.setAuthor(user);
+                saved = dictionaryService.save(dictionary);
+            } else {
+                String code = "dictionaryNotUniqueError";
+                String message = messageI18nService.getMessage(code, null, locale);
+                LocaleExceptionMessage error = new LocaleExceptionMessage(code, "name", message);
+                errors.add(error);
+            }
         }
         data.put("dictionary", saved);
         data.put("errors", errors);

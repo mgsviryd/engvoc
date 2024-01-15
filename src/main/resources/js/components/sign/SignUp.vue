@@ -1,170 +1,209 @@
 <template>
-  <b-collapse v-if="show" @shown="focusEmail()" :id="signupId" v-model="signupVmodel" class="mt-2">
-      <b-card
-          body-class="pt-1"
-          border-variant="light"
-      >
+  <b-collapse v-if="show" :id="signupId" v-model="signupVmodel" class="mt-2" @shown="focusEmail()">
+    <b-card
+        body-class="pt-1"
+        border-variant="light"
+    >
 
-        <services
-            :prefix-id="prefixId()"
-            @onClick="showSpinOverlay()"
-        ></services>
-
+      <services
+          :prefix-id="prefixId()"
+          @onClick="showSpinOverlay()"
+      ></services>
+      <b-form @submit.prevent="signUp">
         <b-row class="mb-1">
-          <b-col sm="12" class="">
+          <b-col class="" sm="12">
             <b-input-group
-                label-class="py-0"
-                label-cols-sm="3"
-                label-cols-lg="3"
-                content-cols-sm="7"
-                content-cols-lg="7"
                 :label-for="properties.email.inputId"
+                content-cols-lg="7"
+                content-cols-sm="7"
+                label-class="py-0"
+                label-cols-lg="3"
+                label-cols-sm="3"
             >
               <b-form-input
-                  class="shadow-none rounded-sm"
-                  :class="{'border-success':showBorderProperty('email')}"
                   :id="properties.email.inputId"
                   :ref="properties.email.inputId"
-                  size="sm"
-                  :state="stateEmail()"
-                  trim
                   v-model="email"
-                  @keyup.enter="signUp()"
+                  :class="{'border-success':showBorderProperty('email')}"
+                  :placeholder="getCapitalizeLang('email')"
+                  :state="stateEmail()"
+                  class="shadow-none rounded-sm"
+                  required
+                  size="sm"
+                  trim
                   @focusin="onFocusinProperty('email')"
                   @focusout="onFocusoutProperty( 'email')"
                   @input="inputProperty('email')"
-                  :placeholder="getCapitalizeLang('email')"
+                  @keyup.enter="signUp()"
               >
               </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.email.wasOutFocus && emailError()">
+              <div v-if="properties.email.wasOutFocus && emailError()" class="invalid-feedback my-0">
                 <small>{{ emailError() }}</small>
               </div>
             </b-input-group>
-            <div class="my-0 text-danger" v-if="properties.email.showError">
+            <div v-if="properties.email.showError" class="my-0 text-danger">
               <small v-for="(e,i) in getErrors('email')">{{ getCapitalize(e.message) }}</small>
             </div>
           </b-col>
         </b-row>
 
         <b-row class="mb-1">
-          <b-col sm="12" class="">
+          <b-col class="" sm="12">
             <b-input-group
-                label-class="py-0"
-                label-cols-sm="3"
-                label-cols-lg="3"
-                content-cols-sm="7"
-                content-cols-lg="7"
                 :label-for="properties.password.inputId"
+                content-cols-lg="7"
+                content-cols-sm="7"
+                label-class="py-0"
+                label-cols-lg="3"
+                label-cols-sm="3"
             >
               <b-form-input
-                  class="shadow-none rounded-sm"
-                  :class="{'border-success':showBorderProperty('password')}"
-                  type="password"
                   :id="properties.password.inputId"
                   :ref="properties.password.inputId"
-                  size="sm"
-                  :state="statePassword()"
-                  trim
                   v-model="password"
-                  @keyup.enter="signUp()"
+                  :class="{'border-success':showBorderProperty('password')}"
+                  :formatter="formatPassword"
+                  :placeholder="getCapitalizeLang('password')"
+                  :state="statePassword()"
+                  :type="showPassword?'text':'password'"
+                  autocomplete="off"
+                  class="shadow-none rounded-sm"
+                  required
+                  size="sm"
+                  trim
                   @focusin="onFocusinProperty('password')"
                   @focusout="onFocusoutProperty( 'password')"
                   @input="inputProperty('password')"
-                  :placeholder="getCapitalizeLang('password')"
+                  @keyup.enter="signUp()"
               >
               </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.password.wasOutFocus && passwordError()">
+              <div class="d-flex justify-content-center align-self-center" style="width: 30px">
+                <i v-if="showPassword"
+                   class="fa-regular fa-eye text-primary"
+                   @click.prevent.stop="showPassword=!showPassword"></i>
+                <i v-else
+                   class="fa-regular fa-eye-slash text-muted"
+                   @click.prevent.stop="showPassword=!showPassword"></i>
+              </div>
+              <div v-if="properties.password.wasOutFocus && passwordError()" class="invalid-feedback my-0">
                 <small>{{ passwordError() }}</small>
               </div>
             </b-input-group>
-            <div class="my-0 text-danger" v-if="properties.password.showError">
+            <div v-if="properties.password.showError" class="my-0 text-danger">
               <small v-for="(e,i) in getErrors('password')">{{ getCapitalize(e.message) }}</small>
             </div>
           </b-col>
         </b-row>
 
         <b-row class="">
-          <b-col sm="12" class="">
-            <small
-                :class="isSignUpPasswordMinCharacters()?'text-success':'text-muted'">{{
-                getLang('signUpPasswordMinCharacters')
-              }}</small>
+          <b-col class="" sm="12">
+            <small v-if="isSignUpPasswordMaxCharacters()">
+              <i class="fa-regular fa-circle-check text-success mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordMaxCharacters') }}</span>
+            </small>
+            <small v-else>
+              <i class="fa-solid fa-circle-minus fa-xs text-danger mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordMaxCharacters') }}</span>
+            </small>
           </b-col>
         </b-row>
         <b-row class="">
-          <b-col sm="12" class="">
-            <small
-                :class="isSignUpPasswordMaxCharacters()?'text-success':'text-muted'">{{
-                getLang('signUpPasswordMaxCharacters')
-              }}</small>
+          <b-col class="" sm="12">
+            <small v-if="isSignUpPasswordMinCharacters()">
+              <i class="fa-regular fa-circle-check text-success mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordMinCharacters') }}</span>
+            </small>
+            <small v-else>
+              <i class="fa-solid fa-circle-minus fa-xs text-danger mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordMinCharacters') }}</span>
+            </small>
           </b-col>
         </b-row>
         <b-row class="">
-          <b-col sm="12" class="">
-            <small
-                :class="isSignUpPasswordUppercaseLatinLetter()?'text-success':'text-muted'">{{
-                getLang('signUpPasswordUppercaseLetter')
-              }}</small>
+          <b-col class="" sm="12">
+            <small v-if="isSignUpPasswordUppercaseLatinLetter()">
+              <i class="fa-regular fa-circle-check text-success mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordUppercaseLetter') }}</span>
+            </small>
+            <small v-else>
+              <i class="fa-solid fa-circle-minus fa-xs text-danger mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordUppercaseLetter') }}</span>
+            </small>
           </b-col>
         </b-row>
         <b-row class="">
-          <b-col sm="12" class="">
-            <small
-                :class="isSignUpPasswordLowercaseLatinLetter()?'text-success':'text-muted'">{{
-                getLang('signUpPasswordLowercaseLetter')
-              }}</small>
+          <b-col class="" sm="12">
+            <small v-if="isSignUpPasswordLowercaseLatinLetter()">
+              <i class="fa-regular fa-circle-check text-success mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordLowercaseLetter') }}</span>
+            </small>
+            <small v-else>
+              <i class="fa-solid fa-circle-minus fa-xs text-danger mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordLowercaseLetter') }}</span>
+            </small>
           </b-col>
         </b-row>
         <b-row class="">
-          <b-col sm="12" class="">
-            <small
-                :class="isSignUpPasswordNumber()?'text-success':'text-muted'">{{
-                getLang('signUpPasswordNumber')
-              }}</small>
+          <b-col class="" sm="12">
+            <small v-if="isSignUpPasswordNumber()">
+              <i class="fa-regular fa-circle-check text-success mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordNumber') }}</span>
+            </small>
+            <small v-else>
+              <i class="fa-solid fa-circle-minus fa-xs text-danger mr-2"></i>
+              <span class="text-muted">{{ getLang('signUpPasswordNumber') }}</span>
+            </small>
           </b-col>
         </b-row>
         <b-row class="mb-1">
-          <b-col sm="12" class="">
-            <small
-                :class="isSignUpPasswordSpecialCharacter()?'text-success':'text-muted'">{{
-                getLang('signUpPasswordSpecialCharacter')
-              }}</small>
+          <b-col class="" sm="12">
+            <small v-if="isSignUpPasswordSpecialCharacter()">
+              <i class="fa-regular fa-circle-check text-success mr-2"></i>
+              <span class="text-muted"> {{ getLang('signUpPasswordSpecialCharacter') }}</span>
+            </small>
+            <small v-else>
+              <i class="fa-solid fa-circle-minus fa-xs text-danger mr-2"></i>
+              <span class="text-muted"> {{ getLang('signUpPasswordSpecialCharacter') }}</span>
+            </small>
           </b-col>
         </b-row>
 
 
         <b-row class="mb-1">
-          <b-col sm="12" class="">
+          <b-col class="" sm="12">
             <b-input-group
-                label-class="py-0"
-                label-cols-sm="3"
-                label-cols-lg="3"
-                content-cols-sm="7"
-                content-cols-lg="7"
                 :label-for="properties.passwordRepeat.inputId"
+                content-cols-lg="7"
+                content-cols-sm="7"
+                label-class="py-0"
+                label-cols-lg="3"
+                label-cols-sm="3"
             >
               <b-form-input
-                  class="shadow-none rounded-sm"
-                  :class="{'border-success':showBorderProperty('passwordRepeat')}"
-                  type="password"
                   :id="properties.passwordRepeat.inputId"
                   :ref="properties.passwordRepeat.inputId"
-                  size="sm"
-                  :state="statePasswordRepeat()"
-                  trim
                   v-model="passwordRepeat"
-                  @keyup.enter="signUp()"
+                  :class="{'border-success':showBorderProperty('passwordRepeat')}"
+                  :formatter="formatPassword"
+                  :placeholder="getCapitalizeLang('passwordRepeat')"
+                  :state="statePasswordRepeat()"
+                  :type="showPassword?'text':'password'"
+                  autocomplete="off"
+                  class="shadow-none rounded-sm"
+                  required
+                  size="sm"
+                  trim
                   @focusin="onFocusinProperty('passwordRepeat')"
                   @focusout="onFocusoutProperty('passwordRepeat')"
                   @input="inputProperty('passwordRepeat')"
-                  :placeholder="getCapitalizeLang('passwordRepeat')"
+                  @keyup.enter="signUp()"
               >
               </b-form-input>
-              <div class="invalid-feedback my-0" v-if="properties.passwordRepeat.wasOutFocus && passwordRepeatError()">
+              <div v-if="properties.passwordRepeat.wasOutFocus && passwordRepeatError()" class="invalid-feedback my-0">
                 <small>{{ passwordRepeatError() }}</small>
               </div>
             </b-input-group>
-            <div class="my-0 text-danger" v-if="properties.passwordRepeat.showError">
+            <div v-if="properties.passwordRepeat.showError" class="my-0 text-danger">
               <small v-for="(e,i) in getErrors('passwordRepeat')">{{ getCapitalize(e.message) }}</small>
             </div>
           </b-col>
@@ -172,68 +211,69 @@
 
         <b-button
             :id="properties.recaptcha.buttonId"
-            block
-            variant="success"
-            size="sm"
+            :class="!stateTrue()?'no-cursor':null"
             :disabled="!stateTrue()"
-            :class="!stateTrue()?'no-stateTrue':null"
-            @click.prevent.stop="signUp()"
+            block
+            size="sm"
+            type="submit"
+            variant="success"
         >
           {{ getUpperCaseLang('signUpDo') }}
         </b-button>
-      </b-card>
+      </b-form>
+    </b-card>
 
-      <b-alert
-          class="mx-3 mb-1"
-          variant="danger"
-          dismissible
-          fade
-          :show="alert.showInternetConnectionError"
-          @dismissed="alert.showInternetConnectionError=false"
-      >
-        <b-row>
-          <small>{{ getCapitalizeLang('noInternetConnection') }}</small>
-        </b-row>
-      </b-alert>
+    <b-alert
+        :show="alert.showInternetConnectionError"
+        class="mx-3 mb-1"
+        dismissible
+        fade
+        variant="danger"
+        @dismissed="alert.showInternetConnectionError=false"
+    >
+      <b-row>
+        <small>{{ getCapitalizeLang('noInternetConnection') }}</small>
+      </b-row>
+    </b-alert>
 
-      <b-alert
-          class="mx-3 mb-1"
-          variant="danger"
-          dismissible
-          fade
-          :show="alert.showRecaptchaResponseError"
-          @dismissed="alert.showRecaptchaResponseError=false"
-      >
+    <b-alert
+        :show="alert.showRecaptchaResponseError"
+        class="mx-3 mb-1"
+        dismissible
+        fade
+        variant="danger"
+        @dismissed="alert.showRecaptchaResponseError=false"
+    >
+      <b-row>
+        <small>{{ getUpperCaseLang('externalServerError') }}</small>
+      </b-row>
+      <b-row>
+        <small>{{ getCapitalizeLang('cannotGetAnswerFrom') }}&nbsp;{{ getLang('googleRecaptcha') }} </small>
+      </b-row>
+      <hr class="my-0">
+      <b-row>
+        <small>{{ getCapitalizeLang('tryToReloadPage') }}</small>
+      </b-row>
+      <b-row>
+        <small>{{ getCapitalizeLang('checkInternetConnection') }}</small>
+      </b-row>
+    </b-alert>
+
+    <b-alert
+        :show="properties.recaptcha.showError"
+        class="mx-3 mb-1"
+        dismissible
+        fade
+        variant="danger"
+        @dismissed="properties.recaptcha.showError=false"
+    >
+      <template v-for="(e,i) in getErrors('recaptcha')">
         <b-row>
-          <small>{{ getUpperCaseLang('externalServerError') }}</small>
-        </b-row>
-        <b-row>
-          <small>{{ getCapitalizeLang('cannotGetAnswerFrom') }}&nbsp;{{ getLang('googleRecaptcha') }} </small>
+          {{ getCapitalize(e.message) }}
         </b-row>
         <hr class="my-0">
-        <b-row>
-          <small>{{ getCapitalizeLang('tryToReloadPage') }}</small>
-        </b-row>
-        <b-row>
-          <small>{{ getCapitalizeLang('checkInternetConnection') }}</small>
-        </b-row>
-      </b-alert>
-
-      <b-alert
-          class="mx-3 mb-1"
-          variant="danger"
-          dismissible
-          fade
-          :show="properties.recaptcha.showError"
-          @dismissed="properties.recaptcha.showError=false"
-      >
-        <template v-for="(e,i) in getErrors('recaptcha')">
-          <b-row>
-            {{ getCapitalize(e.message) }}
-          </b-row>
-          <hr class="my-0">
-        </template>
-      </b-alert>
+      </template>
+    </b-alert>
   </b-collapse>
 
 </template>
@@ -251,9 +291,7 @@ export default {
   },
   created() {
     Object.assign(this.properties, this.defaultProperties)
-    this.$forceNextTick(() => {
-      this.focusEmail()
-    })
+    this.fetchData()
   },
   components: {
     GoogleCircle,
@@ -302,7 +340,8 @@ export default {
   data() {
     return {
       name: "SignUp",
-      show: true,
+      show: false,
+      showPassword: false,
       errors: [],
       recaptchaSitekey: '6Lf-SzQmAAAAAIaMwoFGYAJFmZVG0n7TH8zK_Cq4',
       alert: {
@@ -319,6 +358,11 @@ export default {
     }
   },
   methods: {
+    fetchData() {
+      this.show = false
+
+      this.show = true
+    },
     prefixId() {
       return this.name
     },
@@ -363,7 +407,7 @@ export default {
       this.$emit('showSignUpSpinMethod', true)
     },
     signUp() {
-      if(this.stateTrue()) {
+      if (this.stateTrue()) {
         this.closeAllAlert()
         this.$emit('showOverlayMethod', true)
         this.$emit('showSignUpSpinMethod', true)
@@ -488,10 +532,10 @@ export default {
     stateTrue() {
       return this.stateEmail() && this.statePassword() && this.statePasswordRepeat() && !this.isAnyErrorsShow()
     },
-    isAnyErrorsShow(){
+    isAnyErrorsShow() {
       let any = false
       Object.keys(this.properties).forEach(p => {
-        if (this.properties[p].showError){
+        if (this.properties[p].showError) {
           any = true
         }
       })
@@ -556,12 +600,16 @@ export default {
     isSignUpPasswordSpecialCharacter() {
       return RegexJS.hasSpecialCharacter(this.password)
     },
+    formatPassword(input) {
+      return String(input).substring(0, 20)
+    },
   },
 }
 </script>
 
 <style scoped>
-.no-stateTrue {
+.no-cursor {
   cursor: not-allowed;
 }
+
 </style>

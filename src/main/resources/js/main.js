@@ -25,6 +25,7 @@ import VueFileAgentStyles from "vue-file-agent/dist/vue-file-agent.css"
 import GlobalEvents from "vue-global-events"
 import VueForceNextTick from "vue-force-next-tick"
 import {i18n} from "./setup/i18n-setup"
+import * as _ from "lodash"
 
 import $ from "jquery"
 window.jQuery = $
@@ -70,12 +71,11 @@ router.beforeEach(async (to, from, next) => {
     await store.restored
     if (to.meta.requiresAuth) {
         if (!store.getters.isNoUser) {
-            next();
+            next()
         } else {
-            next('/sign/in');
-        }
-    }
-    next();
+            next({path:'/sign/in', query:{redirect: to.path,id: new Date().getMilliseconds()}})
+      }
+    }else{next()}
 });
 
 

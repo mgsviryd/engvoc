@@ -98,6 +98,7 @@
           <lang-multiselect
               :id="ids.multiselectSource"
               :ref="ids.multiselectSource"
+              :is-short="false"
               :data="{value: lang.lang, options: lang.langs}"
               @onSelect="onSelectSource"
           >
@@ -119,6 +120,7 @@
           <lang-multiselect
               :id="ids.multiselectTarget"
               :ref="ids.multiselectTarget"
+              :is-short="false"
               :data="{value: lang.lang, options: lang.langs}"
               @onSelect="onSelectTarget"
           >
@@ -250,7 +252,7 @@ export default {
     },
     confirm() {
       if (this.stateTrue()) {
-        this.$store.dispatch("saveVocabularyAction",
+        this.$store.dispatch("addVocabularyAction",
             {name: this.vocabulary.name, source: this.source, target: this.target})
             .then((errors) => {
               if (errors.length === 0) {

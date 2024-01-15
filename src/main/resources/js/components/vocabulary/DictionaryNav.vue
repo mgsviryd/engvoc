@@ -97,9 +97,14 @@
       </b-dropdown-group>
     </b-dropdown>
 
-    <b-container class="p-0 m-0 bg-secondary border border-dark flex-shrink-0"
-                 fluid
+    <search-dictionary-multiselect
+        :id="ids.searchDictionaryMultiselect"
+        :data="{watchId: watchIds.searchDictionaryMultiselect, value: dictionary, options: dictionaries}"
+        @onSelect="onSelectDictionary"
     >
+    </search-dictionary-multiselect>
+
+    <b-container class="p-0 m-0 bg-secondary border border-dark flex-shrink-0" fluid>
       <b-button-toolbar class="bg-secondary mx-1">
         <b-button-group class="" size="sm">
           <b-button
@@ -142,6 +147,7 @@
           :right="instance.instanceMark === 'right'"
           aria-expanded="false"
           block
+          class="unrepeated-button"
           data-toggle="collapse"
           menu-class="w-100"
           role="button"
@@ -151,7 +157,6 @@
           split-variant="info"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
           variant="info"
-          class="unrepeated-button"
       >
         <template slot="button-content">
           <b-button
@@ -209,7 +214,7 @@
           :id="ids.unrepeatedDictionaries"
           class="collapse"
       >
-        <b-container fluid :class="[{'shadow-sm':!isDropdownUnrepeatedDictionariesCollapsed}, 'p-0 m-0']">
+        <b-container :class="[{'shadow-sm':!isDropdownUnrepeatedDictionariesCollapsed}, 'p-0 m-0']" fluid>
           <b-dropdown
               v-for="(d,i) in unrepeatedDictionaries"
               :id="getDictionaryElemId(d.id)"
@@ -218,6 +223,7 @@
               :right="instance.instanceMark === 'right'"
               aria-expanded="false"
               block
+              class="unrepeated"
               data-toggle="collapse"
               draggable="true"
               menu-class="w-100"
@@ -231,7 +237,6 @@
               @hide="hideDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
               @show="showDropdown($event, {ref:getDictionaryElemId(d.id), level: 0})"
               @toggle="toggleDropdownRef({ref:getDictionaryElemId(d.id), level: 0})"
-              class="unrepeated"
           >
             <template slot="button-content">
               <div
@@ -356,7 +361,7 @@
             >
               <b-dropdown-item
                   size="sm"
-                  @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
+                  @click.prevent.stop="confirmDeleteDictionaryById(getDictionaryElemId(d.id), d.id)"
               >
                 <b-row no-gutters>
                   <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
@@ -378,6 +383,7 @@
           :right="instance.instanceMark === 'right'"
           aria-expanded="false"
           block
+          class="non-unrepeated-button"
           data-toggle="collapse"
           menu-class="w-100"
           role="button"
@@ -387,7 +393,6 @@
           split-variant="warning"
           toggle-class="shadow-none rounded-0 border-1 border-dark"
           variant="warning"
-          class="non-unrepeated-button"
       >
         <template slot="button-content">
           <b-button
@@ -443,7 +448,7 @@
           :id="ids.nonUnrepeatedDictionaries"
           class="collapse nonUnrepeated"
       >
-        <b-container fluid :class="[{'shadow-sm':!isDropdownNonUnrepeatedDictionariesCollapsed}, 'p-0 m-0']">
+        <b-container :class="[{'shadow-sm':!isDropdownNonUnrepeatedDictionariesCollapsed}, 'p-0 m-0']" fluid>
           <b-dropdown
               v-for="(d,ii) in nonUnrepeatedDictionaries"
               :id="getDictionaryElemId(d.id)"
@@ -452,6 +457,7 @@
               :right="instance.instanceMark === 'right'"
               aria-expanded="false"
               block
+              class="non-unrepeated"
               data-toggle="collapse"
               draggable="true"
               menu-class="w-100"
@@ -465,7 +471,6 @@
               @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
               @show="showDropdown($event, {ref: getDictionaryElemId(d.id), level: 0})"
               @toggle="toggleDropdownRef({ref: getDictionaryElemId(d.id), level: 0})"
-              class="non-unrepeated"
           >
             <template slot="button-content">
               <div
@@ -545,7 +550,7 @@
                 @hide="hideDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
                 @show="showDropdown($event, {ref: getDictionaryElemId(d.id)+'-upload-id', level: 1})"
             >
-            >
+              >
               <template #button-content>
                 <b-row class="px-3"
                        no-gutters
@@ -564,10 +569,12 @@
                   @click.prevent.stop="uploadXmlFile(d)"
               >
                 <b-row no-gutters>
-                  <b-col class="col-3 d-flex align-items-center justify-content-left text-left"><img alt="..."
-                                                                                                     height="24"
-                                                                                                     src="/picture/icon/xml-extension.png"
-                                                                                                     width="24"></b-col>
+                  <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
+                    <img alt="..."
+                         height="24"
+                         src="/picture/icon/xml-extension.png"
+                         width="24">
+                  </b-col>
                   <b-col class="col-9"><small>{{ getCapitalizeLang('xml') }}</small></b-col>
                 </b-row>
               </b-dropdown-item>
@@ -575,10 +582,12 @@
                   @click.prevent.stop="uploadExcelFile(d)"
               >
                 <b-row no-gutters>
-                  <b-col class="col-3 d-flex align-items-center justify-content-left text-left"><img alt="..."
-                                                                                                     height="24"
-                                                                                                     src="/picture/icon/excel.png"
-                                                                                                     width="24"></b-col>
+                  <b-col class="col-3 d-flex align-items-center justify-content-left text-left">
+                    <img alt="..."
+                         height="24"
+                         src="/picture/icon/excel.png"
+                         width="24">
+                  </b-col>
                   <b-col class="col-9"><small>{{ getCapitalizeLang('excel') }}</small></b-col>
                 </b-row>
               </b-dropdown-item>
@@ -592,7 +601,7 @@
             >
               <b-dropdown-item
                   size="sm"
-                  @click.prevent.stop="deleteDictionaryById(getDictionaryElemId(d.id), d.id)"
+                  @click.prevent.stop="confirmDeleteDictionaryById(getDictionaryElemId(d.id), d.id)"
               >
                 <b-row no-gutters>
                   <b-col class="col-2 d-flex align-items-center justify-content-left text-left"><i
@@ -643,8 +652,8 @@
         :ref="ids.confirmDeleteDictionaryModal"
         :closable="true"
         :is-for-no="true"
-        :message="getCapitalizeLang('confirmDeleteDictionary')"
-        :seconds="confirmAction.seconds"
+        @onConfirm="onConfirmAction"
+        @onReject="onRejectAction"
     ></confirm-action-with-timer-modal>
     <GlobalEvents @mouseup="mouseupOutside()"/>
   </div>
@@ -656,10 +665,11 @@ import * as _ from "lodash"
 import date from "../../util/date"
 import AddDictionaryModal from "./AddDictionaryModal.vue"
 import VocabularyMultiselectStore from "./VocabularyMultiselectStore.vue"
-import VocabularyModal from "./VocabularyModal.vue"
+import VocabularyModal from "./AddVocabularyModal.vue"
 import DeleteVocabularyDangerModal from "../modal/DeleteVocabularyDangerModal.vue"
 import DeleteDictionariesDangerModal from "../modal/DeleteDictionariesDangerModal.vue"
 import ConfirmActionWithTimerModal from "../modal/ConfirmActionWithTimerModal.vue"
+import SearchDictionaryMultiselect from "./SearchDictionaryMultiselect.vue"
 
 export default {
   components: {
@@ -669,6 +679,7 @@ export default {
     DeleteVocabularyDangerModal,
     DeleteDictionariesDangerModal,
     ConfirmActionWithTimerModal,
+    SearchDictionaryMultiselect,
   },
   props: [
     'instance',
@@ -683,12 +694,6 @@ export default {
     this.setConfirmActionToDefault()
     this.$store.watch(this.$store.getters.getActionId, actionId => {
       this.fetchData()
-    })
-    this.$root.$on('confirm-action-with-timer-modal', (payload) => {
-      this.confirmAction.confirmId = payload.id
-    })
-    this.$root.$on('reject-action-with-timer-modal', (payload) => {
-      this.confirmAction.rejectId = payload.id
     })
     this.$root.$on('dragdrop-init', (payload) => {
       this.dragdropInit(payload)
@@ -740,13 +745,18 @@ export default {
         deleteDictionariesNotUniqueDangerModal: this.prefixId() + "delete-dictionaries-not-unique-danger-modal-id",
         confirmDeleteDictionaryModal: this.prefixId() + 'confirm-delete-dictionary-modal-id',
         userDropdown: this.prefixId() + 'user-dropdown-id',
+        searchDictionaryMultiselect: this.prefixId() + 'search-dictionary-multiselect-id',
+      }
+    },
+    watchIds() {
+      return {
+        searchDictionaryMultiselect: 0,
       }
     },
     defaultConfirmAction() {
       return {
-        seconds: 10,
-        confirmId: '',
-        rejectId: '',
+        isConfirm: false,
+        isReject: false,
       }
     },
     isAllDictionariesCollapsed() {
@@ -759,6 +769,7 @@ export default {
         await this.fetchData()
         this.setDictionaryActive(newVal, oldVal)
         this.navigateToActiveDictionary()
+        this.watchIds.searchDictionaryMultiselect = _.now()
       },
       deep: true,
     },
@@ -768,6 +779,7 @@ export default {
         if (this.isAfterCreated) {
           this.isAfterCreated = false
           this.navigateToActiveDictionary()
+          this.watchIds.searchDictionaryMultiselect = _.now()
         }
       },
       deep: true,
@@ -804,8 +816,8 @@ export default {
 
       listeners: [],
       activeDictionary: null,
-      style:{
-        height:{
+      style: {
+        height: {
           col: 0,
         },
       }
@@ -859,21 +871,24 @@ export default {
     clickDictionary(id) {
       this.$emit('onClickDictionary', {id: id, instanceMark: this.instance.instanceMark})
     },
-
-    deleteDictionaryById(ref, id) {
+    deleteDictionaryById(id) {
+      this.$store.dispatch('deleteDictionaryByIdAction', {id: id})
+    },
+    confirmDeleteDictionaryById(ref, id) {
       this.hideDropdownsOnClick()
-      this.$refs[this.ids.confirmDeleteDictionaryModal].showModal()
+      const sec = 10
+      this.$refs[this.ids.confirmDeleteDictionaryModal].showModal(
+          this.getCapitalizeLang('confirmDeleteDictionary'),
+          sec
+      )
       let f = setInterval(
           () => {
-            if (this.confirmAction.confirmId === this.ids.confirmDeleteDictionaryModal) {
-              this.$store.dispatch(
-                  'deleteDictionaryByIdAction',
-                  {id: id}
-              )
+            if (this.confirmAction.isConfirm) {
+              this.deleteDictionaryById(id)
               clearInterval(f)
               this.setConfirmActionToDefault()
             }
-            if (this.confirmAction.rejectId === this.ids.confirmDeleteDictionaryModal) {
+            if (this.confirmAction.isReject) {
               clearInterval(f)
               this.setConfirmActionToDefault()
             }
@@ -885,7 +900,7 @@ export default {
             clearInterval(f)
             this.setConfirmActionToDefault()
           },
-          this.confirmAction.seconds * 1000
+          sec * 1000
       )
     },
     setConfirmActionToDefault() {
@@ -1215,6 +1230,16 @@ export default {
       this.$nextTick(() => {
         this.style.height.col = window.innerHeight - this.height.header - this.height.footer - 6
       })
+    },
+    onSelectDictionary(d) {
+      this.clickDictionary(d.id)
+      this.navigateToDictionary(d)
+    },
+    onConfirmAction(flag){
+      this.confirmAction.isConfirm = flag
+    },
+    onRejectAction(flag){
+      this.confirmAction.isReject = flag
     },
   },
 }

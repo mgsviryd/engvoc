@@ -112,6 +112,7 @@ public final class Views {
     public interface Card extends
             Id,
             AuthorId,
+            ClientId,
             Client,
             Unrepeated,
             Vocabulary,

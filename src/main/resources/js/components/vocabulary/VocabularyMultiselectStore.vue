@@ -3,7 +3,7 @@
       :id="ids.id"
       :ref="ids.id"
       :side="side"
-      :data="{value: value, options: options}"
+      :data="{watchId: watchIds.vocabularyMultiselect, value: value, options: options}"
       @onSelect="onSelect"
   ></vocabulary-multiselect>
 </template>
@@ -24,6 +24,10 @@ export default {
   },
   created() {
     this.fetchData()
+    this.$store.watch(this.$store.getters.getVocabularyId, id => {
+      this.fetchData()
+      this.watchIds.vocabularyMultiselect = _.now()
+    })
   },
   components: {
     VocabularyMultiselect,
@@ -36,21 +40,17 @@ export default {
       return {
         id: this.prefixId(),
       }
-    }
+    },
+    watchIds(){
+      return {
+        vocabularyMultiselect: 0,
+      }
+    },
   },
   watch: {
     $route: [
       'fetchData',
     ],
-    vocabulary: {
-      handler: function () {
-        this.show = false
-        this.$forceNextTick(() => {
-          this.fetchData()
-        })
-      },
-      deep: true
-    }
   },
   data() {
     return {
@@ -66,11 +66,9 @@ export default {
     },
     fetchData() {
       this.show = false
-      if (!this.isBlank(this.vocabulary.vocabulary) && !this.isBlank(this.vocabulary.vocabularies)) {
         this.value = this.vocabulary.vocabulary
         this.options = this.vocabulary.vocabularies
         this.show = true
-      }
     },
     isBlank(value) {
       return _.isNil(value) || _.isEmpty(value)

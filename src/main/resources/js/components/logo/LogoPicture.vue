@@ -1,10 +1,10 @@
 <template>
-  <picture-static :pathPic="'/logo/logo.svg'" :alt="'...'"
+  <picture-static :alt="'...'" :pathPic="'/logo/logo.svg'"
                   :pictureClass="''" :pictureStyle="style"/>
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState} from "vuex"
 import PictureStatic from "../picture/PictureStatic.vue"
 
 export default {
@@ -19,12 +19,13 @@ export default {
   },
   data() {
     return {
-      style: 'width:80px; height:20px;'
+      style: {
+        width: `${80}px`,
+        height: `${20}px`,
+      },
     }
   },
-  methods: {
-
-  }
+  methods: {}
 }
 </script>
 

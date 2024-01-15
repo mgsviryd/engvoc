@@ -48,6 +48,9 @@ public class DictionaryService {
     public Optional<Dictionary> findByNameAndUnrepeated(String name, Boolean unrepeated) {
         return dictionaryRepo.findByNameAndUnrepeated(name, unrepeated);
     }
+    public Optional<Dictionary> findByVocabularyAndName(Vocabulary vocabulary, String name) {
+        return dictionaryRepo.findByVocabularyAndName(vocabulary, name);
+    }
 
     public Optional<Dictionary> findByNameAndParent(String name, Long parent) {
         return dictionaryRepo.findByNameAndParent(name, parent);

@@ -50,10 +50,8 @@ import CloseRow from "../close/CloseRow.vue"
 export default {
   props: [
     'id',
-    'seconds',
     'isForNo',
     'closable',
-    'message',
   ],
   components: {
     CloseRow,
@@ -71,6 +69,8 @@ export default {
   data() {
     return {
       show: true,
+      seconds: 0,
+      message: '',
       countDown: 0,
       countDownFunction: null,
       timerFunction: null,
@@ -80,7 +80,9 @@ export default {
     prefixId() {
       return this.name + '-' + this.id + '-'
     },
-    showModal() {
+    showModal(message, seconds) {
+      this.message = message
+      this.seconds = seconds
       this.$refs[this.ids.id].show()
     },
     hideModal() {
@@ -90,11 +92,11 @@ export default {
       return this.$t(key)
     },
     confirm() {
-      this.$root.$emit('confirm-action-with-timer-modal', {id: this.id})
+      this.$emit('onConfirm', true)
       this.hideModal()
     },
     reject() {
-      this.$root.$emit('reject-action-with-timer-modal', {id: this.id})
+      this.$emit('onReject', true)
       this.hideModal()
     },
     onShow() {
@@ -127,7 +129,7 @@ export default {
     },
     getCapitalizeLang(key) {
       return _.capitalize(this.getLang(key))
-    }
+    },
   }
 }
 </script>

@@ -1,11 +1,17 @@
 <template>
-  <b-row no-gutters class="my-0">
-    <b-col>
-      <h5>{{ title }}</h5>
+  <b-row class="my-0" no-gutters>
+    <b-col class="mr-auto px-0" cols="auto">
+      <b-button
+          class="shadow-none"
+          variant="transparent"
+          @click.prevent.stop="routerMainPage()"
+      >
+        <logo-picture></logo-picture>
+      </b-button>
     </b-col>
     <b-col>
-      <b-button variant="transparent"
-                class="float-right shadow-none"
+      <b-button class="float-right shadow-none"
+                variant="transparent"
                 @click.prevent.stop="close()"
       >
         <i class="fa-solid fa-xmark fa-lg text-muted"></i>
@@ -16,13 +22,15 @@
 
 <script>
 import {mapState} from "vuex"
+import LogoPicture from "../logo/LogoPicture.vue"
 
 export default {
-  props: ['title'],
+  props: [],
   mounted() {
-
   },
-  components: {},
+  components: {
+    LogoPicture,
+  },
   created() {
     this.fetchData()
   },
@@ -45,9 +53,17 @@ export default {
 
       this.show = true
     },
+    routerMainPage() {
+      this.close()
+      this.$router.push({
+        path: "/"
+      }).then(() => {
+      }).catch(err => {
+      })
+    },
     close() {
       this.$emit('close')
-    }
+    },
   }
 }
 </script>

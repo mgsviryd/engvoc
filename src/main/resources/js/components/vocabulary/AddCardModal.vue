@@ -4,8 +4,8 @@
       :id="id"
       :ref="id"
       :body-class="'py-1'"
-      :header-class="'p-3'"
       :footer-class="''"
+      :header-class="'p-3'"
       :no-close-on-backdrop="!closable"
       :no-close-on-esc="!closable"
       no-fade
@@ -20,8 +20,18 @@
       </b-container>
     </template>
 
-    <span>{{ getCapitalizeLang("dictionary") + ':' }}</span>
-    {{ dictionary.name }}
+    <b-row class="mb-2">
+      <b-col class="pr-0" sm="3">
+        <span>{{ getCapitalizeLang("dictionary") + ':' }}</span>
+      </b-col>
+      <b-col class="pl-0 pr-1" sm="7">
+        <dictionary-multiselect
+            :id="ids.dictionaryMultiselect"
+            :data="{watchId: watchIds.dictionaryMultiselect, value: card.dictionary, options: dictionaries}"
+            @onSelect="onSelectDictionary"
+        />
+      </b-col>
+    </b-row>
 
     <b-row>
       <b-col class="pr-1" sm="10">
@@ -62,7 +72,7 @@
         </div>
       </b-col>
       <b-col class="px-0" sm="2">
-        <b-button-group>
+        <b-button-group size="sm">
           <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
@@ -130,7 +140,7 @@
         </div>
       </b-col>
       <b-col class="px-0" sm="2">
-        <b-button-group>
+        <b-button-group size="sm">
           <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
@@ -197,7 +207,7 @@
         </div>
       </b-col>
       <b-col class="px-0" sm="2">
-        <b-button-group>
+        <b-button-group size="sm">
           <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
@@ -265,7 +275,7 @@
         </div>
       </b-col>
       <b-col class="px-0" sm="2">
-        <b-button-group>
+        <b-button-group size="sm">
           <b-button class="shadow-none"
                     size="sm"
                     tabindex="-1"
@@ -314,19 +324,20 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
-import SinglePictureDropZone from './SinglePictureDropZone.vue'
-import CloseRow from '../close/CloseRow.vue'
-import * as _ from 'lodash'
+import {mapState} from "vuex"
+import * as _ from "lodash"
+import SinglePictureDropZone from "./SinglePictureDropZone.vue"
+import CloseRow from "../close/CloseRow.vue"
+import DictionaryMultiselect from "./DictionaryMultiselect.vue"
 
 export default {
   props: [
     'id',
     'closable',
-    'unrepeated',
     'dictionary',
   ],
   components: {
+    DictionaryMultiselect,
     SinglePictureDropZone,
     CloseRow,
   },
@@ -335,11 +346,25 @@ export default {
     this.$root.$on('getPictureFormData', payload => {
       this.formData = payload.formData
     })
+    this.$store.watch(this.$store.getters.getDictionariesId, id => {
+      this.watchIds.dictionaryMultiselect = _.now()
+    })
   },
   computed: {
     ...mapState([
       'lang',
+      'dictionaries',
     ]),
+    ids() {
+      return {
+        dictionaryMultiselect: this.prefixId() + 'dictionary-multiselect-id',
+      }
+    },
+    watchIds() {
+      return {
+        dictionaryMultiselect: 0,
+      }
+    },
     defaultProperties() {
       return {
         word: {
@@ -381,9 +406,6 @@ export default {
     $route: [
       'fetchData',
     ],
-    dictionary() {
-      this.fetchData()
-    }
   },
   data() {
     return {
@@ -393,7 +415,7 @@ export default {
         translation: '',
         example: '',
         exampleTranslation: '',
-        unrepeated: this.unrepeated,
+        unrepeated: this.dictionary.unrepeated,
         dictionary: this.dictionary,
         picture: null,
       },
@@ -450,7 +472,7 @@ export default {
         example: '',
         exampleTranslation: '',
         dictionary: this.dictionary,
-        unrepeated: this.unrepeated,
+        unrepeated: this.dictionary.unrepeated,
         picture: null,
       }
       this.formData = null
@@ -570,6 +592,9 @@ export default {
     exampleTranslationError() {
       if (this.isBlank(this.card.exampleTranslation)) return ''
       return ''
+    },
+    onSelectDictionary(d) {
+      this.card.dictionary = d
     },
   }
 }

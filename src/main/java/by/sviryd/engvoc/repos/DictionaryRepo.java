@@ -13,6 +13,7 @@ public interface DictionaryRepo extends JpaRepository<Dictionary, UUID>, Diction
     Optional<Dictionary> findByName(String name);
 
     Optional<Dictionary> findByNameAndUnrepeated(String name, Boolean unrepeated);
+    Optional<Dictionary> findByVocabularyAndName(Vocabulary vocabulary, String name);
 
     Optional<Dictionary> findByNameAndParent(String name, Long parent);
 

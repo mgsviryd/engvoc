@@ -53,8 +53,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests().anyRequest()
-//                .antMatchers(
+                .authorizeRequests()
+                .antMatchers(
+                        "/vocabulary**"
 //                        "/",
 //                        "/sign**",
 //                        "/login**",
@@ -68,8 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //                        "/notFound**",
 //                        "/error**",
 //                        "/user**"
-//                )
-                .permitAll()
+                ).authenticated()
                 .anyRequest().permitAll()
 
                 .and()
