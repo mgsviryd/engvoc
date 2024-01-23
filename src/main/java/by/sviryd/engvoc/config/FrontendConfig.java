@@ -20,19 +20,17 @@ public class FrontendConfig {
     private ServerPathConfig serverPathConfig;
     @Autowired
     private InfoConfig infoConfig;
-    private Map<String, String> config;
-    private Map<String, String> version;
+    @Autowired
+    private AudioGenerateConfig audioGenerateConfig;
 
-    public String getCertainConfig(String name){
-        return config.get(name);
-    }
-    public String getCertainVersion(String name){
-        return version.get(name);
-    }
+    private Map<Object, Object> config;
+    private Map<Object, Object> version;
 
     @PostConstruct
     public void init(){
         config.put("uploadPicture", serverPathConfig.getUploadPicture());
+        config.put("uploadAudio", serverPathConfig.getUploadAudio());
         config.put("staticPicture", serverPathConfig.getStaticPicture());
+        config.put("audioGenerateLocales", audioGenerateConfig.getLocales());
     }
 }

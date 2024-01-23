@@ -53,6 +53,7 @@ const messages = {
   exampleTranslation: 'перевод примера',
   learned: 'выучено',
   picture: 'изображение',
+  audio: 'аудио',
   addVocabulary: 'добавить лексикон',
   addDictionary: 'добавить словарь',
   addCard: 'добавить карточку',

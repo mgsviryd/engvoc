@@ -1,6 +1,7 @@
 package by.sviryd.engvoc.domain;
 
 import by.sviryd.engvoc.converter.LocalDateTimeToTimestampConverter;
+import by.sviryd.engvoc.type.LangLocale;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -89,6 +90,16 @@ public class Card implements Serializable {
     @JsonView(Views.ClientId.class)
     @Column(name = "client_id", updatable = false, insertable = false)
     private Long clientId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    @JsonView(Views.Source.class)
+    private LangLocale source;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    @JsonView(Views.Target.class)
+    private LangLocale target;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vocabulary_id")
@@ -180,6 +191,11 @@ public class Card implements Serializable {
     @Length(max = 50)
     @JsonView(Views.Picture.class)
     private String picture;
+
+    @Column(length = 50)
+    @Length(max = 50)
+    @JsonView(Views.Audio.class)
+    private String audio;
 
     @Column(nullable = false, columnDefinition = "BIT", length = 1)
     @JsonView(Views.Invisible.class)

@@ -11,7 +11,7 @@
       <template #overlay>
         <div class="text-center">
           <div class="d-flex justify-content-center">
-            <google-circle :heightRem="6" :widthRem="6"></google-circle>
+            <google-circle :height="'6rem'" :width="'6rem'"></google-circle>
           </div>
         </div>
       </template>

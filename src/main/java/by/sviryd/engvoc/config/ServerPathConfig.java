@@ -20,6 +20,7 @@ public class ServerPathConfig {
     private String absolute;
     private String upload;
     private String uploadPicture;
+    private String uploadAudio;
     private String staticPicture;
 
     @PostConstruct
@@ -28,6 +29,7 @@ public class ServerPathConfig {
             createDirectories(getAbsolute());
             createDirectories(getAbsolute() + upload);
             createDirectories(getAbsolute() + uploadPicture);
+            createDirectories(getAbsolute() + uploadAudio);
         }
     }
 

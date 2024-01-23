@@ -14,7 +14,7 @@
       <template #overlay>
         <div v-if="overlay.showSignInSpin" class="text-center">
           <div class="d-flex justify-content-center">
-            <google-circle :heightRem="3" :widthRem="3"></google-circle>
+            <google-circle :height="'3rem'" :width="'3rem'"></google-circle>
           </div>
           <p>
             {{ getCapitalizeLang('pleaseWaitThreeDot') }}
@@ -40,7 +40,7 @@
 
         <div v-if="overlay.showSignUpSpin" class="text-center">
           <div class="d-flex justify-content-center">
-            <google-circle :heightRem="3" :widthRem="3"></google-circle>
+            <google-circle :height="'3rem'" :width="'3rem'"></google-circle>
           </div>
           <p id="cancel-label">
             {{ getCapitalizeLang('pleaseWaitThreeDot') }}

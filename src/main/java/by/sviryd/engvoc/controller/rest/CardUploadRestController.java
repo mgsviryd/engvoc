@@ -98,6 +98,8 @@ public class CardUploadRestController {
             c.setVocabulary(vocabulary);
             c.setDictionary(dictionary);
             c.setUnrepeated(dictionary.isUnrepeated());
+            c.setTarget(vocabulary.getTarget());
+            c.setSource(vocabulary.getSource());
         });
         if (dictionary.isUnrepeated()) {
             cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);
@@ -179,6 +181,8 @@ public class CardUploadRestController {
             c.setVocabulary(vocabulary);
             c.setDictionary(dictionary);
             c.setUnrepeated(dictionary.isUnrepeated());
+            c.setTarget(vocabulary.getTarget());
+            c.setSource(vocabulary.getSource());
         });
         if (dictionary.isUnrepeated()) {
             cards = cardUnrepeatedService.getUnrepeatedByWordAndTranslation(cards);

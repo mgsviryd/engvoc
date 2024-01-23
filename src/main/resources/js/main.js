@@ -25,7 +25,8 @@ import VueFileAgentStyles from "vue-file-agent/dist/vue-file-agent.css"
 import GlobalEvents from "vue-global-events"
 import VueForceNextTick from "vue-force-next-tick"
 import {i18n} from "./setup/i18n-setup"
-import * as _ from "lodash"
+import VuePlyr from 'vue-plyr'
+import 'vue-plyr/dist/vue-plyr.css'
 
 import $ from "jquery"
 window.jQuery = $
@@ -66,6 +67,8 @@ Vue.use(IconsPlugin)
 Vue.use(VueFileAgent)
 Vue.use(VueFileAgentStyles)
 Vue.use(VueForceNextTick)
+Vue.use(VuePlyr, {plyr: {}})
+
 
 router.beforeEach(async (to, from, next) => {
     await store.restored

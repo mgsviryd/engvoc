@@ -35,6 +35,9 @@ public final class Views {
     public interface Picture {
     }
 
+    public interface Audio {
+    }
+
     public interface Priority {
     }
 
@@ -114,6 +117,8 @@ public final class Views {
             AuthorId,
             ClientId,
             Client,
+            Target,
+            Source,
             Unrepeated,
             Vocabulary,
             Word,
@@ -130,6 +135,7 @@ public final class Views {
             CountShown,
             CountAnswered,
             Picture,
+            Audio,
             Dictionary {
     }
 

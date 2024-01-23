@@ -5,6 +5,7 @@ import pictureMediaApi from "../api/pictureMedia"
 import languageApi from "../api/language"
 import signApi from "../api/sign"
 import cardApi from "../api/card"
+import audioApi from "../api/audio"
 import dictionaryApi from "../api/dictionary"
 import vocabularyApi from "../api/vocabulary"
 import VuexPersistence from "vuex-persist"
@@ -81,7 +82,7 @@ export default new Vuex.Store(
             config: {
                 uploadResource: '',
                 uploadPicture: '',
-
+                audioGenerateLocales: [],
             },
             version: {},
             pictureMedia: {
@@ -122,6 +123,9 @@ export default new Vuex.Store(
             },
         },
         getters: {
+            isAudioGenerateLocalePresent: state => (locale) =>{
+              return state.config.audioGenerateLocales.findIndex(l=>l==locale) >= 0
+            },
             getDictionariesId: state =>()=> state.ids.dictionaries,
             getActionId: state => () => state.action.id,
             getAuthenticationId: state => () => state.authentication.id,
@@ -985,11 +989,11 @@ export default new Vuex.Store(
                     return data.errors
                 }
             },
-            async addCardWithPictureAction({commit}, payload) {
+            async addCardWithAudioAndPictureAction({commit}, payload) {
                 let result = null
                 if (payload.formData) {
                     payload.formData.append('card', new Blob([JSON.stringify(payload.card)], {type: "application/json"}),)
-                    result = await cardApi.saveWithPicture(payload.formData)
+                    result = await cardApi.saveWithAudioAndPicture(payload.formData)
                 } else {
                     result = await cardApi.saveWithoutPicture(payload.card)
                 }
@@ -1147,7 +1151,18 @@ export default new Vuex.Store(
                     link.download = 'dictionaries' + '.zip'
                     link.click();
                 }
-            }
+            },
+
+            async generateAudioAction({commit}, payload) {
+                let result = await audioApi.generateAudio(payload)
+                const data = await result.data
+                if (result.ok) {
+                    let blob = new Blob([data], {type: result.headers.map['content-type'][0]})
+                    // console.info(result)
+                    // console.info({blob: blob, mediaType: result.headers.map['content-type'][0], extension: result.headers.map['extension'][0]})
+                    return {blob: blob, mediaType: result.headers.map['content-type'][0], extension: result.headers.map['extension'][0]}
+                }
+            },
         },
     }
 )

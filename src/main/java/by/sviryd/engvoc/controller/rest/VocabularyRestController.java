@@ -104,6 +104,7 @@ public class VocabularyRestController {
             @RequestBody Vocabulary vocabulary
     ) {
         List<Dictionary> dictionaries = dictionaryService.findAllByAuthorAndVocabulary(user, vocabulary);
+        dictionaries.forEach(d->d.setVocabulary(vocabulary));
         List<Card> cards = cardService.findAllByClientAndVocabulary(user, vocabulary);
         cards.forEach(card -> card.setClient(user));
         HashMap<Object, Object> data = new HashMap<>();

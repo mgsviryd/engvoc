@@ -37,7 +37,7 @@ export default {
       if (this.isDefaultPictureFileName()) {
         return '/static/picture'
       } else {
-        return this.config['uploadResource'] + this.config['uploadPicture']
+        return this.config.uploadResource + this.config.uploadPicture
       }
     },
 

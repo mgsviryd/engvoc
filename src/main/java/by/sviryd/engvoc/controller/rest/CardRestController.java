@@ -1,9 +1,7 @@
 package by.sviryd.engvoc.controller.rest;
 
-import by.sviryd.engvoc.domain.Card;
+import by.sviryd.engvoc.domain.*;
 import by.sviryd.engvoc.domain.Dictionary;
-import by.sviryd.engvoc.domain.User;
-import by.sviryd.engvoc.domain.Views;
 import by.sviryd.engvoc.repos.exception.UpdateAllOrNothingException;
 import by.sviryd.engvoc.service.*;
 import by.sviryd.engvoc.util.LocaleExceptionMessage;
@@ -39,6 +37,8 @@ public class CardRestController {
     private CardUnrepeatedService cardUnrepeatedService;
     @Autowired
     private PictureMediaService pictureMediaService;
+    @Autowired
+    private AudioMediaService audioMediaService;
     @Autowired
     private MessageI18nService messageI18nService;
 
@@ -105,12 +105,13 @@ public class CardRestController {
         return data;
     }
 
-    @PostMapping(value = "/saveWithPicture", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/saveWithAudioAndPicture", consumes = {"multipart/form-data"})
     @JsonView({Views.Card.class})
-    public HashMap<Object, Object> saveWithPicture(
+    public HashMap<Object, Object> saveWithAudioAndPicture(
             @AuthenticationPrincipal User user,
             Locale locale,
-            @RequestPart("file") MultipartFile file,
+            @RequestPart(value = "audio", required = false) MultipartFile audioFile,
+            @RequestPart(value = "picture", required = false) MultipartFile pictureFile,
             @RequestPart("card") String cardJson
     ) throws IOException {
         Card card = new ObjectMapper().readValue(cardJson, Card.class);
@@ -122,14 +123,25 @@ public class CardRestController {
             LocaleExceptionMessage error = new LocaleExceptionMessage(code, "name", message);
             errors.add(error);
         } else {
-            String picture = pictureMediaService.savePictureOrRollback(file);
+            String audio = null;
+            if (audioFile != null) {
+                audio = audioMediaService.saveOrRollback(audioFile);
+            }
+            String picture = null;
+            if (pictureFile != null) {
+                picture = pictureMediaService.savePictureOrRollback(pictureFile);
+            }
             Optional<Dictionary> dictionaryOpt = dictionaryService.findById(card.getDictionary().getId());
             Dictionary d = dictionaryOpt.get();
+            Vocabulary vocabulary = d.getVocabulary();
             card.setDictionary(d);
-            card.setVocabulary(d.getVocabulary());
+            card.setVocabulary(vocabulary);
             card.setAuthor(user);
             card.setClient(user);
+            card.setAudio(audio);
             card.setPicture(picture);
+            card.setTarget(vocabulary.getTarget());
+            card.setSource(vocabulary.getSource());
             saved = cardService.save(card);
         }
         HashMap<Object, Object> data = new HashMap<>();
@@ -236,6 +248,7 @@ public class CardRestController {
             @RequestBody List<Card> cards,
             @RequestParam("id") Dictionary dictionary
     ) {
+        Vocabulary vocabulary = dictionary.getVocabulary();
         if (cards.isEmpty()) {
             return convertToMap(Collections.emptyList(), Collections.emptyList());
         }
@@ -249,6 +262,8 @@ public class CardRestController {
                 }
                 c.setDictionary(dictionary);
                 c.setUnrepeated(unrepeated);
+                c.setTarget(vocabulary.getTarget());
+                c.setSource(vocabulary.getSource());
             });
         } else {
             notSaved = cardUnrepeatedService.getRepeatedByWordAndTranslation(cards);
@@ -274,6 +289,8 @@ public class CardRestController {
                 }
                 c.setDictionary(dictionary);
                 c.setUnrepeated(unrepeated);
+                c.setTarget(vocabulary.getTarget());
+                c.setSource(vocabulary.getSource());
             });
         }
         try {

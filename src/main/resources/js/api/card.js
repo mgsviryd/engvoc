@@ -26,7 +26,7 @@ export default {
     deleteByIdIn: (body) => Vue.http.delete("/json/card/deleteByIdIn", {body: body}),
     deleteByDictionary: (body) => Vue.http.delete("/json/card/deleteByDictionary", {body: body}),
 
-    saveWithPicture: (formData) => Vue.http.post("/json/card/saveWithPicture", formData, configUndefinedJson),
+    saveWithAudioAndPicture: (formData) => Vue.http.post("/json/card/saveWithAudioAndPicture", formData, configUndefinedJson),
     saveWithoutPicture: card => Vue.http.post("/json/card/saveWithoutPicture", card),
 
     changeDictionary: (card, id) => Vue.http.post("/json/card/changeDictionary", card, {params: {id}}),

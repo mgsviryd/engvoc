@@ -1,8 +1,8 @@
 <template>
   <b-dropdown
       v-if="show"
-      :id="prefixId()"
-      :ref="prefixId()"
+      :id="ids.id"
+      :ref="ids.id"
       class="border-0 shadow-none"
       :class="''"
       toggle-class="shadow-none rounded-sm px-1"
@@ -13,7 +13,7 @@
       @hide="shown=false"
       @show="shown=true"
   >
-    <b-popover :target="prefixId()"
+    <b-popover :target="ids.id"
                :title="''"
                :show.sync="isPopover"
                placement="bottomleft"

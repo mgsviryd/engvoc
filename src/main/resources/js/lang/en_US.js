@@ -55,6 +55,7 @@ const messages = {
     exampleTranslation: 'example translation',
     learned: 'learned',
     picture: 'picture',
+    audio: 'audio',
     addDictionary: 'add dictionary',
     addVocabulary: 'add vocabulary',
     addCard: 'add card',

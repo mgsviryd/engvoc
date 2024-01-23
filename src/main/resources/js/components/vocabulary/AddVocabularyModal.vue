@@ -195,7 +195,7 @@ export default {
     ],
     lang: {
       handler: function () {
-        this.$forceNextTick(() => {
+        this.$nextTick(() => {
           this.fetchData()
         })
       },
@@ -203,7 +203,7 @@ export default {
     },
     props: {
       handler: function () {
-        this.$forceNextTick(() => {
+        this.$nextTick(() => {
           this.fetchData()
         })
       },

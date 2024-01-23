@@ -39,6 +39,8 @@ public class CardUploadService {
             c.setClient(client);
             c.setUnrepeated(false);
             c.setCreationLDT(now);
+            c.setTarget(vocabulary.getTarget());
+            c.setSource(vocabulary.getSource());
         });
         List<Dictionary> dsSaved = dictionaryService.saveAll(new ArrayList<>(dictionaries));
         cards.forEach(c -> c.setDictionary(dsSaved.stream().filter(x -> c.getDictionary().getName().equals(x.getName())).findFirst().get()));
@@ -73,6 +75,8 @@ public class CardUploadService {
         Dictionary newDictionary = dictionaryService.findIfAbsentSaveNewUnrepeated(user, vocabulary);
         cards.forEach(c -> {
             c.setDictionary(newDictionary);
+            c.setTarget(vocabulary.getTarget());
+            c.setSource(vocabulary.getSource());
         });
         HashMap<Object, Object> data = new HashMap<>();
         List<Card> repeatedCards = cardService.findDistinctByClientAndWordAndTranslationWithUnrepeatedTrue(cards, user);

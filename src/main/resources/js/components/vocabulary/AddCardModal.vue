@@ -304,21 +304,69 @@
       </b-col>
     </b-row>
 
-    <span>{{ getCapitalizeLang('picture') + ':' }}</span>
-    <single-picture-drop-zone></single-picture-drop-zone>
+    <b-row>
+      <b-col class="pr-1" sm="10">
+        <b-form-group
+            :label="getCapitalizeLang('audio') + ':'"
+            :label-for="properties.audio.inputId"
+            content-cols-lg="7"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
+        >
+          <audio-recorder
+              :id="ids.audioRecorder"
+              :ref="ids.audioRecorder"
+              :locale="vocabulary.source.locale"
+              :player="true"
+              :show-player="true"
+              :updatable="true"
+              :url="null"
+              :word="card.word"
+          ></audio-recorder>
+        </b-form-group>
+      </b-col>
+    </b-row>
+
+    <b-row>
+      <b-col class="pr-1" sm="10">
+        <b-form-group
+            :label="getCapitalizeLang('picture') + ':'"
+            :label-for="properties.picture.inputId"
+            content-cols-lg="7"
+            content-cols-sm="7"
+            label-class="py-0"
+            label-cols-lg="3"
+            label-cols-sm="3"
+        >
+          <single-picture-drop-zone
+              :id="ids.singlePictureDropZone"
+              :ref="ids.singlePictureDropZone"
+          ></single-picture-drop-zone>
+        </b-form-group>
+      </b-col>
+    </b-row>
 
     <template #modal-footer="{ ok, cancel, hide }">
       <b-button variant="secondary"
                 @click.prevent.stop="reject()">
-        {{ getCapitalizeLang("no") }}
+        {{ getCapitalizeLang('no') }}
       </b-button>
-      <b-button
-          :class="!stateTrue()?'cursor-not-allowed':null"
-          :disabled="!stateTrue()"
-          :variant="stateTrue()?'success':'outline-success'"
-          @click.prevent.stop="confirm()">
-        {{ getCapitalizeLang("yes") }}
-      </b-button>
+      <b-overlay :show="showOverlay" rounded="sm">
+        <template #overlay>
+          <div class="d-flex justify-content-center text-center">
+            <google-circle :height="'2rem'" :width="'2rem'"></google-circle>
+          </div>
+        </template>
+        <b-button
+            :class="!stateTrue()?'cursor-not-allowed':null"
+            :disabled="!stateTrue()"
+            :variant="stateTrue()?'success':'outline-success'"
+            @click.prevent.stop="confirm()">
+          {{ getCapitalizeLang('yes') }}
+        </b-button>
+      </b-overlay>
     </template>
   </b-modal>
 </template>
@@ -329,23 +377,25 @@ import * as _ from "lodash"
 import SinglePictureDropZone from "./SinglePictureDropZone.vue"
 import CloseRow from "../close/CloseRow.vue"
 import DictionaryMultiselect from "./DictionaryMultiselect.vue"
+import AudioRecorder from "./AudioRecorder.vue"
+import GoogleCircle from "../spinner/GoogleCircle.vue"
 
 export default {
   props: [
     'id',
     'closable',
     'dictionary',
+    'vocabulary',
   ],
   components: {
     DictionaryMultiselect,
     SinglePictureDropZone,
     CloseRow,
+    AudioRecorder,
+    GoogleCircle,
   },
   created() {
     Object.assign(this.properties, this.defaultProperties)
-    this.$root.$on('getPictureFormData', payload => {
-      this.formData = payload.formData
-    })
     this.$store.watch(this.$store.getters.getDictionariesId, id => {
       this.watchIds.dictionaryMultiselect = _.now()
     })
@@ -357,7 +407,9 @@ export default {
     ]),
     ids() {
       return {
+        audioRecorder: this.prefixId() + 'audio-recorder-id',
         dictionaryMultiselect: this.prefixId() + 'dictionary-multiselect-id',
+        singlePictureDropZone: this.prefixId() + 'single-picture-drop-zone-id',
       }
     },
     watchIds() {
@@ -398,7 +450,13 @@ export default {
           showError: false,
           timeoutCopyTooltip: 300,
           maxlength: 500,
-        }
+        },
+        picture: {
+          inputId: this.prefixId() + "picture-input-id",
+        },
+        audio: {
+          inputId: this.prefixId() + "word-audio-input-id",
+        },
       }
     },
   },
@@ -409,7 +467,9 @@ export default {
   },
   data() {
     return {
+      name: 'AddCardModal',
       show: true,
+      showOverlay: false,
       card: {
         word: '',
         translation: '',
@@ -418,8 +478,8 @@ export default {
         unrepeated: this.dictionary.unrepeated,
         dictionary: this.dictionary,
         picture: null,
+        audio: null,
       },
-      formData: null,
       properties: {},
       errors: [],
     }
@@ -431,7 +491,7 @@ export default {
       this.show = true
     },
     prefixId() {
-      return this.id + '-'
+      return this.name + '-' + this.id + '-'
     },
     showModal() {
       this.$refs[this.id].show()
@@ -445,9 +505,15 @@ export default {
     },
     confirm() {
       if (this.stateTrue()) {
+        this.showOverlay = true
+        const audioFile = this.$refs[this.ids.audioRecorder].getFile()
+        const pictureFile = this.$refs[this.ids.singlePictureDropZone].getFile()
+        const formData = new FormData()
+        if (audioFile) formData.append('audio', audioFile)
+        if (pictureFile) formData.append('picture', pictureFile)
         this.$store.dispatch(
-            'addCardWithPictureAction',
-            {formData: this.formData, card: this.card}
+            'addCardWithAudioAndPictureAction',
+            {card: this.card, formData: formData}
         ).then((errors) => {
           if (errors.length === 0) {
             this.closeModal()
@@ -456,6 +522,7 @@ export default {
             console.info(this.errors[0])
             this.showErrors()
           }
+          this.showOverlay = false
         })
       }
     },
@@ -474,8 +541,8 @@ export default {
         dictionary: this.dictionary,
         unrepeated: this.dictionary.unrepeated,
         picture: null,
+        audio: null,
       }
-      this.formData = null
       this.$root.$emit('setDefaultDropZone')
     },
     hideErrorsAndFlush() {

@@ -4,8 +4,8 @@
       :id="id"
       :ref="id"
       :body-class="'py-1'"
-      :header-class="'p-3'"
       :footer-class="''"
+      :header-class="'p-3'"
       :no-close-on-backdrop="!closable"
       :no-close-on-esc="!closable"
       no-fade
@@ -121,6 +121,7 @@ export default {
     this.$root.$on('getPictureFormData', payload => {
       this.formData = payload.formData
     })
+    this.fetchData()
   },
   components: {
     SinglePictureDropZone,
@@ -150,7 +151,7 @@ export default {
   },
   data() {
     return {
-      show: true,
+      show: false,
       name: "AddDictionaryModal",
       dictionary: {
         name: '',
@@ -165,9 +166,11 @@ export default {
   },
   methods: {
     fetchData() {
+      this.show = false
+      this.show = true
     },
     prefixId() {
-      return this.id + '-'
+      return this.name + '-' + this.id + '-'
     },
     focusName() {
       this.$refs[this.properties.name.inputId].focus()

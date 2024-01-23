@@ -251,7 +251,7 @@
                   >
                 </div>
                 <div v-else-if="property.propertyType === 'boolean'"
-                  class="d-flex justify-content-center"
+                     class="d-flex justify-content-center"
                 >
                   <input
                       v-model="getCardById(card.id)[property.property]"
@@ -339,6 +339,20 @@
                     />
                   </b-popover>
                 </div>
+                <div v-if="property.property === 'audio'"
+                     class="d-flex justify-content-center"
+                >
+                  <audio-recorder
+                      :id="ids.audioRecorder + '-'+card.id"
+                      :ref="ids.audioRecorder + '-'+card.id"
+                      :locale="card.source.locale"
+                      :player="false"
+                      :show-player="false"
+                      :updatable="false"
+                      :url="config.uploadResource + config.uploadAudio+'/'+card.audio"
+                      :word="card.word"
+                  ></audio-recorder>
+                </div>
               </td>
             </template>
             <td class="st-sm border-1 border-secondary">
@@ -395,6 +409,7 @@
           :ref="ids.addCardModal"
           :closable="true"
           :dictionary="dictionary"
+          :vocabulary="vocabulary.vocabulary"
       ></add-card-modal>
       <confirm-action-with-timer-modal
           :id="ids.confirmDeleteDictionaryModal"
@@ -419,6 +434,7 @@ import UploadDropdown from "./UploadDropdown.vue"
 import PictureUpload from "../picture/PictureUpload.vue"
 import DateJS from "../../util/date"
 import ConfirmActionWithTimerModal from "../modal/ConfirmActionWithTimerModal.vue"
+import AudioRecorder from "./AudioRecorder.vue"
 
 export default {
   props: [
@@ -432,6 +448,7 @@ export default {
     DownloadDropdown,
     UploadDropdown,
     PictureUpload,
+    AudioRecorder,
   },
   mounted() {
 
@@ -483,9 +500,7 @@ export default {
       'height',
       'config',
     ]),
-    ...mapGetters([
-
-    ]),
+    ...mapGetters([]),
 
     renderCards() {
       let startIndex = this.vt.startIndex
@@ -526,6 +541,30 @@ export default {
           width: 45,
         },
         {
+          property: 'audio',
+          propertyType: 'audio',
+          label: 'audio',
+          icon: '<i class="fa-solid fa-play"></i>',
+          showLabel: false,
+          showIcon: true,
+          tooltip: {
+            placement: top,
+            title: 'audio',
+            delay: {show: 500, hide: 100}
+          },
+          order: null,
+          priority: 0,
+          priorityOrder: 0,
+          sortable: true,
+          showColumn: true,
+          showDetail: false,
+          showDetailLabel: false,
+          columnInx: 1,
+          detailInx: null,
+          detailPosition: 'vertical',
+          width: 50,
+        },
+        {
           property: "word",
           propertyType: "string",
           label: "word",
@@ -544,7 +583,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 1,
+          columnInx: 2,
           detailInx: null,
           detailPosition: "vertical",
           width: 100,
@@ -568,7 +607,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 2,
+          columnInx: 3,
           detailInx: null,
           detailPosition: "vertical",
           width: 140,
@@ -592,7 +631,7 @@ export default {
           showColumn: true,
           showDetail: true,
           showDetailLabel: true,
-          columnInx: 3,
+          columnInx: 4,
           detailInx: 1,
           detailPosition: "vertical",
           width: 200,
@@ -616,7 +655,7 @@ export default {
           showColumn: true,
           showDetail: true,
           showDetailLabel: true,
-          columnInx: 4,
+          columnInx: 5,
           detailInx: 1,
           detailPosition: "vertical",
           width: 200,
@@ -640,7 +679,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 5,
+          columnInx: 6,
           detailInx: null,
           detailPosition: 'vertical',
           width: 60,
@@ -664,7 +703,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 6,
+          columnInx: 7,
           detailInx: null,
           detailPosition: "vertical",
           width: 45,
@@ -684,11 +723,11 @@ export default {
           order: null,
           priority: 0,
           priorityOrder: 0,
-          sortable: false,
+          sortable: true,
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 7,
+          columnInx: 8,
           detailInx: null,
           detailPosition: "vertical",
           width: 50,
@@ -712,7 +751,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 8,
+          columnInx: 9,
           detailInx: null,
           detailPosition: "vertical",
           width: 50,
@@ -736,7 +775,7 @@ export default {
           showColumn: true,
           showDetail: false,
           showDetailLabel: false,
-          columnInx: 9,
+          columnInx: 10,
           detailInx: null,
           detailPosition: "vertical",
           width: 140,
@@ -758,6 +797,7 @@ export default {
         downloadDropdown: this.prefixId() + 'download-dropdown-id',
         uploadDropdown: this.prefixId() + 'upload-dropdown-id',
         confirmDeleteDictionaryModal: this.prefixId() + 'confirm-delete-dictionary-modal-id',
+        audioRecorder: this.prefixId()+'audio-recorder-id',
       }
     },
     styleField() {
@@ -924,8 +964,8 @@ export default {
     deleteCards() {
       this.$store.dispatch('deleteCardsByIdInAction', {ids: this.getCardIds()})
     },
-    getCardIds(){
-      return this.cards.map(c=>c.id)
+    getCardIds() {
+      return this.cards.map(c => c.id)
     },
     orderCards(property, order) {
       for (let i = 0; i < this.propertySettings.length; i++) {
@@ -1293,10 +1333,10 @@ export default {
     setConfirmActionToDefault() {
       Object.assign(this.confirmAction, this.defaultConfirmAction)
     },
-    onConfirmAction(flag){
+    onConfirmAction(flag) {
       this.confirmAction.isConfirm = flag
     },
-    onRejectAction(flag){
+    onRejectAction(flag) {
       this.confirmAction.isReject = flag
     },
   },

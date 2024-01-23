@@ -51,6 +51,7 @@ server:
     absolute: /../engvoc-upload
     upload: /upload
     uploadPicture: /upload/picture
+    uploadAudio: /upload/audio
     staticPicture: /static/picture
 
 mail:
@@ -215,6 +216,12 @@ lang:
   localeAbbrs:
     - 'ru_RU'
     - 'en_US'
+audio:
+  generate:
+    initMary: true
+    localeAbbrs:
+      - 'en_US'
+      - 'en_GB'
 
 frontend:
   config:

@@ -1,18 +1,21 @@
 <template>
-    <div id="googleCircle" :style="cssProps"></div>
+    <div class="googleCircle" :style="style"></div>
 </template>
 
 <script>
     export default{
-        props: ['widthRem', 'heightRem'],
+        props: [
+          'width',
+          'height',
+        ],
         data(){
             return {}
         },
         computed: {
-            cssProps() {
+            style() {
                 return {
-                    'width': this.widthRem + "rem",
-                    'height': this.heightRem + "rem",
+                    'width': this.width,
+                    'height': this.height,
                 }
             }
         },
@@ -20,10 +23,7 @@
 </script>
 
 <style scoped>
-    #googleCircle {
-        height: var(height);
-        width: var(width);
-        /*margin: 5rem 0 0 5rem;*/
+    .googleCircle {
         border: 4px rgba(0, 0, 0, 0.25) solid;
         border-top: 4px #008744 solid;
         border-right: 4px #0057e7 solid;
